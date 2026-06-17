@@ -11,6 +11,7 @@ object AppRoute {
     const val OWNER_WORK_DETAIL = "owner_work_detail"        // 2-4 근무 관리/정산
     const val OWNER_PAST_POSTINGS = "owner_past_postings"    // 2-6 지난 공고
 
-    // Worker section (built after the owner flow)
+    // Worker section
     const val WORKER_ROOT = "worker_root"
+    const val WORKER_JOB_DETAIL = "worker_job_detail"        // 3-3 공고 상세
 }
