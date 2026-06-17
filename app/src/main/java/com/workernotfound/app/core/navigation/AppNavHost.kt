@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import com.workernotfound.app.core.designsystem.AppRole
 import com.workernotfound.app.core.designsystem.WorkerNotFoundTheme
 import com.workernotfound.app.core.designsystem.component.ComingSoonScreen
+import com.workernotfound.app.feature.job.ui.JobPostingScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRootScreen
 
 /**
@@ -32,7 +33,10 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         }
         composable(AppRoute.OWNER_JOB_POSTING) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
-                ComingSoonScreen(title = "공고 등록 (2-2)")
+                JobPostingScreen(
+                    onBack = { navController.popBackStack() },
+                    onSuccess = { navController.popBackStack(AppRoute.OWNER_ROOT, inclusive = false) },
+                )
             }
         }
         composable(AppRoute.OWNER_APPLICANTS) {
