@@ -13,5 +13,6 @@ object AppRoute {
 
     // Worker section
     const val WORKER_ROOT = "worker_root"
-    const val WORKER_JOB_DETAIL = "worker_job_detail"        // 3-3 공고 상세
+    const val WORKER_JOB_DETAIL = "worker_job_detail/{jobId}"   // 3-3 공고 상세
+    fun workerJobDetail(jobId: String) = "worker_job_detail/$jobId"
 }
