@@ -2,13 +2,16 @@ package com.workernotfound.app.core.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.workernotfound.app.core.designsystem.AppRole
 import com.workernotfound.app.core.designsystem.WorkerNotFoundTheme
 import com.workernotfound.app.core.designsystem.component.ComingSoonScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRootScreen
+import com.workernotfound.app.feature.worker.ui.WorkerJobDetailScreen
 import com.workernotfound.app.feature.worker.ui.WorkerRootScreen
 
 /**
@@ -57,9 +60,12 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 WorkerRootScreen(navController = navController)
             }
         }
-        composable(AppRoute.WORKER_JOB_DETAIL) {
+        composable(
+            route = AppRoute.WORKER_JOB_DETAIL,
+            arguments = listOf(navArgument("jobId") { type = NavType.StringType }),
+        ) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
-                ComingSoonScreen(title = "공고 상세 (3-3)")
+                WorkerJobDetailScreen(onBack = { navController.popBackStack() })
             }
         }
     }

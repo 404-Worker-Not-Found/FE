@@ -51,10 +51,13 @@ fun WorkerRootScreen(navController: NavHostController) {
         val contentModifier = Modifier.padding(innerPadding)
         when (selectedTab) {
             0 -> WorkerHomeScreen(
-                onJobClick = { navController.navigate(AppRoute.WORKER_JOB_DETAIL) },
+                onJobClick = { jobId -> navController.navigate(AppRoute.workerJobDetail(jobId)) },
                 modifier = contentModifier,
             )
-            1 -> ComingSoonScreen(title = "공고 탐색 (3-2)", modifier = contentModifier)
+            1 -> WorkerJobSearchScreen(
+                onJobClick = { jobId -> navController.navigate(AppRoute.workerJobDetail(jobId)) },
+                modifier = contentModifier,
+            )
             2 -> ComingSoonScreen(title = "근무 관리 (3-6)", modifier = contentModifier)
             3 -> ComingSoonScreen(title = "채팅", modifier = contentModifier)
             else -> ComingSoonScreen(title = "마이페이지 (4-2)", modifier = contentModifier)
