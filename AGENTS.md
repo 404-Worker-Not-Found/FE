@@ -12,6 +12,7 @@ Keep this file focused on AI behavior rules.
 
 - `docs/PROJECT_CONTEXT.md`: current project state and context
 - `docs/UI_Specification.md`: screen-by-screen UI specification (source of truth for screens and fields)
+- `docs/agent/style_guide.md`: visual design system (source of truth for colors, typography, shape, and component styling)
 - `docs/agent/decisions.md`: decisions the project has already made
 - `docs/agent/failure-memory.md`: repeated or high-risk mistakes identified by the user
 - `docs/agent/checklists.md`: verification checklists
@@ -31,7 +32,7 @@ These two are short and high-value; read them every code-change task. Consult th
 - `docs/PROJECT_CONTEXT.md`: read once to orient when unfamiliar with the project, or when the task touches project scope, stage, or backend dependencies.
 - `docs/agent/checklists.md`: open the relevant checklist when the task matches it, and run the `Documentation Update Check` before completing.
 
-When the task implements or changes a screen, read the relevant section of `docs/UI_Specification.md` and treat it as the source of truth for screen names, fields, and behavior.
+When the task implements or changes a screen, read the relevant section of `docs/UI_Specification.md` and treat it as the source of truth for screen names, fields, and behavior. Treat `docs/agent/style_guide.md` as the source of truth for the visual layer (colors, typography, shape, spacing, and component styling), and implement those values through the Compose theme / design system rather than hardcoding them in screens. The app is light-mode only — do not add dark-mode variants.
 
 If the task affects a specific feature, inspect that feature's source code, Gradle build files, and resources before editing.
 

@@ -378,3 +378,85 @@ Related files:
 - `docs/PROJECT_CONTEXT.md`
 - `gradle/libs.versions.toml`
 - `build.gradle.kts`
+
+## 2026-06-16 - Visual Design System Source of Truth
+
+Decision:
+- `docs/agent/style_guide.md` is the source of truth for the visual layer: colors, typography, shape/radius, elevation vs. border, spacing, and component styling (tab bar, badges, chips, toggles, custom map view).
+- The app is light-mode only. Do not implement dark-mode variants or `values-night` resources.
+- The two owner/worker roles are color-coded: owner uses orange (`#FF7E36`), worker uses yellow (`#FFB703` / emphasis `#CC8F00`). Urgency is signaled with the red accent.
+
+Reason:
+- `docs/UI_Specification.md` defines screens, fields, and behavior but not the visual style. A single style source keeps screens visually consistent across parallel feature work and agents.
+
+Implication for agents:
+- When implementing or changing a screen, apply `docs/agent/style_guide.md` values through the Compose theme / design system in `core` (see Resource and Localization Conventions), not as hardcoded literals in screens.
+- `docs/UI_Specification.md` wins on what a screen contains and does; `docs/agent/style_guide.md` wins on how it looks. If they conflict, report it instead of silently choosing.
+- Do not add dark-mode color sets.
+
+Related files:
+- `docs/agent/style_guide.md`
+- `docs/UI_Specification.md`
+- `docs/architecture/package-structure.md`
+
+## 2026-06-16 - SDK Levels Decided
+
+Decision:
+- `compileSdk = 35`, `targetSdk = 35`, `minSdk = 26` (Android 8.0).
+- This supersedes the open question in "SDK Levels Must Be Decided Before Scaffolding"; SDK levels are now decided and scaffolding is unblocked.
+
+Reason:
+- minSdk 26 gives stable foreground-location / GPS behavior, broad device coverage (~95%+), and avoids legacy permission edge cases. compile/target 35 is the current Android baseline.
+
+Implication for agents:
+- Use these exact values in `gradle/libs.versions.toml` and `build.gradle.kts` when scaffolding.
+- If a change is needed, record a new decision before editing Gradle config.
+
+Related files:
+- `gradle/libs.versions.toml`
+- `build.gradle.kts`
+- `docs/PROJECT_CONTEXT.md`
+
+## 2026-06-16 - Map SDK: Naver Map
+
+Decision:
+- Use the Naver Map SDK for map views (worker job-search map, owner live-location, pins).
+- This resolves the "Which map SDK" open question.
+
+Reason:
+- Domestic (Korea) service; Naver Map has good local coverage and straightforward key issuance.
+
+Implication for agents:
+- The Naver Cloud Platform Maps client ID is a secret-style value: read it from `local.properties` / `BuildConfig` (or a manifest meta-data placeholder fed by Gradle), never hardcode or commit it.
+- Style guide's "custom map view" colors apply to non-Naver map placeholders/mini-maps; the live/search map uses the Naver SDK.
+
+Related files:
+- `docs/agent/style_guide.md`
+- `local.properties`
+- `app/src/main/AndroidManifest.xml`
+
+## 2026-06-16 - Demo Scope and Mock-First Strategy
+
+Decision:
+- The current build target is the demo defined in `demo_scenario.md` (owner + worker happy-path flows).
+- In-scope screens: owner 2-1, 2-2, 2-3, 2-4, 2-5, 2-6; worker 3-1, 3-2, 3-3, 3-4, 3-5, 3-6, 4-2.
+- Out of demo scope: 1-1 splash/onboarding, 1-2 sign up, 1-3 login, social login, business/email/SMS verification, chat (feature/chat), and 4-1 profile settings.
+- Data is mock-first: feature repositories expose interfaces backed by in-memory mock data sources for the demo; swap to Retrofit when the backend contract is confirmed.
+- Real-time (application-status WebSocket) and Push (re-matching) are simulated in-app with timers for the demo; no FCM/WebSocket infrastructure.
+- A lightweight role switcher (owner/worker) is the demo entry point in place of the excluded auth flow.
+
+Reason:
+- The demo scenario starts at each role's main screen and does not exercise auth, chat, or profile. Mock-first lets the UI be built and shown before backend contracts are final.
+
+Implication for agents:
+- Build only in-scope screens for the demo; do not scaffold auth/chat/profile screens unless asked.
+- `docs/UI_Specification.md` stays authoritative. Where the scenario diverges from the spec, the spec wins for the demo and the difference is NOT silently adopted:
+  - Job posting (2-2) has no "title" field — do not add one.
+  - Worker "work history" lives in 신뢰도 (4-2), not 근무 관리 (3-6).
+  - The review-writing screen is undefined in the spec; treat the review button as a placeholder destination for the demo rather than inventing a full screen.
+- Keep mock data sources behind repository interfaces so the real network layer can replace them without UI changes.
+
+Related files:
+- `docs/UI_Specification.md`
+- `docs/architecture/package-structure.md`
+- `docs/PROJECT_CONTEXT.md`
