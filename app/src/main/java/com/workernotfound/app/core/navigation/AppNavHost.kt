@@ -10,6 +10,7 @@ import com.workernotfound.app.core.designsystem.WorkerNotFoundTheme
 import com.workernotfound.app.core.designsystem.component.ComingSoonScreen
 import com.workernotfound.app.feature.job.ui.JobPostingScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRootScreen
+import com.workernotfound.app.feature.worker.ui.WorkerRootScreen
 
 /**
  * Top-level navigation. Starts on the demo role switcher, then enters the
@@ -57,7 +58,12 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
 
         composable(AppRoute.WORKER_ROOT) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
-                ComingSoonScreen(title = "알바생 화면 (3-x)")
+                WorkerRootScreen(navController = navController)
+            }
+        }
+        composable(AppRoute.WORKER_JOB_DETAIL) {
+            WorkerNotFoundTheme(role = AppRole.WORKER) {
+                ComingSoonScreen(title = "공고 상세 (3-3)")
             }
         }
     }
