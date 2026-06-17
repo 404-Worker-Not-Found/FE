@@ -77,6 +77,8 @@ private fun OwnerHomeContent(
             )
             Spacer(Modifier.height(12.dp))
             SummaryStrip(uiState.summary)
+            Spacer(Modifier.height(12.dp))
+            AppPrimaryButton(text = "⚡ 긴급 공고 등록", onClick = onCreatePosting)
         }
 
         when {
@@ -84,7 +86,6 @@ private fun OwnerHomeContent(
             uiState.errorMessage != null -> ErrorBox(uiState.errorMessage, onRetry)
             else -> PostingList(
                 uiState = uiState,
-                onCreatePosting = onCreatePosting,
                 onPostingClick = onPostingClick,
             )
         }
@@ -126,7 +127,6 @@ private fun SummaryItem(value: String, label: String, modifier: Modifier = Modif
 @Composable
 private fun PostingList(
     uiState: OwnerHomeUiState,
-    onCreatePosting: () -> Unit,
     onPostingClick: (String) -> Unit,
 ) {
     LazyColumn(
@@ -145,10 +145,6 @@ private fun PostingList(
         }
         items(items = uiState.postings, key = { it.id }) { posting ->
             OwnerJobCard(posting = posting, onClick = { onPostingClick(posting.id) })
-        }
-        item {
-            Spacer(Modifier.height(8.dp))
-            AppPrimaryButton(text = "⚡ 긴급 공고 등록", onClick = onCreatePosting)
         }
     }
 }
