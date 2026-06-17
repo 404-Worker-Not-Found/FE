@@ -124,7 +124,7 @@ private fun AvailabilityToggleCard(checked: Boolean, onCheckedChange: (Boolean) 
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "⚡ 지금 일하기 가능",
+                    text = "⚡ 즉시 지원 가능",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextMain,
