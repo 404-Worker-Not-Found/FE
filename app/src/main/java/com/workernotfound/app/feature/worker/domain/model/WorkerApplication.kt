@@ -26,5 +26,5 @@ data class WorkerApplication(
         get() = status == ApplicationStatus.APPLYING || status == ApplicationStatus.MATCHING
 }
 
-/** 지원 상태 (UI spec 3-4: 지원중 / 매칭중 / 매칭완료 / 미선정). */
-enum class ApplicationStatus { APPLYING, MATCHING, MATCHED, NOT_SELECTED }
+/** 지원 상태 (UI spec 3-4: 지원중 / 매칭중 / 매칭완료 / 미선정, + 지원 취소). */
+enum class ApplicationStatus { APPLYING, MATCHING, MATCHED, NOT_SELECTED, CANCELED }

@@ -182,6 +182,7 @@ private fun ApplicationStatus.toBadge(): AppStatus = when (this) {
     ApplicationStatus.MATCHING -> AppStatus.MATCHING
     ApplicationStatus.MATCHED -> AppStatus.MATCHED
     ApplicationStatus.NOT_SELECTED -> AppStatus.NOT_SELECTED
+    ApplicationStatus.CANCELED -> AppStatus.CANCELED
 }
 
 @Composable

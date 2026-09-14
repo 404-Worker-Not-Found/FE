@@ -66,11 +66,14 @@ class WorkerApplicationViewModel @Inject constructor(
 
     fun dismissCancel() = _uiState.update { it.copy(pendingCancelId = null) }
 
+    /** 지원 취소: 목록에서 제거하지 않고 상태만 CANCELED로 표시 (communication diagram: setCanceled). */
     fun confirmCancel() {
         _uiState.update { state ->
             val id = state.pendingCancelId
             state.copy(
-                applications = state.applications.filterNot { it.id == id },
+                applications = state.applications.map {
+                    if (it.id == id) it.copy(status = ApplicationStatus.CANCELED) else it
+                },
                 pendingCancelId = null,
             )
         }
