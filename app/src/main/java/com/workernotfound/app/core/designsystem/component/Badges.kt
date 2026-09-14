@@ -55,6 +55,7 @@ enum class AppStatus(val label: String, val background: Color, val contentColor:
     DISPUTE("분쟁", AppColors.WarningBg, AppColors.Warning),
     APPLYING("지원중", AppColors.WorkerLight, AppColors.WorkerEmphasis),
     NOT_SELECTED("미선정", AppColors.Border, AppColors.TextSub),
+    CANCELED("취소됨", AppColors.Border, AppColors.TextPlaceholder),
 }
 
 @Composable

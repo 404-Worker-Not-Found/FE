@@ -1,5 +1,6 @@
 package com.workernotfound.app.feature.worker.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -46,6 +48,7 @@ import com.workernotfound.app.feature.worker.viewmodel.WorkerHomeViewModel
 @Composable
 fun WorkerHomeScreen(
     onJobClick: (String) -> Unit,
+    onNotificationsClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkerHomeViewModel = hiltViewModel(),
 ) {
@@ -54,6 +57,7 @@ fun WorkerHomeScreen(
         uiState = uiState,
         onToggleAvailable = viewModel::toggleAvailableOnly,
         onJobClick = onJobClick,
+        onNotificationsClick = onNotificationsClick,
         onApply = viewModel::applyTo,
         onRetry = viewModel::loadJobs,
         modifier = modifier,
@@ -65,6 +69,7 @@ private fun WorkerHomeContent(
     uiState: WorkerHomeUiState,
     onToggleAvailable: (Boolean) -> Unit,
     onJobClick: (String) -> Unit,
+    onNotificationsClick: () -> Unit,
     onApply: (String) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
@@ -78,7 +83,7 @@ private fun WorkerHomeContent(
                 bottom = 8.dp,
             ),
         ) {
-            HomeHeader()
+            HomeHeader(onNotificationsClick = onNotificationsClick)
             Spacer(Modifier.height(12.dp))
             AvailabilityToggleCard(
                 checked = uiState.isAvailableOnly,
@@ -99,7 +104,7 @@ private fun WorkerHomeContent(
 }
 
 @Composable
-private fun HomeHeader() {
+private fun HomeHeader(onNotificationsClick: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
             Text(text = "내 주변 알바", color = AppColors.TextSub, fontSize = 12.sp)
@@ -112,8 +117,11 @@ private fun HomeHeader() {
         }
         Icon(
             imageVector = Icons.Outlined.Notifications,
-            contentDescription = "알림",
+            contentDescription = "지원 현황",
             tint = AppColors.TextSub,
+            modifier = Modifier
+                .size(24.dp)
+                .clickable(onClick = onNotificationsClick),
         )
     }
 }

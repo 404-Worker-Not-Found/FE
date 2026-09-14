@@ -12,7 +12,9 @@ import com.workernotfound.app.core.designsystem.WorkerNotFoundTheme
 import com.workernotfound.app.core.designsystem.component.ComingSoonScreen
 import com.workernotfound.app.feature.job.ui.JobPostingScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRootScreen
+import com.workernotfound.app.feature.worker.ui.WorkerApplicationScreen
 import com.workernotfound.app.feature.worker.ui.WorkerJobDetailScreen
+import com.workernotfound.app.feature.worker.ui.WorkerMatchResultScreen
 import com.workernotfound.app.feature.worker.ui.WorkerRootScreen
 
 /**
@@ -70,6 +72,25 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         ) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
                 WorkerJobDetailScreen(onBack = { navController.popBackStack() })
+            }
+        }
+        composable(AppRoute.WORKER_APPLICATIONS) {
+            WorkerNotFoundTheme(role = AppRole.WORKER) {
+                WorkerApplicationScreen(
+                    onBack = { navController.popBackStack() },
+                    onMatchClick = { id -> navController.navigate(AppRoute.workerMatchResult(id)) },
+                )
+            }
+        }
+        composable(
+            route = AppRoute.WORKER_MATCH_RESULT,
+            arguments = listOf(navArgument("applicationId") { type = NavType.StringType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.WORKER) {
+                WorkerMatchResultScreen(
+                    onBack = { navController.popBackStack() },
+                    onGoChat = { navController.popBackStack() },
+                )
             }
         }
     }
