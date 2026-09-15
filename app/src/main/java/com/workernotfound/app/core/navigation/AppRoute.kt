@@ -22,4 +22,6 @@ object AppRoute {
 
     const val WORKER_CHAT_ROOM = "worker_chat_room/{roomId}"     // 채팅방
     fun workerChatRoom(roomId: String) = "worker_chat_room/$roomId"
+
+    const val WORKER_TRUST = "worker_trust"                      // 4-2 나의 신뢰도
 }

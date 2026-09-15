@@ -4,10 +4,14 @@ import com.workernotfound.app.feature.worker.data.WorkerApplicationRepositoryImp
 import com.workernotfound.app.feature.worker.data.WorkerChatRepositoryImpl
 import com.workernotfound.app.feature.worker.data.WorkerHomeRepositoryImpl
 import com.workernotfound.app.feature.worker.data.WorkerJobRepositoryImpl
+import com.workernotfound.app.feature.worker.data.WorkerTrustRepositoryImpl
+import com.workernotfound.app.feature.worker.data.WorkerWorkRepositoryImpl
 import com.workernotfound.app.feature.worker.domain.repository.WorkerApplicationRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerChatRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerHomeRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerJobRepository
+import com.workernotfound.app.feature.worker.domain.repository.WorkerTrustRepository
+import com.workernotfound.app.feature.worker.domain.repository.WorkerWorkRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -36,4 +40,12 @@ abstract class WorkerModule {
     @Binds
     @Singleton
     abstract fun bindWorkerChatRepository(impl: WorkerChatRepositoryImpl): WorkerChatRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWorkerWorkRepository(impl: WorkerWorkRepositoryImpl): WorkerWorkRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWorkerTrustRepository(impl: WorkerTrustRepositoryImpl): WorkerTrustRepository
 }
