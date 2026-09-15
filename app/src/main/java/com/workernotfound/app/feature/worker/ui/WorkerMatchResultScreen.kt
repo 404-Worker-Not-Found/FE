@@ -43,7 +43,7 @@ import com.workernotfound.app.feature.worker.viewmodel.WorkerMatchResultViewMode
 @Composable
 fun WorkerMatchResultScreen(
     onBack: () -> Unit,
-    onGoChat: () -> Unit,
+    onGoChat: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkerMatchResultViewModel = hiltViewModel(),
 ) {
@@ -62,7 +62,7 @@ fun WorkerMatchResultScreen(
 private fun WorkerMatchResultContent(
     uiState: WorkerMatchResultUiState,
     onBack: () -> Unit,
-    onGoChat: () -> Unit,
+    onGoChat: (String) -> Unit,
     onAccept: () -> Unit,
     onReject: () -> Unit,
     modifier: Modifier = Modifier,
@@ -80,7 +80,7 @@ private fun WorkerMatchResultContent(
             uiState.isLoading -> LoadingBox()
             app == null -> InfoBox("매칭 정보를 불러오지 못했어요.", onBack)
             app.status == ApplicationStatus.MATCHED || uiState.outcome == RematchOutcome.ACCEPTED ->
-                MatchSuccessView(app = app, onGoChat = onGoChat, onHome = onBack)
+                MatchSuccessView(app = app, onGoChat = { onGoChat(app.id) }, onHome = onBack)
             app.hasRematchOffer && uiState.outcome == RematchOutcome.PENDING ->
                 RematchWaitingView(
                     app = app,

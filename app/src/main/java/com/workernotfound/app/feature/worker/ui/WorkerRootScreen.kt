@@ -60,7 +60,10 @@ fun WorkerRootScreen(navController: NavHostController) {
                 modifier = contentModifier,
             )
             2 -> ComingSoonScreen(title = "근무 관리 (3-6)", modifier = contentModifier)
-            3 -> ComingSoonScreen(title = "채팅", modifier = contentModifier)
+            3 -> WorkerChatListScreen(
+                onRoomClick = { roomId -> navController.navigate(AppRoute.workerChatRoom(roomId)) },
+                modifier = contentModifier,
+            )
             else -> ComingSoonScreen(title = "마이페이지 (4-2)", modifier = contentModifier)
         }
     }
