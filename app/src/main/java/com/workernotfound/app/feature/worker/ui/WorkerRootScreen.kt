@@ -18,7 +18,6 @@ import androidx.navigation.NavHostController
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.component.AppBottomBar
 import com.workernotfound.app.core.designsystem.component.BottomNavItem
-import com.workernotfound.app.core.designsystem.component.ComingSoonScreen
 import com.workernotfound.app.core.navigation.AppRoute
 
 private val WORKER_TABS = listOf(
@@ -59,12 +58,16 @@ fun WorkerRootScreen(navController: NavHostController) {
                 onJobClick = { jobId -> navController.navigate(AppRoute.workerJobDetail(jobId)) },
                 modifier = contentModifier,
             )
-            2 -> ComingSoonScreen(title = "근무 관리 (3-6)", modifier = contentModifier)
+            2 -> WorkerWorkScreen(modifier = contentModifier)
             3 -> WorkerChatListScreen(
                 onRoomClick = { roomId -> navController.navigate(AppRoute.workerChatRoom(roomId)) },
                 modifier = contentModifier,
             )
-            else -> ComingSoonScreen(title = "마이페이지 (4-2)", modifier = contentModifier)
+            else -> WorkerMyPageScreen(
+                onTrustClick = { navController.navigate(AppRoute.WORKER_TRUST) },
+                onLogout = { navController.navigate(AppRoute.ROLE_SWITCHER) },
+                modifier = contentModifier,
+            )
         }
     }
 }

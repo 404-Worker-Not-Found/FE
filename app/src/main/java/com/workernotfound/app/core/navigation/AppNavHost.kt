@@ -17,6 +17,7 @@ import com.workernotfound.app.feature.worker.ui.WorkerChatRoomScreen
 import com.workernotfound.app.feature.worker.ui.WorkerJobDetailScreen
 import com.workernotfound.app.feature.worker.ui.WorkerMatchResultScreen
 import com.workernotfound.app.feature.worker.ui.WorkerRootScreen
+import com.workernotfound.app.feature.worker.ui.WorkerTrustScreen
 
 /**
  * Top-level navigation. Starts on the demo role switcher, then enters the
@@ -100,6 +101,11 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         ) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
                 WorkerChatRoomScreen(onBack = { navController.popBackStack() })
+            }
+        }
+        composable(AppRoute.WORKER_TRUST) {
+            WorkerNotFoundTheme(role = AppRole.WORKER) {
+                WorkerTrustScreen(onBack = { navController.popBackStack() })
             }
         }
     }
