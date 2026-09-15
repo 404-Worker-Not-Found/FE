@@ -19,4 +19,7 @@ object AppRoute {
     const val WORKER_APPLICATIONS = "worker_applications"        // 3-4 지원 현황
     const val WORKER_MATCH_RESULT = "worker_match_result/{applicationId}"  // 3-5 매칭 결과
     fun workerMatchResult(applicationId: String) = "worker_match_result/$applicationId"
+
+    const val WORKER_CHAT_ROOM = "worker_chat_room/{roomId}"     // 채팅방
+    fun workerChatRoom(roomId: String) = "worker_chat_room/$roomId"
 }

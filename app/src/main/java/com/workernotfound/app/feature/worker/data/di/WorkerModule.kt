@@ -1,9 +1,11 @@
 package com.workernotfound.app.feature.worker.data.di
 
 import com.workernotfound.app.feature.worker.data.WorkerApplicationRepositoryImpl
+import com.workernotfound.app.feature.worker.data.WorkerChatRepositoryImpl
 import com.workernotfound.app.feature.worker.data.WorkerHomeRepositoryImpl
 import com.workernotfound.app.feature.worker.data.WorkerJobRepositoryImpl
 import com.workernotfound.app.feature.worker.domain.repository.WorkerApplicationRepository
+import com.workernotfound.app.feature.worker.domain.repository.WorkerChatRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerHomeRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerJobRepository
 import dagger.Binds
@@ -30,4 +32,8 @@ abstract class WorkerModule {
     abstract fun bindWorkerApplicationRepository(
         impl: WorkerApplicationRepositoryImpl,
     ): WorkerApplicationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWorkerChatRepository(impl: WorkerChatRepositoryImpl): WorkerChatRepository
 }

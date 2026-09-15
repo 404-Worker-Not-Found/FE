@@ -13,6 +13,7 @@ import com.workernotfound.app.core.designsystem.component.ComingSoonScreen
 import com.workernotfound.app.feature.job.ui.JobPostingScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRootScreen
 import com.workernotfound.app.feature.worker.ui.WorkerApplicationScreen
+import com.workernotfound.app.feature.worker.ui.WorkerChatRoomScreen
 import com.workernotfound.app.feature.worker.ui.WorkerJobDetailScreen
 import com.workernotfound.app.feature.worker.ui.WorkerMatchResultScreen
 import com.workernotfound.app.feature.worker.ui.WorkerRootScreen
@@ -89,8 +90,16 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
                 WorkerMatchResultScreen(
                     onBack = { navController.popBackStack() },
-                    onGoChat = { navController.popBackStack() },
+                    onGoChat = { roomId -> navController.navigate(AppRoute.workerChatRoom(roomId)) },
                 )
+            }
+        }
+        composable(
+            route = AppRoute.WORKER_CHAT_ROOM,
+            arguments = listOf(navArgument("roomId") { type = NavType.StringType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.WORKER) {
+                WorkerChatRoomScreen(onBack = { navController.popBackStack() })
             }
         }
     }
