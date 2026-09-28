@@ -24,11 +24,19 @@ object NoShowPolicy {
 /** UI spec 2-6: 리뷰 작성 버튼은 근무 종료 후 7일 이내에만 활성화. */
 object ReviewPolicy {
     const val REVIEW_WINDOW_DAYS = 7L
-    private const val REVIEW_WINDOW_MILLIS = REVIEW_WINDOW_DAYS * 24 * MINUTES_PER_HOUR * MILLIS_PER_MINUTE
+    private const val MILLIS_PER_DAY = 24 * MINUTES_PER_HOUR * MILLIS_PER_MINUTE
+    private const val REVIEW_WINDOW_MILLIS = REVIEW_WINDOW_DAYS * MILLIS_PER_DAY
 
     fun canWriteReview(workEndMillis: Long, nowMillis: Long): Boolean {
         val elapsed = nowMillis - workEndMillis
         return elapsed in 0..REVIEW_WINDOW_MILLIS
+    }
+
+    /** Whole days left in the review window, rounded up (0 once it has closed). */
+    fun remainingDays(workEndMillis: Long, nowMillis: Long): Long {
+        val left = workEndMillis + REVIEW_WINDOW_MILLIS - nowMillis
+        if (left <= 0) return 0L
+        return (left + MILLIS_PER_DAY - 1) / MILLIS_PER_DAY
     }
 }
 

@@ -9,11 +9,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.workernotfound.app.core.designsystem.AppRole
 import com.workernotfound.app.core.designsystem.WorkerNotFoundTheme
-import com.workernotfound.app.core.designsystem.component.ComingSoonScreen
 import com.workernotfound.app.feature.job.ui.JobPostingScreen
 import com.workernotfound.app.feature.owner.ui.OwnerApplicantDetailScreen
 import com.workernotfound.app.feature.owner.ui.OwnerApplicantsScreen
+import com.workernotfound.app.feature.owner.ui.OwnerPastPostingDetailScreen
+import com.workernotfound.app.feature.owner.ui.OwnerPastPostingsScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRematchScreen
+import com.workernotfound.app.feature.owner.ui.OwnerReviewPlaceholderScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRootScreen
 import com.workernotfound.app.feature.owner.ui.OwnerSettlementScreen
 import com.workernotfound.app.feature.owner.ui.OwnerWorkDetailScreen
@@ -127,7 +129,29 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         }
         composable(AppRoute.OWNER_PAST_POSTINGS) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
-                ComingSoonScreen(title = "지난 공고 (2-6)")
+                OwnerPastPostingsScreen(
+                    onPostingClick = { postingId -> navController.navigate(AppRoute.ownerPastPostingDetail(postingId)) },
+                    onBack = { navController.popBackStack() },
+                )
+            }
+        }
+        composable(
+            route = AppRoute.OWNER_PAST_POSTING_DETAIL,
+            arguments = listOf(navArgument("postingId") { type = NavType.StringType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                OwnerPastPostingDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onWriteReview = { postingId -> navController.navigate(AppRoute.ownerReviewWrite(postingId)) },
+                )
+            }
+        }
+        composable(
+            route = AppRoute.OWNER_REVIEW_WRITE,
+            arguments = listOf(navArgument("postingId") { type = NavType.StringType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                OwnerReviewPlaceholderScreen(onBack = { navController.popBackStack() })
             }
         }
 

@@ -53,7 +53,10 @@ fun OwnerRootScreen(navController: NavHostController) {
                 onPostingClick = { postingId -> navController.navigate(AppRoute.ownerApplicants(postingId)) },
                 modifier = contentModifier,
             )
-            1 -> ComingSoonScreen(title = "공고 관리 (2-6)", modifier = contentModifier)
+            1 -> OwnerPastPostingsScreen(
+                onPostingClick = { postingId -> navController.navigate(AppRoute.ownerPastPostingDetail(postingId)) },
+                modifier = contentModifier,
+            )
             2 -> OwnerWorkListScreen(
                 onWorkClick = { workId -> navController.navigate(AppRoute.ownerWorkDetail(workId)) },
                 modifier = contentModifier,
