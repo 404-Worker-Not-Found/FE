@@ -20,6 +20,9 @@ object AppRoute {
     const val OWNER_SETTLEMENT = "owner_settlement/{workId}"   // 2-4 정산
     fun ownerSettlement(workId: String) = "owner_settlement/$workId"
 
+    const val OWNER_REMATCH = "owner_rematch/{workId}"         // 2-5 노쇼 처리/재매칭
+    fun ownerRematch(workId: String) = "owner_rematch/$workId"
+
     const val OWNER_PAST_POSTINGS = "owner_past_postings"    // 2-6 지난 공고
 
     // Worker section

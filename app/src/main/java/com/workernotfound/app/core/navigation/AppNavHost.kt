@@ -13,6 +13,7 @@ import com.workernotfound.app.core.designsystem.component.ComingSoonScreen
 import com.workernotfound.app.feature.job.ui.JobPostingScreen
 import com.workernotfound.app.feature.owner.ui.OwnerApplicantDetailScreen
 import com.workernotfound.app.feature.owner.ui.OwnerApplicantsScreen
+import com.workernotfound.app.feature.owner.ui.OwnerRematchScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRootScreen
 import com.workernotfound.app.feature.owner.ui.OwnerSettlementScreen
 import com.workernotfound.app.feature.owner.ui.OwnerWorkDetailScreen
@@ -90,7 +91,11 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 OwnerWorkDetailScreen(
                     onBack = { navController.popBackStack() },
                     onOpenSettlement = { workId -> navController.navigate(AppRoute.ownerSettlement(workId)) },
-                    onNoShowConfirmed = { navController.popBackStack() },
+                    onNoShowConfirmed = { workId ->
+                        navController.navigate(AppRoute.ownerRematch(workId)) {
+                            popUpTo(AppRoute.OWNER_ROOT)
+                        }
+                    },
                 )
             }
         }
@@ -102,6 +107,21 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 OwnerSettlementScreen(
                     onBack = { navController.popBackStack() },
                     onDone = { navController.popBackStack(AppRoute.OWNER_ROOT, inclusive = false) },
+                )
+            }
+        }
+        composable(
+            route = AppRoute.OWNER_REMATCH,
+            arguments = listOf(navArgument("workId") { type = NavType.StringType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                OwnerRematchScreen(
+                    onClose = { navController.popBackStack(AppRoute.OWNER_ROOT, inclusive = false) },
+                    onViewWork = { workId ->
+                        navController.navigate(AppRoute.ownerWorkDetail(workId)) {
+                            popUpTo(AppRoute.OWNER_ROOT)
+                        }
+                    },
                 )
             }
         }
