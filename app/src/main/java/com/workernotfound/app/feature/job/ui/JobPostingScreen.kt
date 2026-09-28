@@ -46,6 +46,7 @@ import com.workernotfound.app.feature.job.domain.model.MIN_HOURLY_WAGE
 import com.workernotfound.app.feature.job.domain.model.RecruitRadius
 import com.workernotfound.app.feature.job.domain.model.WorkDay
 import com.workernotfound.app.feature.job.ui.component.TimePickerField
+import com.workernotfound.app.feature.job.ui.component.WorkDatePickerField
 import com.workernotfound.app.feature.job.viewmodel.DESCRIPTION_MAX_LENGTH
 import com.workernotfound.app.feature.job.viewmodel.JobPostingUiState
 import com.workernotfound.app.feature.job.viewmodel.JobPostingViewModel
@@ -127,11 +128,9 @@ private fun JobPostingContent(
         ) {
             // 근무 날짜
             LabeledField(label = "근무 날짜", required = true) {
-                ChoiceChipRow(
-                    options = WorkDay.entries.map { it.label },
-                    selectedIndex = WorkDay.entries.indexOf(uiState.workDay),
-                    onSelect = { onWorkDay(WorkDay.entries[it]) },
-                )
+                WorkDatePickerField(value = uiState.workDay, onPick = onWorkDay)
+                Spacer(Modifier.height(6.dp))
+                Text("당일 또는 익일만 선택할 수 있어요.", color = AppColors.TextSub, fontSize = 12.sp)
             }
 
             // 근무 시간
