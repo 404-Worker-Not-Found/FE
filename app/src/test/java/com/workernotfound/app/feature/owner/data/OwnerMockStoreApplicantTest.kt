@@ -33,19 +33,19 @@ class OwnerMockStoreApplicantTest {
 
     @Test
     fun `confirming a match closes the posting and opens a shift`() {
-        val workId = store.confirmMatch("1", "a2")
+        val workId = store.confirmMatch("1", "a2", now)
 
         val board = store.applicantBoard("1", now)
         assertEquals("a2", board.matchedApplicantId)
         assertEquals(PostingStatus.CLOSED, board.posting.status)
-        assertTrue(store.activeWorks().any { it.id == workId && it.workerName == "이하은" })
+        assertTrue(store.activeWorks(now).any { it.id == workId && it.workerName == "이하은" })
         assertFalse(store.applicantDetail("1", "a1").canConfirmMatch)
     }
 
     @Test(expected = IllegalStateException::class)
     fun `a posting cannot be matched twice`() {
-        store.confirmMatch("1", "a2")
-        store.confirmMatch("1", "a1")
+        store.confirmMatch("1", "a2", now)
+        store.confirmMatch("1", "a1", now)
     }
 
     @Test

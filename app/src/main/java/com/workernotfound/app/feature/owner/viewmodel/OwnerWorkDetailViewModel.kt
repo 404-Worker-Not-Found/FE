@@ -3,6 +3,7 @@ package com.workernotfound.app.feature.owner.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.workernotfound.app.feature.owner.domain.model.WorkProgressStatus
 import com.workernotfound.app.feature.owner.domain.repository.OwnerWorkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -92,15 +93,29 @@ class OwnerWorkDetailViewModel @Inject constructor(
 
     private fun startTicker() {
         viewModelScope.launch {
+            var ticks = 0
             while (isActive) {
                 delay(TICK_MILLIS)
                 _uiState.update { it.copy(nowMillis = System.currentTimeMillis()) }
+                if (++ticks % ATTENDANCE_POLL_TICKS == 0 && isAwaitingCheckIn()) pollAttendance()
             }
         }
+    }
+
+    private fun isAwaitingCheckIn(): Boolean {
+        val work = _uiState.value.work ?: return false
+        return work.status == WorkProgressStatus.ACTIVE && !work.isAttendanceVerified
+    }
+
+    /** Stand-in for a real-time GPS 출근 인증 update: silently re-reads the shift. */
+    private suspend fun pollAttendance() {
+        runCatching { repository.getWork(workId) }
+            .onSuccess { work -> _uiState.update { it.copy(work = work) } }
     }
 
     companion object {
         const val ARG_WORK_ID = "workId"
         private const val TICK_MILLIS = 1_000L
+        private const val ATTENDANCE_POLL_TICKS = 5
     }
 }

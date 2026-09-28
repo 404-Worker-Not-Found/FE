@@ -27,7 +27,7 @@ class OwnerApplicantRepositoryImpl @Inject constructor(
 
     override suspend fun confirmMatch(postingId: String, applicantId: String): String {
         delay(MOCK_DELAY_MILLIS)
-        return store.confirmMatch(postingId, applicantId)
+        return store.confirmMatch(postingId, applicantId, System.currentTimeMillis())
     }
 
     private companion object {
