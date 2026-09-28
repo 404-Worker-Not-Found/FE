@@ -14,6 +14,8 @@ import com.workernotfound.app.feature.job.ui.JobPostingScreen
 import com.workernotfound.app.feature.owner.ui.OwnerApplicantDetailScreen
 import com.workernotfound.app.feature.owner.ui.OwnerApplicantsScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRootScreen
+import com.workernotfound.app.feature.owner.ui.OwnerSettlementScreen
+import com.workernotfound.app.feature.owner.ui.OwnerWorkDetailScreen
 import com.workernotfound.app.feature.worker.ui.WorkerApplicationScreen
 import com.workernotfound.app.feature.worker.ui.WorkerChatRoomScreen
 import com.workernotfound.app.feature.worker.ui.WorkerJobDetailScreen
@@ -85,7 +87,22 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             arguments = listOf(navArgument("workId") { type = NavType.StringType }),
         ) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
-                ComingSoonScreen(title = "근무 관리 (2-4)")
+                OwnerWorkDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenSettlement = { workId -> navController.navigate(AppRoute.ownerSettlement(workId)) },
+                    onNoShowConfirmed = { navController.popBackStack() },
+                )
+            }
+        }
+        composable(
+            route = AppRoute.OWNER_SETTLEMENT,
+            arguments = listOf(navArgument("workId") { type = NavType.StringType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                OwnerSettlementScreen(
+                    onBack = { navController.popBackStack() },
+                    onDone = { navController.popBackStack(AppRoute.OWNER_ROOT, inclusive = false) },
+                )
             }
         }
         composable(AppRoute.OWNER_PAST_POSTINGS) {

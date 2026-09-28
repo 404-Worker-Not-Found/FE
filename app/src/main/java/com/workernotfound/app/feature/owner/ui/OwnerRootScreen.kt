@@ -54,7 +54,10 @@ fun OwnerRootScreen(navController: NavHostController) {
                 modifier = contentModifier,
             )
             1 -> ComingSoonScreen(title = "공고 관리 (2-6)", modifier = contentModifier)
-            2 -> ComingSoonScreen(title = "근무 관리 (2-4)", modifier = contentModifier)
+            2 -> OwnerWorkListScreen(
+                onWorkClick = { workId -> navController.navigate(AppRoute.ownerWorkDetail(workId)) },
+                modifier = contentModifier,
+            )
             else -> ComingSoonScreen(title = "마이페이지", modifier = contentModifier)
         }
     }
