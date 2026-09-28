@@ -17,6 +17,9 @@ object AppRoute {
     const val OWNER_WORK_DETAIL = "owner_work_detail/{workId}"  // 2-4 근무 관리/정산
     fun ownerWorkDetail(workId: String) = "owner_work_detail/$workId"
 
+    const val OWNER_SETTLEMENT = "owner_settlement/{workId}"   // 2-4 정산
+    fun ownerSettlement(workId: String) = "owner_settlement/$workId"
+
     const val OWNER_PAST_POSTINGS = "owner_past_postings"    // 2-6 지난 공고
 
     // Worker section
