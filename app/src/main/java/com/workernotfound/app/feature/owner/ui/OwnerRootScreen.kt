@@ -17,7 +17,6 @@ import androidx.navigation.NavHostController
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.component.AppBottomBar
 import com.workernotfound.app.core.designsystem.component.BottomNavItem
-import com.workernotfound.app.core.designsystem.component.ComingSoonScreen
 import com.workernotfound.app.core.navigation.AppRoute
 
 private val OWNER_TABS = listOf(
@@ -61,7 +60,10 @@ fun OwnerRootScreen(navController: NavHostController) {
                 onWorkClick = { workId -> navController.navigate(AppRoute.ownerWorkDetail(workId)) },
                 modifier = contentModifier,
             )
-            else -> ComingSoonScreen(title = "마이페이지", modifier = contentModifier)
+            else -> OwnerMyPageScreen(
+                onLogout = { navController.popBackStack(AppRoute.ROLE_SWITCHER, inclusive = false) },
+                modifier = contentModifier,
+            )
         }
     }
 }
