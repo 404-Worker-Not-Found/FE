@@ -1,6 +1,8 @@
 package com.workernotfound.app.feature.owner.data.di
 
+import com.workernotfound.app.feature.owner.data.OwnerApplicantRepositoryImpl
 import com.workernotfound.app.feature.owner.data.OwnerHomeRepositoryImpl
+import com.workernotfound.app.feature.owner.domain.repository.OwnerApplicantRepository
 import com.workernotfound.app.feature.owner.domain.repository.OwnerHomeRepository
 import dagger.Binds
 import dagger.Module
@@ -16,4 +18,8 @@ abstract class OwnerModule {
     @Binds
     @Singleton
     abstract fun bindOwnerHomeRepository(impl: OwnerHomeRepositoryImpl): OwnerHomeRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindOwnerApplicantRepository(impl: OwnerApplicantRepositoryImpl): OwnerApplicantRepository
 }

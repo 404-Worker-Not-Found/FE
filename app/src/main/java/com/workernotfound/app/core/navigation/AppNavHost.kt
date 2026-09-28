@@ -11,6 +11,8 @@ import com.workernotfound.app.core.designsystem.AppRole
 import com.workernotfound.app.core.designsystem.WorkerNotFoundTheme
 import com.workernotfound.app.core.designsystem.component.ComingSoonScreen
 import com.workernotfound.app.feature.job.ui.JobPostingScreen
+import com.workernotfound.app.feature.owner.ui.OwnerApplicantDetailScreen
+import com.workernotfound.app.feature.owner.ui.OwnerApplicantsScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRootScreen
 import com.workernotfound.app.feature.worker.ui.WorkerApplicationScreen
 import com.workernotfound.app.feature.worker.ui.WorkerChatRoomScreen
@@ -47,12 +49,41 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 )
             }
         }
-        composable(AppRoute.OWNER_APPLICANTS) {
+        composable(
+            route = AppRoute.OWNER_APPLICANTS,
+            arguments = listOf(navArgument("postingId") { type = NavType.StringType }),
+        ) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
-                ComingSoonScreen(title = "지원자 관리 (2-3)")
+                OwnerApplicantsScreen(
+                    onBack = { navController.popBackStack() },
+                    onApplicantClick = { postingId, applicantId ->
+                        navController.navigate(AppRoute.ownerApplicantDetail(postingId, applicantId))
+                    },
+                )
             }
         }
-        composable(AppRoute.OWNER_WORK_DETAIL) {
+        composable(
+            route = AppRoute.OWNER_APPLICANT_DETAIL,
+            arguments = listOf(
+                navArgument("postingId") { type = NavType.StringType },
+                navArgument("applicantId") { type = NavType.StringType },
+            ),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                OwnerApplicantDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onViewWork = { workId ->
+                        navController.navigate(AppRoute.ownerWorkDetail(workId)) {
+                            popUpTo(AppRoute.OWNER_ROOT)
+                        }
+                    },
+                )
+            }
+        }
+        composable(
+            route = AppRoute.OWNER_WORK_DETAIL,
+            arguments = listOf(navArgument("workId") { type = NavType.StringType }),
+        ) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
                 ComingSoonScreen(title = "근무 관리 (2-4)")
             }
