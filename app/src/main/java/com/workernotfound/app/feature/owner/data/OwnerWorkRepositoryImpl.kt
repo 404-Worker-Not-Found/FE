@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 /**
  * Mock work repository backed by [OwnerMockStore]. Automatic re-matching (a push /
- * server job in production) is simulated with a timer (decision: Demo Scope and
+ * server job in production) and GPS 출근 인증 are simulated with timers (decision: Demo Scope and
  * Mock-First Strategy — real-time and push are simulated in-app).
  */
 class OwnerWorkRepositoryImpl @Inject constructor(
@@ -18,12 +18,12 @@ class OwnerWorkRepositoryImpl @Inject constructor(
 
     override suspend fun getActiveWorks(): List<OwnerWork> {
         delay(MOCK_DELAY_MILLIS)
-        return store.activeWorks()
+        return store.activeWorks(System.currentTimeMillis())
     }
 
     override suspend fun getWork(workId: String): OwnerWork {
         delay(MOCK_DELAY_MILLIS)
-        return store.work(workId)
+        return store.work(workId, System.currentTimeMillis())
     }
 
     override suspend fun completeWork(workId: String): Settlement {

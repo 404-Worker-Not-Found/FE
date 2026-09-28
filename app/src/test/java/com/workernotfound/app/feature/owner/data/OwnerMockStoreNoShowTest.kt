@@ -24,8 +24,8 @@ class OwnerMockStoreNoShowTest {
         assertEquals("정하늘", success.applicant.name)
         assertTrue(success.applicant.isMatched)
         assertEquals(now, success.newWork.scheduledStartMillis)
-        assertEquals(WorkProgressStatus.NO_SHOW, store.work("w6").status)
-        assertTrue(store.activeWorks().any { it.id == success.newWork.id })
+        assertEquals(WorkProgressStatus.NO_SHOW, store.work("w6", now).status)
+        assertTrue(store.activeWorks(now).any { it.id == success.newWork.id })
     }
 
     @Test

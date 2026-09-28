@@ -38,6 +38,13 @@ class OwnerMockStore @Inject constructor() {
     private val pastPostings: MutableList<PastPosting> =
         OwnerMockSeed.pastPostings(postings, workers).toMutableList()
 
+    /**
+     * Simulated GPS 출근 인증 (decision: real-time is simulated in-app): a worker matched
+     * in-app checks in automatically once their ETA has passed since the match.
+     * Seeded shifts are not listed here so the no-show demos stay unverified.
+     */
+    private val autoCheckInAtMillis: MutableMap<String, Long> = mutableMapOf()
+
     // --- 2-1 홈 -------------------------------------------------------------
 
     @Synchronized
@@ -75,23 +82,28 @@ class OwnerMockStore @Inject constructor() {
 
     /** Confirms [applicantId] for [postingId] and opens a shift for it. Returns the work id. */
     @Synchronized
-    fun confirmMatch(postingId: String, applicantId: String): String {
+    fun confirmMatch(postingId: String, applicantId: String, nowMillis: Long): String {
         val posting = posting(postingId)
         check(posting.isMatchable()) { "이미 매칭이 확정된 공고예요." }
         require(applicantId in posting.applicantIds) { "해당 공고의 지원자가 아니에요." }
-        return openWork(posting, worker(applicantId)).id
+        return openWork(posting, worker(applicantId), matchedAtMillis = nowMillis).id
     }
 
     // --- 2-4 근무 관리 / 2-5 노쇼 처리 ------------------------------------------
 
     @Synchronized
-    fun activeWorks(): List<OwnerWork> = works
-        .filter { it.status == WorkProgressStatus.ACTIVE || it.status == WorkProgressStatus.AWAITING_SETTLEMENT }
-        .sortedBy { it.scheduledStartMillis }
+    fun activeWorks(nowMillis: Long): List<OwnerWork> {
+        applyAutoCheckIns(nowMillis)
+        return works
+            .filter { it.status == WorkProgressStatus.ACTIVE || it.status == WorkProgressStatus.AWAITING_SETTLEMENT }
+            .sortedBy { it.scheduledStartMillis }
+    }
 
     @Synchronized
-    fun work(workId: String): OwnerWork = works.firstOrNull { it.id == workId }
-        ?: throw NoSuchElementException("근무 정보를 찾을 수 없어요.")
+    fun work(workId: String, nowMillis: Long): OwnerWork {
+        applyAutoCheckIns(nowMillis)
+        return work(workId)
+    }
 
     @Synchronized
     fun completeWork(workId: String, nowMillis: Long): Settlement {
@@ -144,7 +156,12 @@ class OwnerMockStore @Inject constructor() {
             .maxByOrNull { it.matchScore }
             ?: return RematchResult.Failure
         // The replacement starts from the moment it is matched; the no-show clock restarts.
-        val newWork = openWork(posting, candidate, startMillis = maxOf(nowMillis, posting.startMillis))
+        val newWork = openWork(
+            posting,
+            candidate,
+            matchedAtMillis = nowMillis,
+            startMillis = maxOf(nowMillis, posting.startMillis),
+        )
         return RematchResult.Success(newWork = newWork, applicant = candidate.toApplicant(posting(posting.id)))
     }
 
@@ -179,12 +196,27 @@ class OwnerMockStore @Inject constructor() {
     private fun worker(workerId: String): MockWorker = workers[workerId]
         ?: throw NoSuchElementException("지원자를 찾을 수 없어요.")
 
+    private fun work(workId: String): OwnerWork = works.firstOrNull { it.id == workId }
+        ?: throw NoSuchElementException("근무 정보를 찾을 수 없어요.")
+
+    private fun applyAutoCheckIns(nowMillis: Long) {
+        val arrived = autoCheckInAtMillis.filterValues { it <= nowMillis }.keys
+        arrived.forEach { workId ->
+            autoCheckInAtMillis.remove(workId)
+            val work = work(workId)
+            if (work.status == WorkProgressStatus.ACTIVE) {
+                replaceWork(work.copy(isAttendanceVerified = true, workerDistanceMeters = 0))
+            }
+        }
+    }
+
     private fun MockPosting.isMatchable(): Boolean =
         status == PostingStatus.RECRUITING && matchedWorkerId == null
 
     private fun openWork(
         posting: MockPosting,
         worker: MockWorker,
+        matchedAtMillis: Long,
         startMillis: Long = posting.startMillis,
     ): OwnerWork {
         val work = OwnerWork(
@@ -203,6 +235,7 @@ class OwnerMockStore @Inject constructor() {
         )
         works.removeAll { it.id == work.id }
         works.add(work)
+        autoCheckInAtMillis[work.id] = matchedAtMillis + worker.etaMinutes * MILLIS_PER_MINUTE
         updatePosting(posting.id) { it.copy(status = PostingStatus.CLOSED, matchedWorkerId = worker.id) }
         return work
     }
@@ -284,5 +317,6 @@ class OwnerMockStore @Inject constructor() {
         val CLOCK: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
         /** Rough walking speed used to turn an ETA into a distance for the live map. */
         const val METERS_PER_MINUTE = 70
+        const val MILLIS_PER_MINUTE = 60_000L
     }
 }

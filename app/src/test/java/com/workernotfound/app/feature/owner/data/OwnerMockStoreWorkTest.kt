@@ -15,7 +15,7 @@ class OwnerMockStoreWorkTest {
 
     @Test
     fun `seeded shifts are listed as active`() {
-        val ids = store.activeWorks().map { it.id }
+        val ids = store.activeWorks(now).map { it.id }
         assertTrue(ids.containsAll(listOf("w5", "w6", "w7")))
     }
 
@@ -23,7 +23,7 @@ class OwnerMockStoreWorkTest {
     fun `completing a shift calculates the settlement and awaits approval`() {
         val settlement = store.completeWork("w5", now)
 
-        assertEquals(WorkProgressStatus.AWAITING_SETTLEMENT, store.work("w5").status)
+        assertEquals(WorkProgressStatus.AWAITING_SETTLEMENT, store.work("w5", now).status)
         assertEquals(settlement, store.settlement("w5"))
         assertTrue(settlement.totalPay > 0)
     }
@@ -33,7 +33,7 @@ class OwnerMockStoreWorkTest {
         val settlement = store.completeWork("w5", now)
         store.confirmSettlement("w5", now)
 
-        assertFalse(store.activeWorks().any { it.id == "w5" })
+        assertFalse(store.activeWorks(now).any { it.id == "w5" })
         assertEquals(PostingStatus.DONE, store.postings(now).first { it.id == "5" }.status)
         val past = store.pastPosting("5")
         assertEquals(PastPostingStatus.COMPLETED, past.status)
