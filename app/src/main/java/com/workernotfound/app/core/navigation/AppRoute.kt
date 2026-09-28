@@ -24,6 +24,11 @@ object AppRoute {
     fun ownerRematch(workId: String) = "owner_rematch/$workId"
 
     const val OWNER_PAST_POSTINGS = "owner_past_postings"    // 2-6 지난 공고
+    const val OWNER_PAST_POSTING_DETAIL = "owner_past_posting_detail/{postingId}"  // 2-6 지난 공고 상세
+    fun ownerPastPostingDetail(postingId: String) = "owner_past_posting_detail/$postingId"
+
+    const val OWNER_REVIEW_WRITE = "owner_review_write/{postingId}"  // 2-6 리뷰 작성 (placeholder)
+    fun ownerReviewWrite(postingId: String) = "owner_review_write/$postingId"
 
     // Worker section
     const val WORKER_ROOT = "worker_root"
