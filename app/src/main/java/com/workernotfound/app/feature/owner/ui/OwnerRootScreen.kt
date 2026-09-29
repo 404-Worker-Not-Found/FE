@@ -17,7 +17,6 @@ import androidx.navigation.NavHostController
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.component.AppBottomBar
 import com.workernotfound.app.core.designsystem.component.BottomNavItem
-import com.workernotfound.app.core.designsystem.component.ComingSoonScreen
 import com.workernotfound.app.core.navigation.AppRoute
 
 private val OWNER_TABS = listOf(
@@ -50,12 +49,21 @@ fun OwnerRootScreen(navController: NavHostController) {
         when (selectedTab) {
             0 -> OwnerHomeScreen(
                 onCreatePosting = { navController.navigate(AppRoute.OWNER_JOB_POSTING) },
-                onPostingClick = { navController.navigate(AppRoute.OWNER_APPLICANTS) },
+                onPostingClick = { postingId -> navController.navigate(AppRoute.ownerApplicants(postingId)) },
                 modifier = contentModifier,
             )
-            1 -> ComingSoonScreen(title = "공고 관리 (2-6)", modifier = contentModifier)
-            2 -> ComingSoonScreen(title = "근무 관리 (2-4)", modifier = contentModifier)
-            else -> ComingSoonScreen(title = "마이페이지", modifier = contentModifier)
+            1 -> OwnerPastPostingsScreen(
+                onPostingClick = { postingId -> navController.navigate(AppRoute.ownerPastPostingDetail(postingId)) },
+                modifier = contentModifier,
+            )
+            2 -> OwnerWorkListScreen(
+                onWorkClick = { workId -> navController.navigate(AppRoute.ownerWorkDetail(workId)) },
+                modifier = contentModifier,
+            )
+            else -> OwnerMyPageScreen(
+                onLogout = { navController.popBackStack(AppRoute.ROLE_SWITCHER, inclusive = false) },
+                modifier = contentModifier,
+            )
         }
     }
 }

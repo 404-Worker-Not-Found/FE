@@ -7,9 +7,28 @@ object AppRoute {
     // Owner section
     const val OWNER_ROOT = "owner_root"
     const val OWNER_JOB_POSTING = "owner_job_posting"        // 2-2 공고 등록
-    const val OWNER_APPLICANTS = "owner_applicants"          // 2-3 지원자 관리
-    const val OWNER_WORK_DETAIL = "owner_work_detail"        // 2-4 근무 관리/정산
+    const val OWNER_APPLICANTS = "owner_applicants/{postingId}"  // 2-3 지원자 관리
+    fun ownerApplicants(postingId: String) = "owner_applicants/$postingId"
+
+    const val OWNER_APPLICANT_DETAIL = "owner_applicant_detail/{postingId}/{applicantId}"  // 2-3 지원자 상세
+    fun ownerApplicantDetail(postingId: String, applicantId: String) =
+        "owner_applicant_detail/$postingId/$applicantId"
+
+    const val OWNER_WORK_DETAIL = "owner_work_detail/{workId}"  // 2-4 근무 관리/정산
+    fun ownerWorkDetail(workId: String) = "owner_work_detail/$workId"
+
+    const val OWNER_SETTLEMENT = "owner_settlement/{workId}"   // 2-4 정산
+    fun ownerSettlement(workId: String) = "owner_settlement/$workId"
+
+    const val OWNER_REMATCH = "owner_rematch/{workId}"         // 2-5 노쇼 처리/재매칭
+    fun ownerRematch(workId: String) = "owner_rematch/$workId"
+
     const val OWNER_PAST_POSTINGS = "owner_past_postings"    // 2-6 지난 공고
+    const val OWNER_PAST_POSTING_DETAIL = "owner_past_posting_detail/{postingId}"  // 2-6 지난 공고 상세
+    fun ownerPastPostingDetail(postingId: String) = "owner_past_posting_detail/$postingId"
+
+    const val OWNER_REVIEW_WRITE = "owner_review_write/{postingId}"  // 2-6 리뷰 작성 (placeholder)
+    fun ownerReviewWrite(postingId: String) = "owner_review_write/$postingId"
 
     // Worker section
     const val WORKER_ROOT = "worker_root"
