@@ -9,9 +9,16 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.workernotfound.app.core.designsystem.AppRole
 import com.workernotfound.app.core.designsystem.WorkerNotFoundTheme
-import com.workernotfound.app.core.designsystem.component.ComingSoonScreen
 import com.workernotfound.app.feature.job.ui.JobPostingScreen
+import com.workernotfound.app.feature.owner.ui.OwnerApplicantDetailScreen
+import com.workernotfound.app.feature.owner.ui.OwnerApplicantsScreen
+import com.workernotfound.app.feature.owner.ui.OwnerPastPostingDetailScreen
+import com.workernotfound.app.feature.owner.ui.OwnerPastPostingsScreen
+import com.workernotfound.app.feature.owner.ui.OwnerRematchScreen
+import com.workernotfound.app.feature.owner.ui.OwnerReviewPlaceholderScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRootScreen
+import com.workernotfound.app.feature.owner.ui.OwnerSettlementScreen
+import com.workernotfound.app.feature.owner.ui.OwnerWorkDetailScreen
 import com.workernotfound.app.feature.worker.ui.WorkerApplicationScreen
 import com.workernotfound.app.feature.worker.ui.WorkerChatRoomScreen
 import com.workernotfound.app.feature.worker.ui.WorkerJobDetailScreen
@@ -47,19 +54,104 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 )
             }
         }
-        composable(AppRoute.OWNER_APPLICANTS) {
+        composable(
+            route = AppRoute.OWNER_APPLICANTS,
+            arguments = listOf(navArgument("postingId") { type = NavType.StringType }),
+        ) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
-                ComingSoonScreen(title = "지원자 관리 (2-3)")
+                OwnerApplicantsScreen(
+                    onBack = { navController.popBackStack() },
+                    onApplicantClick = { postingId, applicantId ->
+                        navController.navigate(AppRoute.ownerApplicantDetail(postingId, applicantId))
+                    },
+                )
             }
         }
-        composable(AppRoute.OWNER_WORK_DETAIL) {
+        composable(
+            route = AppRoute.OWNER_APPLICANT_DETAIL,
+            arguments = listOf(
+                navArgument("postingId") { type = NavType.StringType },
+                navArgument("applicantId") { type = NavType.StringType },
+            ),
+        ) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
-                ComingSoonScreen(title = "근무 관리 (2-4)")
+                OwnerApplicantDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onViewWork = { workId ->
+                        navController.navigate(AppRoute.ownerWorkDetail(workId)) {
+                            popUpTo(AppRoute.OWNER_ROOT)
+                        }
+                    },
+                )
+            }
+        }
+        composable(
+            route = AppRoute.OWNER_WORK_DETAIL,
+            arguments = listOf(navArgument("workId") { type = NavType.StringType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                OwnerWorkDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenSettlement = { workId -> navController.navigate(AppRoute.ownerSettlement(workId)) },
+                    onNoShowConfirmed = { workId ->
+                        navController.navigate(AppRoute.ownerRematch(workId)) {
+                            popUpTo(AppRoute.OWNER_ROOT)
+                        }
+                    },
+                )
+            }
+        }
+        composable(
+            route = AppRoute.OWNER_SETTLEMENT,
+            arguments = listOf(navArgument("workId") { type = NavType.StringType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                OwnerSettlementScreen(
+                    onBack = { navController.popBackStack() },
+                    onDone = { navController.popBackStack(AppRoute.OWNER_ROOT, inclusive = false) },
+                )
+            }
+        }
+        composable(
+            route = AppRoute.OWNER_REMATCH,
+            arguments = listOf(navArgument("workId") { type = NavType.StringType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                OwnerRematchScreen(
+                    onClose = { navController.popBackStack(AppRoute.OWNER_ROOT, inclusive = false) },
+                    onViewWork = { workId ->
+                        navController.navigate(AppRoute.ownerWorkDetail(workId)) {
+                            popUpTo(AppRoute.OWNER_ROOT)
+                        }
+                    },
+                )
             }
         }
         composable(AppRoute.OWNER_PAST_POSTINGS) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
-                ComingSoonScreen(title = "지난 공고 (2-6)")
+                OwnerPastPostingsScreen(
+                    onPostingClick = { postingId -> navController.navigate(AppRoute.ownerPastPostingDetail(postingId)) },
+                    onBack = { navController.popBackStack() },
+                )
+            }
+        }
+        composable(
+            route = AppRoute.OWNER_PAST_POSTING_DETAIL,
+            arguments = listOf(navArgument("postingId") { type = NavType.StringType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                OwnerPastPostingDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onWriteReview = { postingId -> navController.navigate(AppRoute.ownerReviewWrite(postingId)) },
+                )
+            }
+        }
+        composable(
+            route = AppRoute.OWNER_REVIEW_WRITE,
+            arguments = listOf(navArgument("postingId") { type = NavType.StringType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                OwnerReviewPlaceholderScreen(onBack = { navController.popBackStack() })
             }
         }
 

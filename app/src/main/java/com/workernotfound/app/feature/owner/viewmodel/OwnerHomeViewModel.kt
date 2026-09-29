@@ -27,6 +27,19 @@ class OwnerHomeViewModel @Inject constructor(
 
     fun loadPostings() {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        fetchPostings()
+    }
+
+    /**
+     * Silent reload on resume so matches / no-shows handled on other owner screens
+     * are reflected without a loading flash. Skipped while a load is in flight.
+     */
+    fun refresh() {
+        if (_uiState.value.isLoading) return
+        fetchPostings()
+    }
+
+    private fun fetchPostings() {
         viewModelScope.launch {
             runCatching { repository.getMyPostings() }
                 .onSuccess { postings ->
