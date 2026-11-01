@@ -15,8 +15,8 @@ class BackendAccess @Inject constructor(
     @ApplicationContext private val context: Context,
     private val sessions: SessionStore,
 ) {
-    fun requireSession() {
-        if (sessions.read() == null) throw IllegalStateException(context.getString(R.string.backend_login_required))
+    suspend fun requireSession() {
+        if (kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { sessions.read() } == null) throw IllegalStateException(context.getString(R.string.backend_login_required))
     }
 
     /** Unconnected features must never simulate successful server changes in live mode. */

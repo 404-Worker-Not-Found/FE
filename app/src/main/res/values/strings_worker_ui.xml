@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="worker_retry">다시 시도</string>
+    <string name="worker_trust_load_error">신뢰도 정보를 불러오지 못했어요.</string>
+    <string name="worker_schedule_load_error">근무 일정을 불러오지 못했어요.</string>
+    <string name="worker_trust_schedule">근무 일정</string>
+    <string name="worker_no_schedule">예정된 근무가 없어요.</string>
+    <string name="worker_hourly_wage">시급 %1$,d원</string>
+    <string name="worker_applications">지원 현황</string>
+    <string name="worker_trust_history">신뢰도 · 근무 이력</string>
+    <string name="worker_back_to_main">메인으로</string>
+    <string name="worker_view_posting">공고 확인</string>
+</resources>

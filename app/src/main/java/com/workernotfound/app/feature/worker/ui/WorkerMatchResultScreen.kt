@@ -1,5 +1,12 @@
 package com.workernotfound.app.feature.worker.ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +26,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +56,7 @@ fun WorkerMatchResultScreen(
     onBack: () -> Unit,
     onGoChat: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onHome: () -> Unit = onBack,
     viewModel: WorkerMatchResultViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -54,6 +64,7 @@ fun WorkerMatchResultScreen(
         uiState = uiState,
         onBack = onBack,
         onGoChat = onGoChat,
+        onHome = onHome,
         onAccept = viewModel::accept,
         onReject = viewModel::reject,
         modifier = modifier,
@@ -65,6 +76,7 @@ private fun WorkerMatchResultContent(
     uiState: WorkerMatchResultUiState,
     onBack: () -> Unit,
     onGoChat: (String) -> Unit,
+    onHome: () -> Unit,
     onAccept: () -> Unit,
     onReject: () -> Unit,
     modifier: Modifier = Modifier,
@@ -83,7 +95,7 @@ private fun WorkerMatchResultContent(
             uiState.errorMessage != null -> InfoBox(uiState.errorMessage, onBack)
             app == null -> InfoBox("매칭 정보를 불러오지 못했어요.", onBack)
             app.status == ApplicationStatus.MATCHED || uiState.outcome == RematchOutcome.ACCEPTED ->
-                MatchSuccessView(app = app, onGoChat = { (if (BuildConfig.USE_DEMO_DATA) app.id else app.chatRoomId)?.let(onGoChat) }, onHome = onBack)
+                MatchSuccessView(app = app, onGoChat = { (if (BuildConfig.USE_DEMO_DATA) app.id else app.chatRoomId)?.let(onGoChat) }, onHome = onHome)
             app.hasRematchOffer && uiState.outcome == RematchOutcome.PENDING ->
                 RematchWaitingView(
                     app = app,
@@ -108,7 +120,7 @@ private fun MatchSuccessView(app: WorkerApplication, onGoChat: () -> Unit, onHom
     ) {
         Spacer(Modifier.height(16.dp))
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "🎉", fontSize = 48.sp)
+            MatchCelebration()
             Spacer(Modifier.height(8.dp))
             Text(text = "매칭 성공!", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
             Spacer(Modifier.height(4.dp))
@@ -125,7 +137,7 @@ private fun MatchSuccessView(app: WorkerApplication, onGoChat: () -> Unit, onHom
         AppPrimaryButton(text = "채팅방으로 이동", onClick = onGoChat, enabled = BuildConfig.USE_DEMO_DATA || app.chatRoomId != null)
         Spacer(Modifier.height(8.dp))
         TextButton(onClick = onHome, modifier = Modifier.fillMaxWidth()) {
-            Text(text = "홈으로", color = AppColors.TextSub)
+            Text(text = stringResource(R.string.worker_back_to_main), color = AppColors.TextSub)
         }
     }
 }
@@ -243,4 +255,19 @@ private fun InfoBox(message: String, onHome: () -> Unit) {
         Spacer(Modifier.height(12.dp))
         AppPrimaryButton(text = "홈으로", onClick = onHome)
     }
+}
+
+
+@Composable
+private fun MatchCelebration() {
+    var visible by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        animationSpec = spring(), label = "matchCelebration",
+    )
+    LaunchedEffect(Unit) { visible = true }
+    Text(
+        text = "🎉", fontSize = 48.sp,
+        modifier = Modifier.graphicsLayer { scaleX = scale; scaleY = scale },
+    )
 }
