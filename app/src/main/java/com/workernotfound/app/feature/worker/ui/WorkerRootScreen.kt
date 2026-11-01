@@ -58,14 +58,18 @@ fun WorkerRootScreen(navController: NavHostController) {
                 onJobClick = { jobId -> navController.navigate(AppRoute.workerJobDetail(jobId)) },
                 modifier = contentModifier,
             )
-            2 -> WorkerWorkScreen(modifier = contentModifier)
+            2 -> WorkerWorkScreen(
+                modifier = contentModifier,
+                onTrustClick = { navController.navigate(AppRoute.WORKER_TRUST) },
+                onApplicationsClick = { navController.navigate(AppRoute.WORKER_APPLICATIONS) },
+            )
             3 -> WorkerChatListScreen(
                 onRoomClick = { roomId -> navController.navigate(AppRoute.workerChatRoom(roomId)) },
                 modifier = contentModifier,
             )
             else -> WorkerMyPageScreen(
                 onTrustClick = { navController.navigate(AppRoute.WORKER_TRUST) },
-                onLogout = { navController.navigate(AppRoute.ROLE_SWITCHER) },
+                onLogout = { navController.popBackStack(AppRoute.ROLE_SWITCHER, inclusive = false) },
                 modifier = contentModifier,
             )
         }

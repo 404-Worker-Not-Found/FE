@@ -184,6 +184,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 WorkerMatchResultScreen(
                     onBack = { navController.popBackStack() },
                     onGoChat = { roomId -> navController.navigate(AppRoute.workerChatRoom(roomId)) },
+                    onHome = { navController.popBackStack(AppRoute.WORKER_ROOT, inclusive = false) },
                 )
             }
         }
@@ -197,7 +198,10 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         }
         composable(AppRoute.WORKER_TRUST) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
-                WorkerTrustScreen(onBack = { navController.popBackStack() })
+                WorkerTrustScreen(
+                    onBack = { navController.popBackStack() },
+                    onJobClick = { id -> navController.navigate(AppRoute.workerJobDetail(id)) },
+                )
             }
         }
     }
