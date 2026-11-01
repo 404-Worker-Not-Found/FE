@@ -24,6 +24,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+    @Provides @Singleton
+    fun memberProfiles(client: OkHttpClient): com.workernotfound.app.feature.mypage.data.remote.MemberProfileApiService =
+        retrofit(client).create(com.workernotfound.app.feature.mypage.data.remote.MemberProfileApiService::class.java)
     private fun retrofit(client: OkHttpClient): Retrofit = Retrofit.Builder()
         .baseUrl(BuildConfig.API_BASE_URL)
         .client(client)
