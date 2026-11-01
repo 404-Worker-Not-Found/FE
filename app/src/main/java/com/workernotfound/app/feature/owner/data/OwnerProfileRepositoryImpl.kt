@@ -25,6 +25,15 @@ class OwnerProfileRepositoryImpl @Inject constructor() : OwnerProfileRepository 
         return profile
     }
 
+    override suspend fun updatePhoto(uri: String) {
+        profile = profile.copy(profileImageUrl = uri)
+    }
+
+    override suspend fun updateName(name: String) {
+        require(com.workernotfound.app.feature.mypage.domain.ProfileNamePolicy.isValid(name))
+        profile = profile.copy(name = name)
+    }
+
     override suspend fun updateNotificationSettings(settings: NotificationSettings) {
         profile = profile.copy(notificationSettings = settings)
     }
