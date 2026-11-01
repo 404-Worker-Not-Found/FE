@@ -32,4 +32,17 @@
     <string name="backend_urgent_only_description">켜면 긴급 공고만 표시합니다</string>
     <string name="backend_other_jobs">일반 공고</string>
     <string name="backend_no_jobs">현재 표시할 공고가 없습니다.</string>
+    <string name="backend_member_reference">회원 #%1$d</string>
+    <string name="backend_arrival_minutes">도착 예상 %1$d분</string>
+    <string name="backend_send_proposal">매칭 제안 보내기</string>
+    <string name="backend_proposal_confirm">선택한 지원자에게 매칭을 제안할까요? 지원자가 수락하면 근무가 확정됩니다.</string>
+    <string name="backend_proposal_sent">매칭 제안을 보냈어요</string>
+    <string name="backend_proposal_waiting">지원자의 수락을 기다리고 있습니다.</string>
+    <string name="backend_live_location_unavailable">실시간 위치는 서버에서 제공하지 않습니다.</string>
+    <string name="backend_start_work">근무 시작</string>
+    <string name="backend_work_server_policy">근무 시작·완료는 서버 출근 정책에 따라 처리합니다. 노쇼는 서버에서 자동 판정합니다.</string>
+    <string name="backend_complete_work_confirm">근무를 완료할까요? 정산 상태는 별도로 확인해야 합니다.</string>
+    <string name="backend_work_failed">근무 생성 실패</string>
+    <string name="backend_matching_proposal">매칭 제안</string>
+    <string name="backend_matching_proposal_description">점주가 매칭을 제안했어요. 제한 시간 안에 응답해 주세요.</string>
 </resources>

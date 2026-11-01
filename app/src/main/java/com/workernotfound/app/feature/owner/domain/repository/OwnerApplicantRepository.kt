@@ -8,6 +8,8 @@ import com.workernotfound.app.feature.owner.domain.model.ApplicantDetail
  * (decision: Demo Scope and Mock-First Strategy).
  */
 interface OwnerApplicantRepository {
+    suspend fun proposeMatch(postingId: String, applicantId: String)
+
     suspend fun getApplicantBoard(postingId: String): ApplicantBoard
 
     suspend fun getApplicantDetail(postingId: String, applicantId: String): ApplicantDetail

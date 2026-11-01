@@ -18,5 +18,5 @@ data class OwnerRematchUiState(
     val errorMessage: String? = null,
 ) {
     val expectedArrivalMillis: Long?
-        get() = newApplicant?.let { resolvedAtMillis + it.etaMinutes * 60_000L }
+        get() = newApplicant?.etaMinutes?.let { resolvedAtMillis + it * 60_000L }
 }

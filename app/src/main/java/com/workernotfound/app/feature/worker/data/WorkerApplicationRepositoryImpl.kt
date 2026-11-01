@@ -5,7 +5,9 @@ import com.workernotfound.app.core.network.ApiException
 import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.worker.data.remote.ApplicationResponseDto
 import com.workernotfound.app.feature.worker.data.remote.CreateApplicationRequestDto
+import com.workernotfound.app.feature.worker.data.remote.MatchingResponseDto
 import com.workernotfound.app.feature.worker.data.remote.WorkerApplicationApiService
+import com.workernotfound.app.feature.worker.data.remote.WorkerChatApiService
 import com.workernotfound.app.feature.worker.data.remote.WorkerJobApiService
 import com.workernotfound.app.feature.worker.domain.model.ApplicationStatus
 import com.workernotfound.app.feature.worker.domain.model.WorkerApplication
@@ -20,8 +22,18 @@ import kotlinx.coroutines.delay
  */
 class WorkerApplicationRepositoryImpl @Inject constructor(private val backend: BackendAccess,
     private val api: WorkerApplicationApiService,
+    private val chat: WorkerChatApiService,
     private val jobs: WorkerJobApiService,
 ) : WorkerApplicationRepository {
+
+    override suspend fun respondToMatching(applicationId: String, accept: Boolean): WorkerApplication {
+        backend.requireSession()
+        val matching = allMatchings().firstOrNull { it.applicationId.toString() == applicationId && it.status == "PENDING" }
+            ?: throw ApiException("MATCHING_NOT_PENDING")
+        val response = if (accept) api.accept(matching.matchingId).requireData() else api.decline(matching.matchingId).requireData()
+        if (response.status != if (accept) "CONFIRMED" else "DECLINED") throw ApiException("UNEXPECTED_MATCHING_STATUS")
+        return map(api.detail(applicationId.toLong()).requireData(), response, includeChat = accept)
+    }
 
     override suspend fun apply(jobId: String) {
         if (!BuildConfig.USE_DEMO_DATA) {
@@ -40,11 +52,12 @@ class WorkerApplicationRepositoryImpl @Inject constructor(private val backend: B
     override suspend fun getApplications(): List<WorkerApplication> {
         if (!BuildConfig.USE_DEMO_DATA) {
             backend.requireSession()
+            val matchings = allMatchings()
             val all = mutableListOf<WorkerApplication>()
             var page = 0
             do {
                 val result = api.list(page).requireData()
-                for (app in result.applications) all += map(app)
+                for (app in result.applications) all += map(app, matchings.firstOrNull { it.applicationId == app.applicationId }, includeChat = false)
                 page++
             } while (page < result.totalPages)
             return all
@@ -56,26 +69,47 @@ class WorkerApplicationRepositoryImpl @Inject constructor(private val backend: B
     override suspend fun getApplication(id: String): WorkerApplication {
         if (!BuildConfig.USE_DEMO_DATA) {
             backend.requireSession()
-            return map(api.detail(id.toLong()).requireData())
+            val app = api.detail(id.toLong()).requireData()
+            return map(app, allMatchings().firstOrNull { it.applicationId == app.applicationId }, includeChat = true)
         }
         delay(200)
         return APPLICATIONS.firstOrNull { it.id == id }
             ?: throw NoSuchElementException("지원 내역을 찾을 수 없습니다: $id")
     }
 
-    private suspend fun map(app: ApplicationResponseDto): WorkerApplication {
+    private suspend fun allMatchings(): List<MatchingResponseDto> {
+        val result = mutableListOf<MatchingResponseDto>()
+        var page = 0
+        do {
+            val response = api.matchings(page).requireData()
+            result += response.matchings
+            page++
+        } while (page < response.totalPages)
+        return result
+    }
+
+    private suspend fun findChatRoom(matchingId: Long): String? {
+        var page = 0
+        do {
+            val response = chat.rooms(page).requireData()
+            response.content.firstOrNull { it.matchingId == matchingId }?.let { return it.chatRoomId.toString() }
+            page++
+        } while (page < response.totalPages)
+        return null
+    }
+
+    private suspend fun map(app: ApplicationResponseDto, matching: MatchingResponseDto?, includeChat: Boolean): WorkerApplication {
         val job = jobs.detail(app.jobPostId).requireData()
         return WorkerApplication(
             id = app.applicationId.toString(), storeName = job.storeName, category = job.categoryName,
-            appliedAtText = app.appliedAt, status = when (app.status) {
-                "APPLIED" -> ApplicationStatus.APPLYING
-                "SELECTED" -> ApplicationStatus.MATCHING // Selection is a proposal, not confirmed work.
-                "REJECTED" -> ApplicationStatus.NOT_SELECTED
-                "CANCELED" -> ApplicationStatus.CANCELED
-                else -> throw ApiException("UNKNOWN_APPLICATION_STATUS")
-            },
+            appliedAtText = app.appliedAt, status = applicationStatus(app.status, matching?.status),
             workDate = job.workDate, workTimeRange = "${job.startTime.take(5)} ~ ${job.endTime.take(5)}",
-            address = job.address, hourlyWage = job.baseHourlyWage + job.extraWage, matchScore = null,
+            address = job.address, hourlyWage = job.baseHourlyWage + job.extraWage,
+            matchScore = matching?.totalScore?.let { kotlin.math.round(it).toInt() },
+            hasRematchOffer = matching?.status == "PENDING", matchingId = matching?.matchingId?.toString(),
+            proposalExpiresInSeconds = matching?.expiresAt?.let { expiresInSeconds(it) },
+            chatRoomId = if (includeChat && matching?.status in setOf("CONFIRMED", "COMPLETED")) findChatRoom(requireNotNull(matching).matchingId) else null,
+
         )
     }
 
@@ -133,4 +167,18 @@ class WorkerApplicationRepositoryImpl @Inject constructor(private val backend: B
             ),
         )
     }
+}
+
+/** SELECTED is committed only after the confirmation saga has created work and chat. */
+internal fun applicationStatus(applicationStatus: String, matchingStatus: String?): ApplicationStatus = when (applicationStatus) {
+    "CANCELED" -> ApplicationStatus.CANCELED
+    "REJECTED" -> ApplicationStatus.NOT_SELECTED
+    "SELECTED" -> ApplicationStatus.MATCHED
+    "APPLIED" -> if (matchingStatus == "PENDING") ApplicationStatus.MATCHING else ApplicationStatus.APPLYING
+    else -> throw ApiException("UNKNOWN_APPLICATION_STATUS")
+}
+
+internal fun expiresInSeconds(expiresAt: String, clock: java.time.Clock = java.time.Clock.systemUTC()): Long {
+    val expires = java.time.LocalDateTime.parse(expiresAt).atZone(java.time.ZoneId.of("Asia/Seoul")).toInstant()
+    return java.time.Duration.between(clock.instant(), expires).seconds.coerceAtLeast(0)
 }

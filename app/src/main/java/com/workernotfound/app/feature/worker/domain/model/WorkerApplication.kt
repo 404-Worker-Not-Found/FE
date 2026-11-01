@@ -1,5 +1,7 @@
 package com.workernotfound.app.feature.worker.domain.model
 
+
+
 /**
  * A worker's application to a job posting (UI spec 3-4 지원 현황 / 3-5 매칭 결과).
  * One model carries both the list summary (3-4) and the matched detail (3-5)
@@ -18,6 +20,9 @@ data class WorkerApplication(
     val matchScore: Int?,
     /** NOT_SELECTED 지원자에게 노쇼 재매칭 기회가 온 경우 (UI spec 3-5 재매칭 대기). */
     val hasRematchOffer: Boolean = false,
+    val matchingId: String? = null,
+    val proposalExpiresInSeconds: Long? = null,
+    val chatRoomId: String? = null,
     /** 재매칭 제안 시 현재 위치 기준 도착 예상 (분). */
     val etaMinutes: Int = 0,
 ) {

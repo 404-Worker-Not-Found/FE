@@ -3,9 +3,14 @@ package com.workernotfound.app.feature.owner.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.workernotfound.app.BuildConfig
+import com.workernotfound.app.core.network.BackendAccess
+import com.workernotfound.app.feature.owner.domain.model.OwnerWork
 import com.workernotfound.app.feature.owner.domain.model.WorkProgressStatus
 import com.workernotfound.app.feature.owner.domain.repository.OwnerWorkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -16,10 +21,10 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class OwnerWorkDetailViewModel @Inject constructor(
+    private val backend: BackendAccess,
     private val repository: OwnerWorkRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -45,7 +50,8 @@ class OwnerWorkDetailViewModel @Inject constructor(
             runCatching { repository.getWork(workId) }
                 .onSuccess { work -> _uiState.update { it.copy(isLoading = false, work = work) } }
                 .onFailure { t ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = t.message ?: "근무 정보를 불러오지 못했습니다.") }
+                    if (t is CancellationException) throw t
+                    _uiState.update { it.copy(isLoading = false, errorMessage = backend.message(t)) }
                 }
         }
     }
@@ -63,8 +69,26 @@ class OwnerWorkDetailViewModel @Inject constructor(
     }
 
     /** 근무 완료 → 정산 트리거 (UI spec 2-4). */
-    fun completeWork() = runAction(OwnerWorkDetailEvent.OpenSettlement(workId)) {
-        repository.completeWork(workId)
+    fun completeWork() {
+        if (BuildConfig.USE_DEMO_DATA) {
+            runAction(OwnerWorkDetailEvent.OpenSettlement(workId)) { repository.completeWork(workId) }
+        } else changeWork { repository.finishWork(workId) }
+    }
+
+    fun startWork() = changeWork { repository.startWork(workId) }
+
+    private fun changeWork(action: suspend () -> OwnerWork) {
+        if (_uiState.value.isProcessing) return
+        _uiState.update { it.copy(isCompleteDialogVisible = false, isProcessing = true, actionErrorMessage = null) }
+        viewModelScope.launch {
+            try {
+                val work = action()
+                _uiState.update { it.copy(work = work, isProcessing = false) }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(isProcessing = false, actionErrorMessage = backend.message(error)) }
+            }
+        }
     }
 
     /** 노쇼 확정 (UI spec 2-5), then hand over to automatic re-matching. */
@@ -86,7 +110,8 @@ class OwnerWorkDetailViewModel @Inject constructor(
                     _events.send(onSuccess)
                 }
                 .onFailure { t ->
-                    _uiState.update { it.copy(isProcessing = false, actionErrorMessage = t.message ?: "처리하지 못했습니다.") }
+                    if (t is CancellationException) throw t
+                    _uiState.update { it.copy(isProcessing = false, actionErrorMessage = backend.message(t)) }
                 }
         }
     }
@@ -111,6 +136,10 @@ class OwnerWorkDetailViewModel @Inject constructor(
     private suspend fun pollAttendance() {
         runCatching { repository.getWork(workId) }
             .onSuccess { work -> _uiState.update { it.copy(work = work) } }
+            .onFailure { error ->
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(errorMessage = backend.message(error)) }
+            }
     }
 
     companion object {
