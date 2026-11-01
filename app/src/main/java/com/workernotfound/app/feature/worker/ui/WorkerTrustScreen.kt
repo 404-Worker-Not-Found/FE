@@ -19,9 +19,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
+import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -51,17 +56,24 @@ import com.workernotfound.app.feature.worker.viewmodel.WorkerTrustViewModel
 @Composable
 fun WorkerTrustScreen(
     onBack: () -> Unit,
+    onJobClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkerTrustViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    WorkerTrustContent(uiState = uiState, onBack = onBack, modifier = modifier)
+    WorkerTrustContent(
+        uiState = uiState, onBack = onBack, onRetry = viewModel::load,
+        onRetrySchedule = viewModel::loadSchedule, onJobClick = onJobClick, modifier = modifier,
+    )
 }
 
 @Composable
 private fun WorkerTrustContent(
     uiState: WorkerTrustUiState,
     onBack: () -> Unit,
+    onRetry: () -> Unit,
+    onRetrySchedule: () -> Unit,
+    onJobClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -74,8 +86,12 @@ private fun WorkerTrustContent(
         val summary = uiState.summary
         when {
             uiState.isLoading -> LoadingBox()
-            summary == null -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-                Text("신뢰도 정보를 불러오지 못했어요.", color = AppColors.TextSub)
+            summary == null -> Column(
+                Modifier.fillMaxSize().padding(AppDimens.screenPadding),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(stringResource(R.string.worker_trust_load_error), color = AppColors.TextSub)
+                AppPrimaryButton(text = stringResource(R.string.worker_retry), onClick = onRetry)
             }
             else -> Column(
                 modifier = Modifier
@@ -88,7 +104,8 @@ private fun WorkerTrustContent(
                 Spacer(Modifier.height(4.dp))
                 TrustGaugeCard(summary)
                 RiskBanner(summary.noShowRisk)
-                ReviewCard(summary.averageRating, summary.recentReviews)
+                TrustScheduleCard(uiState, onRetrySchedule, onJobClick)
+                ReviewCard(summary.averageRating, summary.recentReviews.take(3))
                 WorkHistoryCard(summary.workHistory)
             }
         }
@@ -247,6 +264,10 @@ private fun WorkHistoryCard(history: List<WorkHistoryItem>) {
                     Text(text = item.storeName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
                     Spacer(Modifier.height(2.dp))
                     Text(text = "${item.dateText} · ${stars(item.rating)}", fontSize = 12.sp, color = AppColors.TextSub)
+                    Text(
+                        text = stringResource(R.string.worker_hourly_wage, item.hourlyWage),
+                        style = MaterialTheme.typography.bodySmall, color = AppColors.TextSub,
+                    )
                 }
                 Text(text = "₩${"%,d".format(item.settlement)}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
             }
@@ -260,5 +281,37 @@ private fun stars(rating: Int): String = "★".repeat(rating.coerceIn(0, 5)) + "
 private fun LoadingBox() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CircularProgressIndicator(color = AppTheme.role.accent)
+    }
+}
+
+
+@Composable
+private fun TrustScheduleCard(uiState: WorkerTrustUiState, onRetry: () -> Unit, onJobClick: (String) -> Unit) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        SectionLabel(text = stringResource(R.string.worker_trust_schedule))
+        when {
+            uiState.isScheduleLoading -> CircularProgressIndicator(color = AppTheme.role.accent)
+            uiState.hasScheduleError -> {
+                Text(stringResource(R.string.worker_schedule_load_error), color = AppColors.TextSub)
+                TextButton(onClick = onRetry) { Text(stringResource(R.string.worker_retry)) }
+            }
+            uiState.works.isEmpty() -> Text(stringResource(R.string.worker_no_schedule), color = AppColors.TextSub)
+            else -> uiState.works.forEach { work ->
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = AppDimens.cardGap),
+                    verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
+                ) {
+                    Text(work.storeName, style = MaterialTheme.typography.titleMedium, color = AppColors.TextMain)
+                    Text("${work.workDate} · ${work.timeRange}", style = MaterialTheme.typography.bodyMedium)
+                    work.address?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = AppColors.TextSub) }
+                    Text(stringResource(R.string.worker_hourly_wage, work.hourlyWage), color = AppTheme.role.accentPressed)
+                    work.jobId?.let { jobId ->
+                        TextButton(onClick = { onJobClick(jobId) }) {
+                            Text(stringResource(R.string.worker_view_posting), color = AppTheme.role.accentPressed)
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -99,11 +99,11 @@ class WorkerJobRepositoryImpl @Inject constructor(
         deadlineText = applyDeadlineText,
     )
 
-    private companion object {
-        fun formatDistance(km: Double): String =
+    companion object {
+        private fun formatDistance(km: Double): String =
             if (km < 1.0) "${(km * 1000).toInt()}m" else "%.1fkm".format(km)
 
-        val JOBS = listOf(
+        internal val JOBS = listOf(
             WorkerJobDetail(
                 id = "u1",
                 storeName = "다정있는 비치",

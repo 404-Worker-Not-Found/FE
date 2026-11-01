@@ -16,7 +16,7 @@
     <string name="backend_not_provided">미제공</string>
     <string name="backend_radius_unknown">서버에서 지원 가능 여부를 확인합니다</string>
     <string name="backend_extra_wage">가산 시급</string>
-    <string name="backend_mode_description">서버 연결 모드 · 공고 조회/지원부터 연결 중입니다. 나머지 기능은 준비 중입니다.</string>
+    <string name="backend_mode_description">실제 서버에 연결되어 있습니다. 계정이 필요한 기능은 로그인 후 이용할 수 있습니다.</string>
     <string name="backend_applicant_count">%1$d명</string>
     <string name="backend_match_score">%1$d점</string>
     <string name="backend_payment_pending">결제 대기</string>
