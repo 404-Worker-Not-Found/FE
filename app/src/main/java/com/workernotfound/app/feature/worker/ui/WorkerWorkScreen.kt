@@ -87,7 +87,7 @@ private fun WorkerWorkContent(
                 modifier = Modifier.fillMaxSize().padding(AppDimens.screenPadding),
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text(stringResource(R.string.worker_schedule_load_error), color = AppColors.TextSub)
+                Text(uiState.errorMessage ?: stringResource(R.string.worker_schedule_load_error), color = AppColors.TextSub)
                 AppPrimaryButton(text = stringResource(R.string.worker_retry), onClick = onRetry)
             }
             uiState.isLoading -> LoadingBox()
