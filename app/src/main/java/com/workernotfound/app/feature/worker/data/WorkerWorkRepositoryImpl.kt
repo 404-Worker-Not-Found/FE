@@ -27,7 +27,7 @@ class WorkerWorkRepositoryImpl @Inject constructor(private val backend: BackendA
                 for (work in result.content.filter { it.status in setOf("SCHEDULED", "CHECKED_IN", "IN_PROGRESS") }) {
                     val job = jobs.detail(work.jobPostId).requireData()
                     all += WorkSchedule(
-                        id = work.workId.toString(), storeName = job.storeName, category = job.categoryName,
+                        id = work.workId.toString(), jobId = work.jobPostId.toString(), address = job.address, storeName = job.storeName, category = job.categoryName,
                         workDate = work.workDate, timeRange = "${work.startTime.take(5)} ~ ${work.endTime.take(5)}",
                         hourlyWage = job.baseHourlyWage + job.extraWage,
                         status = if (work.status == "SCHEDULED" && startsInSeconds(work.workDate, work.startTime) > 3600) WorkStatus.SCHEDULED else WorkStatus.IN_PROGRESS,
@@ -41,10 +41,12 @@ class WorkerWorkRepositoryImpl @Inject constructor(private val backend: BackendA
         return WORKS
     }
 
-    private companion object {
-        val WORKS = listOf(
+    companion object {
+        internal val WORKS = listOf(
             WorkSchedule(
                 id = "w1",
+                jobId = "r1",
+                address = "서울 마포구 신촌로 100",
                 storeName = "1번 편의점",
                 category = "편의점",
                 workDate = "2026.06.18 (목)",
@@ -54,6 +56,7 @@ class WorkerWorkRepositoryImpl @Inject constructor(private val backend: BackendA
             ),
             WorkSchedule(
                 id = "w2",
+                address = "서울 마포구 어울마당로 12",
                 storeName = "다정있는 비치",
                 category = "음식점",
                 workDate = "2026.06.19 (금)",
@@ -63,6 +66,8 @@ class WorkerWorkRepositoryImpl @Inject constructor(private val backend: BackendA
             ),
             WorkSchedule(
                 id = "w3",
+                jobId = "u2",
+                address = "서울 마포구 와우산로 29",
                 storeName = "홀대 카페 123",
                 category = "카페",
                 workDate = "2026.06.17 (수)",
