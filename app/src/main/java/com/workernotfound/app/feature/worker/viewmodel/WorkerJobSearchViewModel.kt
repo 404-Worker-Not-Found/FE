@@ -2,20 +2,25 @@ package com.workernotfound.app.feature.worker.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.worker.domain.model.ApplyStatus
 import com.workernotfound.app.feature.worker.domain.model.JobFilter
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
+import com.workernotfound.app.feature.worker.domain.repository.WorkerApplicationRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerJobRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class WorkerJobSearchViewModel @Inject constructor(
+    private val applications: WorkerApplicationRepository,
+    private val backend: BackendAccess,
     private val repository: WorkerJobRepository,
 ) : ViewModel() {
 
@@ -41,10 +46,11 @@ class WorkerJobSearchViewModel @Inject constructor(
                     }
                 }
                 .onFailure { throwable ->
+                    if (throwable is CancellationException) throw throwable
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = throwable.message ?: "공고를 불러오지 못했습니다.",
+                            errorMessage = backend.message(throwable),
                         )
                     }
                 }
@@ -68,11 +74,19 @@ class WorkerJobSearchViewModel @Inject constructor(
 
     /** 즉시 지원 (UI spec 3-2: 성공 시 지원 완료 상태). */
     fun applyTo(jobId: String) {
-        _uiState.update { state ->
-            state.copy(
-                urgentJobs = state.urgentJobs.markApplied(jobId),
-                recommendedJobs = state.recommendedJobs.markApplied(jobId),
-            )
+        viewModelScope.launch {
+            try {
+                applications.apply(jobId)
+                _uiState.update { state ->
+                    state.copy(
+                        urgentJobs = state.urgentJobs.markApplied(jobId),
+                        recommendedJobs = state.recommendedJobs.markApplied(jobId),
+                    )
+                }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(errorMessage = backend.message(error)) }
+            }
         }
     }
 

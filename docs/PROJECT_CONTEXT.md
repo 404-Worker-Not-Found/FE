@@ -6,7 +6,7 @@ This repository contains the Android (Kotlin) frontend for an urgent job matchin
 
 The app is the client for an MSA-based backend (separate repository). It communicates with backend services through REST HTTP APIs and, for real-time state, WebSocket. The app does not own data; it presents and edits data that the backend services own.
 
-The current repository is in an early frontend setup stage.
+The app module and the owner/worker demo screens are implemented. Work is now moving from mock data to the deployed backend, alongside a separate UI-only completion branch.
 
 The screen-level product definition lives in:
 
@@ -40,12 +40,16 @@ Expected feature areas from the UI specification:
 
 ## Current Stage
 
-The project is currently in the initial frontend scaffolding stage.
+The project is in the UI completion and backend integration stage.
 
 Current state:
 
-- The repository holds agent documents and the UI specification.
-- The app module, feature packages, and build configuration are scaffolded as work begins.
+- A single `app` module is scaffolded with Kotlin, Compose, Hilt, navigation, and feature repository interfaces.
+- Owner screens cover home, job posting, applicants, work management, settlement, no-show/rematching, past postings, and my page. Their presence does not imply production API integration.
+- Worker screens cover home, search/detail, application status, matching result, work management, chat, my page, and trust/history. Several device-backed and account actions remain mock or incomplete.
+- The demo entry point is a role switcher. Onboarding, signup, and login screens are not implemented yet.
+- Map views and real-time behavior are demo placeholders/simulations; do not treat them as connected SDK, GPS, push, or WebSocket infrastructure.
+- API integration status and confirmed backend differences are tracked in `docs/backend-integration.md`. UI-only changes maintain a separate screen inventory in their branch.
 - A repository-wide verification script exists at `docs/scripts/verify.sh`.
 - The package structure is defined in `docs/architecture/package-structure.md`.
 - Agent work instructions exist in `AGENTS.md`.
@@ -60,10 +64,12 @@ Decided technology baseline (see `docs/agent/decisions.md`):
 - MVVM architecture (UI / ViewModel / domain / data)
 - Hilt for dependency injection
 - Retrofit + OkHttp for networking
-- Kotlinx Serialization (or Moshi) for JSON
+- Gson with the Retrofit Gson converter for the current API implementation
 - Coroutines + Flow for async and state
 - Jetpack Navigation (Compose)
 - Coil for image loading
+
+The current module uses `compileSdk = 35`, `targetSdk = 35`, and `minSdk = 26`. Naver Map is the selected map SDK, but the map UI currently uses placeholders. These choices are already recorded in the decision memory.
 
 Exact library versions, `minSdk`, and `targetSdk` are managed in the Gradle version catalog and `build.gradle.kts`. Where this document and the build configuration disagree, the build configuration is authoritative and the mismatch should be reported.
 
@@ -80,33 +86,35 @@ Planned feature areas, derived from `docs/UI_Specification.md`:
 - `mypage`: profile settings, notifications, account
 - `trust`: trust score, no-show risk, reviews
 
-This feature map is provisional. Use `docs/agent/decisions.md` for confirmed decisions that override this document.
+This is the conceptual feature map. Existing screens are primarily grouped under `feature/owner`, `feature/worker`, and `feature/job`; consult the actual source before choosing a package. Use `docs/agent/decisions.md` for confirmed decisions that override this document.
 
 ## Backend Dependency Notes
 
-- The backend is MSA; service boundaries are provisional on the backend side. The app should not assume a single monolithic API surface beyond what contracts confirm.
+- Backend repository: `https://github.com/404-Worker-Not-Found/BE.git`.
+- Deployed API base: `https://api.15-165-106-227.sslip.io/`. Service Swagger documents live under `/docs/{auth,member,job,matching,payment,work,chat,notification}/swagger-ui/index.html` and require separate documentation credentials. Never commit those credentials.
+- The user chose the confirmed backend contract over conflicting frontend fields/behavior during integration. Start with existing screens and track missing screens as follow-up work.
+- Backend `FRONTEND_ORIGIN` configures browser CORS and chat WebSocket allowed origins. Native Android HTTP calls do not need a hosted frontend origin. OAuth redirect URIs and Android App Links are separate feature-specific setup.
 - Cross-feature data in the app should be combined in the `domain`/`data` layer, not in Composables.
 - Authentication is JWT Access Token + Refresh Token. The app stores tokens securely and refreshes transparently.
-- Real-time application status uses WebSocket (see UI spec 3-4).
+- WebSocket application-status updates are a UI requirement (see UI spec 3-4), not proof that the backend exposes a corresponding endpoint. Confirm service contracts before implementing them.
 - Several features depend on device capabilities: GPS/location, camera/gallery, push notifications, maps.
 
 ## Near-Term Priorities
 
-Likely next steps:
+Current priorities:
 
-- Scaffold the app module and feature package structure.
-- Define the networking layer (Retrofit service, token interceptor, refresh flow).
-- Define common UI state, error, and result handling patterns.
-- Build the auth flow (onboarding, sign up, login, auto-login) first, since most flows require an authenticated session.
+- Map existing screens to confirmed backend contracts and replace mock repositories incrementally.
+- Keep explicit demo behavior separate from live mode; do not report mock data or simulated mutations as server success.
+- Obtain backend-provided worker/owner test accounts, a registered owner business, and payment test configuration for authenticated end-to-end verification.
+- Complete missing behavior in existing owner/worker UIs on the UI-only branch.
+- Implement missing auth screens as follow-up work, then connect them to secure token/session handling.
 - Keep project and agent documents aligned as decisions are made.
 
 ## Open Questions
 
 These questions are not yet settled in code:
 
-- What are the exact backend endpoint contracts and error code shapes?
-- Where and how are tokens stored (EncryptedSharedPreferences, DataStore)?
-- Which map SDK is used (Google Maps, Naver Map, Kakao Map)?
-- Which social login SDKs are integrated (Kakao, Naver)?
-- What is the minimum supported Android version (`minSdk`)?
-- Is a multi-module setup adopted, or a single `app` module with feature packages?
+- Which test accounts/businesses and payment sandbox settings are available on the deployed server?
+- Which screen requirements lack backend support or need frontend changes? Consult the integration inventory, and distinguish implemented adapters from flows tested against the live server.
+- What OAuth provider redirect URIs and app identifiers will be registered when social login is implemented?
+- What map, push, and real-time infrastructure remains necessary after the current UI work?

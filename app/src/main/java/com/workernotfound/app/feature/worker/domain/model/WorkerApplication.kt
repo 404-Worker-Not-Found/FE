@@ -15,7 +15,7 @@ data class WorkerApplication(
     val workTimeRange: String,
     val address: String,
     val hourlyWage: Int,
-    val matchScore: Int,
+    val matchScore: Int?,
     /** NOT_SELECTED 지원자에게 노쇼 재매칭 기회가 온 경우 (UI spec 3-5 재매칭 대기). */
     val hasRematchOffer: Boolean = false,
     /** 재매칭 제안 시 현재 위치 기준 도착 예상 (분). */

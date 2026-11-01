@@ -2,8 +2,8 @@ package com.workernotfound.app.feature.worker.ui.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.workernotfound.app.BuildConfig
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
 import com.workernotfound.app.core.designsystem.AppTheme
@@ -93,7 +95,9 @@ fun JobFilterSheet(
             }
 
             FilterGroup(title = "업종") {
-                CATEGORY_OPTIONS.forEach { category ->
+                val categories = if (BuildConfig.USE_DEMO_DATA) CATEGORY_OPTIONS
+                    else androidx.compose.ui.res.stringArrayResource(R.array.backend_job_categories).toList()
+                categories.forEach { category ->
                     SelectChip(
                         label = category,
                         selected = category in draft.categories,

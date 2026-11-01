@@ -1,15 +1,16 @@
 package com.workernotfound.app.feature.owner.data
 
+import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.owner.domain.model.NotificationSettings
 import com.workernotfound.app.feature.owner.domain.model.OwnerProfile
 import com.workernotfound.app.feature.owner.domain.repository.OwnerProfileRepository
-import kotlinx.coroutines.delay
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.delay
 
 /** In-memory owner profile; notification toggles persist for the app session only. */
 @Singleton
-class OwnerProfileRepositoryImpl @Inject constructor() : OwnerProfileRepository {
+class OwnerProfileRepositoryImpl @Inject constructor(private val backend: BackendAccess) : OwnerProfileRepository {
 
     private var profile = OwnerProfile(
         name = "김사장",
@@ -21,11 +22,13 @@ class OwnerProfileRepositoryImpl @Inject constructor() : OwnerProfileRepository 
     )
 
     override suspend fun getProfile(): OwnerProfile {
+        backend.requireDemo()
         delay(MOCK_DELAY_MILLIS)
         return profile
     }
 
     override suspend fun updateNotificationSettings(settings: NotificationSettings) {
+        backend.requireDemo()
         profile = profile.copy(notificationSettings = settings)
     }
 

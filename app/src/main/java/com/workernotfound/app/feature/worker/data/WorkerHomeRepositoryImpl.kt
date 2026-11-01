@@ -1,23 +1,30 @@
 package com.workernotfound.app.feature.worker.data
 
+import com.workernotfound.app.BuildConfig
+import com.workernotfound.app.feature.worker.domain.model.JobFilter
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
 import com.workernotfound.app.feature.worker.domain.repository.WorkerHomeRepository
-import kotlinx.coroutines.delay
+import com.workernotfound.app.feature.worker.domain.repository.WorkerJobRepository
 import javax.inject.Inject
+import kotlinx.coroutines.delay
 
 /**
  * Mock-backed worker home repository for the demo. In-memory data, with a small
  * delay to exercise the loading state. Replace with a network data source once
  * the backend contract exists; the interface and UI stay unchanged.
  */
-class WorkerHomeRepositoryImpl @Inject constructor() : WorkerHomeRepository {
+class WorkerHomeRepositoryImpl @Inject constructor(
+    private val jobs: WorkerJobRepository,
+) : WorkerHomeRepository {
 
     override suspend fun getUrgentJobs(): List<WorkerJobPosting> {
+        if (!BuildConfig.USE_DEMO_DATA) return jobs.searchJobs(JobFilter(urgentOnly = true)).urgent
         delay(300)
         return URGENT_JOBS
     }
 
     override suspend fun getRecommendedJobs(): List<WorkerJobPosting> {
+        if (!BuildConfig.USE_DEMO_DATA) return jobs.searchJobs(JobFilter()).recommended
         delay(300)
         return RECOMMENDED_JOBS
     }

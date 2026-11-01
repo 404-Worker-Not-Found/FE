@@ -94,6 +94,12 @@ private fun WorkerHomeContent(
         when {
             uiState.isLoading -> LoadingBox()
             uiState.errorMessage != null -> ErrorBox(uiState.errorMessage, onRetry)
+            uiState.urgentJobs.isEmpty() && (uiState.isAvailableOnly || uiState.recommendedJobs.isEmpty()) -> {
+                Text(
+                    text = androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.backend_no_jobs),
+                    modifier = Modifier.padding(AppDimens.screenPadding), color = AppColors.TextSub,
+                )
+            }
             else -> JobLists(
                 uiState = uiState,
                 onJobClick = onJobClick,
@@ -109,7 +115,7 @@ private fun HomeHeader(onNotificationsClick: () -> Unit) {
         Column(modifier = Modifier.weight(1f)) {
             Text(text = "내 주변 알바", color = AppColors.TextSub, fontSize = 12.sp)
             Text(
-                text = "이건운님 👋",
+                text = if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) "이건운님 👋" else androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.backend_greeting),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = AppColors.TextMain,
@@ -132,14 +138,14 @@ private fun AvailabilityToggleCard(checked: Boolean, onCheckedChange: (Boolean) 
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "⚡ 즉시 지원 가능",
+                    text = if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) "⚡ 즉시 지원 가능" else androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.backend_urgent_only),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextMain,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = "켜면 즉시 지원 가능한 공고만 보여드려요",
+                    text = if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) "켜면 즉시 지원 가능한 공고만 보여드려요" else androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.backend_urgent_only_description),
                     color = AppColors.TextSub,
                     fontSize = 12.sp,
                 )
@@ -198,7 +204,7 @@ private fun JobLists(
         if (!uiState.isAvailableOnly) {
             item {
                 SectionLabel(
-                    text = "추천 공고",
+                    text = if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) "추천 공고" else androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.backend_other_jobs),
                     modifier = Modifier.padding(horizontal = AppDimens.screenPadding),
                 )
                 Spacer(Modifier.height(8.dp))
