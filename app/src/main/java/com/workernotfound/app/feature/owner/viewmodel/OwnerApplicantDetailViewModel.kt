@@ -3,17 +3,21 @@ package com.workernotfound.app.feature.owner.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.workernotfound.app.BuildConfig
+import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.owner.domain.repository.OwnerApplicantRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class OwnerApplicantDetailViewModel @Inject constructor(
+    private val backend: BackendAccess,
     private val repository: OwnerApplicantRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -38,7 +42,8 @@ class OwnerApplicantDetailViewModel @Inject constructor(
             runCatching { repository.getApplicantDetail(postingId, applicantId) }
                 .onSuccess { detail -> _uiState.update { it.copy(isLoading = false, detail = detail) } }
                 .onFailure { t ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = t.message ?: "지원자 정보를 불러오지 못했습니다.") }
+                    if (t is CancellationException) throw t
+                    _uiState.update { it.copy(isLoading = false, errorMessage = backend.message(t)) }
                 }
         }
     }
@@ -54,14 +59,18 @@ class OwnerApplicantDetailViewModel @Inject constructor(
         if (_uiState.value.isConfirming) return
         _uiState.update { it.copy(isConfirmDialogVisible = false, isConfirming = true) }
         viewModelScope.launch {
-            runCatching { repository.confirmMatch(postingId, applicantId) }
+            runCatching {
+                if (BuildConfig.USE_DEMO_DATA) repository.confirmMatch(postingId, applicantId)
+                else { repository.proposeMatch(postingId, applicantId); null }
+            }
                 .onSuccess { workId ->
-                    _uiState.update { it.copy(isConfirming = false, matchedWorkId = workId) }
+                    _uiState.update { it.copy(isConfirming = false, matchedWorkId = workId, isProposalSent = !BuildConfig.USE_DEMO_DATA) }
                     load()
                 }
                 .onFailure { t ->
+                    if (t is CancellationException) throw t
                     _uiState.update {
-                        it.copy(isConfirming = false, actionErrorMessage = t.message ?: "매칭을 확정하지 못했습니다.")
+                        it.copy(isConfirming = false, actionErrorMessage = backend.message(t))
                     }
                 }
         }

@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppTheme
 import com.workernotfound.app.core.designsystem.component.AppBadge
@@ -52,7 +53,7 @@ fun ApplicantCard(
         }
         Spacer(Modifier.height(12.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            NoShowRiskBadge(risk = applicant.noShowRisk.toBadge())
+            applicant.noShowRisk?.let { NoShowRiskBadge(risk = it.toBadge()) }
             Spacer(Modifier.width(6.dp))
             if (applicant.isMatched) StatusBadge(status = AppStatus.MATCHED)
             Spacer(Modifier.weight(1f))
@@ -70,7 +71,7 @@ private fun NameRow(applicant: Applicant) {
             color = AppColors.TextMain,
         )
         Spacer(Modifier.width(6.dp))
-        Text(text = "${applicant.age}세", color = AppColors.TextSub, fontSize = 12.sp)
+        if (applicant.age != null) Text(text = "${applicant.age}세", color = AppColors.TextSub, fontSize = 12.sp)
     }
 }
 
@@ -84,16 +85,16 @@ private fun RatingRow(applicant: Applicant) {
             modifier = Modifier.size(14.dp),
         )
         Spacer(Modifier.width(2.dp))
-        Text(text = "%.1f".format(applicant.rating), color = AppColors.TextMain, fontSize = 13.sp)
-        Text(text = " · 도착 예상 ${applicant.etaMinutes}분", color = AppColors.TextSub, fontSize = 13.sp)
+        Text(text = applicant.rating?.let { "%.1f".format(it) } ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided), color = AppColors.TextMain, fontSize = 13.sp)
+        Text(text = applicant.etaMinutes?.let { androidx.compose.ui.res.stringResource(R.string.backend_arrival_minutes, it) } ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided), color = AppColors.TextSub, fontSize = 13.sp)
     }
 }
 
 @Composable
-private fun MatchScore(score: Int) {
+private fun MatchScore(score: Int?) {
     Column(horizontalAlignment = Alignment.End) {
         Text(
-            text = "$score",
+            text = score?.toString() ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided),
             color = AppTheme.role.accent,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
@@ -104,8 +105,10 @@ private fun MatchScore(score: Int) {
 
 /** 업종 경험 표시: 해당 업종 근무 이력 여부 아이콘. */
 @Composable
-internal fun ExperienceMark(hasExperience: Boolean, modifier: Modifier = Modifier) {
-    if (hasExperience) {
+internal fun ExperienceMark(hasExperience: Boolean?, modifier: Modifier = Modifier) {
+    if (hasExperience == null) {
+        Text(text = androidx.compose.ui.res.stringResource(R.string.backend_not_provided), color = AppColors.TextSub)
+    } else if (hasExperience) {
         Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Filled.WorkHistory,

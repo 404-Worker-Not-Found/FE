@@ -2,9 +2,12 @@ package com.workernotfound.app.feature.owner.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.owner.domain.model.WorkProgressStatus
 import com.workernotfound.app.feature.owner.domain.repository.OwnerWorkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,10 +15,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class OwnerWorkListViewModel @Inject constructor(
+    private val backend: BackendAccess,
     private val repository: OwnerWorkRepository,
 ) : ViewModel() {
 
@@ -33,7 +36,8 @@ class OwnerWorkListViewModel @Inject constructor(
             runCatching { repository.getActiveWorks() }
                 .onSuccess { works -> _uiState.update { it.copy(isLoading = false, works = works) } }
                 .onFailure { t ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = t.message ?: "근무 현황을 불러오지 못했습니다.") }
+                    if (t is CancellationException) throw t
+                    _uiState.update { it.copy(isLoading = false, errorMessage = backend.message(t)) }
                 }
         }
     }
@@ -58,6 +62,10 @@ class OwnerWorkListViewModel @Inject constructor(
     private suspend fun pollAttendance() {
         runCatching { repository.getActiveWorks() }
             .onSuccess { works -> _uiState.update { it.copy(works = works) } }
+            .onFailure { error ->
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(errorMessage = backend.message(error)) }
+            }
     }
 
     private companion object {

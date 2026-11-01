@@ -10,6 +10,10 @@ import com.workernotfound.app.feature.owner.domain.model.Settlement
  */
 interface OwnerWorkRepository {
     /** Shifts that are running or waiting for settlement approval. */
+    suspend fun startWork(workId: String): OwnerWork
+
+    suspend fun finishWork(workId: String): OwnerWork
+
     suspend fun getActiveWorks(): List<OwnerWork>
 
     suspend fun getWork(workId: String): OwnerWork

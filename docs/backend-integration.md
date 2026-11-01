@@ -31,14 +31,17 @@ BE의 `deploy/Caddyfile` `FRONTEND_ORIGIN`은 브라우저 CORS 설정이며 `co
 | 공고 탐색 3-2 | `GET /api/jobs/search`, 지원 | 페이지 전체 조회, 시급/시간/긴급 서버 필터. 업종명은 확인된 서버 seed 이름을 표시하고 categoryName으로 필터링. 위치 미연결 상태에서 거리 필터를 좁히면 명시적 오류 |
 | 공고 상세 3-3 | `GET /api/jobs/{id}`, 지원 | baseHourlyWage+extraWage 표시. 미제공 거리·반경·점수·지원자 수를 발명하지 않음 |
 | 지원 현황 3-4 | `GET /api/applications`, `GET /api/jobs/{id}`, `PATCH /api/applications/{id}/cancel` | 지원 ID와 공고 ID 구분. 서버 수락 후 상태 갱신. 실제 모드의 타이머 매칭 시뮬레이션 제거. WebSocket 미연결 |
-| 매칭 결과 3-5 | 지원 상세+공고 조회 | `SELECTED`를 완료로 오표시하지 않고 매칭중으로 표시. 매칭 제안 조회·수락/거절·실제 채팅방 ID 탐색은 후속 |
+| 매칭 결과 3-5 | 지원·매칭 목록/상세, `PATCH /api/matchings/{id}/accept`·`decline`, 실제 방 조회 | PENDING 제안의 서버 expiresAt 사용. 수락 응답 CONFIRMED 확인. SELECTED는 최종 confirmation saga 이후 확정 상태. 방 목록의 matchingId로 실제 chatRoomId 조회 |
 | 알바생 근무 목록 3-6 | `GET /api/works/me`, 공고 상세 조합 | 예정/진행 상태 표시. 출근·근무완료·취소 API 연결은 후속 |
 | 채팅 목록/내역 | `GET /api/chat-rooms/me`, 방 상세, 메시지 내역, 공고 상세 | 모든 목록 페이지, 메시지 cursor 조회; 읽음·실시간 sync는 후속 |
 | 채팅 전송 | `POST /api/chat-rooms/me/{id}/messages` | clientMessageId 유지 재시도, 서버 수락한 메시지만 추가 |
 | 점주 홈 2-1 | `GET /api/jobs/me`, 공고 상세 | 실제 title, PAYMENT_PENDING/OPEN/MATCHING/CLOSED 및 funding-blocked 표시. 지원자 수 null은 미제공 |
 | 점주 공고 등록 2-2 | 준비 중 | 필수 title/businessId/categoryId/storeName/applicationDeadline/urgencyLevel, 좌표 입력과 선결제 흐름이 현재 UI에 없음. 허위 기본값으로 생성하지 않음 |
-| 점주 지원자/근무/노쇼/정산/지난 공고 | 준비 중 | 아래 계약 차이 및 후속 참고 |
-| 점주 마이페이지/알바생 신뢰도 | 준비 중 | 이름/연락처/리뷰 조회 API는 있으나 프로필 사진·알림 설정·신뢰점수/노쇼 위험도 등을 현재 모델에 채울 API가 없음 |
+| 점주 지원자 2-3 | 지원자 목록/상세, 수동 매칭 제안 생성 API | 페이지 사이 scoreBatchId 유지. 미제공 나이·평점·이력·신뢰도 등은 nullable. 제안 성공을 즉시 근무확정으로 표시하지 않음 |
+| 점주 근무 2-4 | 근무 목록/상세, attendance-policy, start·complete API | 실제 startedAt 타이머와 서버 완료 역할/조기완료 정책 반영. 근무완료와 지급완료 분리 |
+| 점주 노쇼/정산/지난 공고 | 준비 중 | 수동 노쇼 공개 API 없음. 정산·지난 공고 데이터 조합은 후속 |
+| 점주·알바생 마이페이지 | `GET/PATCH /api/members/me`, AuthRepository 로그아웃 | 기본 프로필 조회/이름 변경 연결. API 없는 사진·알림 설정은 실제 모드 비노출. 로그인 UI는 후속 |
+| 알바생 신뢰도 | 준비 중 | 리뷰 API는 있으나 신뢰점수·노쇼 위험도 등 전체 UI 계약 없음 |
 
 ## 확인된 UI와 백엔드 차이
 
@@ -49,19 +52,19 @@ BE의 `deploy/Caddyfile` `FRONTEND_ORIGIN`은 브라우저 CORS 설정이며 `co
 - 업종 seed는 카페/음료, 일반음식점 등이다. 기존 UI의 카페/음식점 라벨과 달라 실제 모드 탐색 필터는 seed 이름으로 수정했다. 서버 카테고리 조회 API와 공고 생성용 ID 선택 계약은 후속이다.
 - 공고 상세에는 가산 합계 `extraWage`만 있다. 긴급/시간대별 가산으로 임의 분해하지 않는다. applicantCount는 실제 구현상 null이다. 거리·모집 반경·매칭 점수·공개 상태/긴급도도 상세 응답에 없으므로 해당 표시/제약은 후속이다.
 - 점주 공고 목록은 `title/status/confirmedCount` 등을 제공하지만 시급은 없어서 상세 조회를 조합한다. 긴급도는 목록/상세 모두 없으므로 긴급 배지를 추정하지 않는다.
-- 지원 `SELECTED`는 매칭 제안과 별개이며 근무 확정으로 취급하지 않는다. `/api/matchings`의 PENDING/CONFIRMED와 서버 expiresAt를 연결해야 한다. 앱의 고정 5분과 즉시 자동 성공은 실제 모드에 적용하지 않는다.
-- 점주 지원자 API에는 totalScore/expectedArrivalMinutes/noShowProbability 등이 있으나 UI의 프로필 사진·나이·신뢰도·근무 이력·누적 노쇼는 없거나 별도 조합/정책이 필요하다. 점수 없는 입력을 0점/LOW로 발명하지 않는다.
-- 근무 API는 서버 정책(`/api/works/me/attendance-policy`)과 실제 좌표를 사용한다. 현재 점주 UI의 수동 노쇼 확정/실시간 위치/즉시 정산 승인에 대응하는 공개 API가 없다. internal endpoint를 모바일에서 호출하지 않는다.
-- 채팅방 ID는 매칭/지원 ID와 다르다. 실제 매칭 결과→채팅 이동은 별도 방 조회로 찾아야 한다. mock의 같은 ID 가정을 live에 사용하지 않는다.
+- BE MatchingConfirmationCommandService가 근무·채팅 생성 후 Application.SELECTED를 설정하므로 SELECTED는 매칭완료이다. APPLIED와 매칭 PENDING을 조합해 제안 대기를 표시한다. 서버 expiresAt를 사용하고 앱의 고정 5분/자동 성공은 실제 모드에 적용하지 않는다.
+- 점주 지원자 API의 totalScore·expectedArrivalMinutes를 연결했다. 프로필 사진·나이·신뢰도·근무 이력·누적 노쇼·경험 여부는 미제공 nullable로 처리한다. noShowProbability에서 LOW/MIDDLE/HIGH 임계값을 발명하지 않는다.
+- 점주 근무 API는 attendance-policy에 맞춰 시작·완료한다. 실제 모드에는 수동 노쇼 버튼과 가짜 실시간 위치 지도를 노출하지 않는다. 수동 노쇼/실시간 위치/즉시 정산 승인 공개 API가 없다. internal endpoint를 모바일에서 호출하지 않는다.
+- 채팅방 ID는 매칭/지원 ID와 다르다. 방 목록의 matchingId로 chatRoomId를 찾으며, 찾지 못하면 이동 버튼을 비활성화한다.
 - 알림 읽기 API와 계정의 Push/이메일/SMS 수신 설정 API는 다르다. 후자는 계약에 없다.
 
 ## 후속 작업 (미구현 화면 포함)
 
 1. 로그인 UI를 AuthRepository에 연결하고, 점주/알바생 테스트 계정으로 계정 분리·401 갱신·로그아웃 검증.
 2. 사업장/카테고리 ID의 조회·선택 계약 확정, 공고 등록 필수 항목과 결제 대기·Toss 테스트 결제 UI.
-3. 매칭 제안 목록/상세/수락/거절과 서버 만료시간, 실제 chatRoomId 연결.
-4. 점주 지원자 모델의 미제공 필드를 nullable 또는 비노출로 조정하고 점수/리뷰 조합, 매칭 확정은 제안 생성으로 수정.
-5. 근무 상세·출근 정책·GPS 권한/실좌표, start/complete/cancellation 공개 API. 정산 조회와 실제 지급 정책 확인.
+3. 연결한 매칭 제안·수락·거절·실제 채팅방 조회를 테스트 계정으로 E2E 검증.
+4. 점주 지원자 미제공 프로필/리뷰/경험 필드 계약 협의와 데이터 확장.
+5. 알바생 출근의 GPS 권한/실좌표와 cancellation API 연결. 정산·실제 지급 정책 확인, 지난 공고 조회 연결.
 6. 신뢰도/프로필/사진/알림 설정의 API 지원 범위 협의. 실시간 지원 상태·채팅 sync·푸시 후속.
 7. 회원가입/온보딩/소셜/비밀번호 찾기 등 현재 미구현 화면은 현재 화면 연결 후 별도 작업.
 

@@ -5,6 +5,7 @@ import com.workernotfound.app.core.datastore.SessionStore
 import com.workernotfound.app.feature.auth.data.AuthRepositoryImpl
 import com.workernotfound.app.feature.auth.data.remote.AuthApiService
 import com.workernotfound.app.feature.auth.domain.AuthRepository
+import com.workernotfound.app.feature.owner.data.remote.OwnerApplicantApiService
 import com.workernotfound.app.feature.owner.data.remote.OwnerJobApiService
 import com.workernotfound.app.feature.worker.data.remote.WorkerApplicationApiService
 import com.workernotfound.app.feature.worker.data.remote.WorkerChatApiService
@@ -49,6 +50,7 @@ object NetworkModule {
     @Provides @Singleton fun works(client: OkHttpClient): WorkerWorkApiService = retrofit(client).create(WorkerWorkApiService::class.java)
     @Provides @Singleton fun ownerJobs(client: OkHttpClient): OwnerJobApiService = retrofit(client).create(OwnerJobApiService::class.java)
     @Provides @Singleton fun chat(client: OkHttpClient): WorkerChatApiService = retrofit(client).create(WorkerChatApiService::class.java)
+    @Provides @Singleton fun ownerApplicants(client: OkHttpClient): OwnerApplicantApiService = retrofit(client).create(OwnerApplicantApiService::class.java)
     @Provides @Singleton fun applications(client: OkHttpClient): WorkerApplicationApiService = retrofit(client).create(WorkerApplicationApiService::class.java)
     @Provides @Singleton fun authRepository(impl: AuthRepositoryImpl): AuthRepository = impl
 }

@@ -18,7 +18,7 @@ interface WorkerChatApiService {
     suspend fun send(@Path("id") id: Long, @Body request: ChatMessageRequestDto): ApiResponse<ChatMessageResponseDto>
 }
 data class ChatRoomPageResponseDto(val content: List<ChatRoomResponseDto>, val totalPages: Int)
-data class ChatRoomResponseDto(val chatRoomId: Long, val jobPostId: Long)
+data class ChatRoomResponseDto(val chatRoomId: Long, val jobPostId: Long, val matchingId: Long)
 data class ChatMessagePageResponseDto(val content: List<ChatMessageResponseDto>, val nextBeforeId: Long?, val hasNext: Boolean)
 data class ChatMessageResponseDto(val messageId: Long, val senderMemberId: Long, val content: String, val createdAt: String)
 data class ChatMessageRequestDto(val clientMessageId: String, val content: String)
