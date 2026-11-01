@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
 import com.workernotfound.app.core.designsystem.AppTheme
@@ -107,7 +108,7 @@ private fun SummaryStrip(summary: OwnerHomeSummary) {
                 modifier = Modifier.weight(1f),
             )
             SummaryItem(
-                value = "${summary.totalApplicantCount}",
+                value = summary.totalApplicantCount?.toString() ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided),
                 label = "총 지원자",
                 modifier = Modifier.weight(1f),
             )

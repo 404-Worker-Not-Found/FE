@@ -1,17 +1,19 @@
 package com.workernotfound.app.feature.worker.data
 
+import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.worker.domain.model.NoShowRiskLevel
 import com.workernotfound.app.feature.worker.domain.model.Review
 import com.workernotfound.app.feature.worker.domain.model.TrustSummary
 import com.workernotfound.app.feature.worker.domain.model.WorkHistoryItem
 import com.workernotfound.app.feature.worker.domain.repository.WorkerTrustRepository
-import kotlinx.coroutines.delay
 import javax.inject.Inject
+import kotlinx.coroutines.delay
 
 /** Mock 신뢰도 repository (UI spec 4-2). */
-class WorkerTrustRepositoryImpl @Inject constructor() : WorkerTrustRepository {
+class WorkerTrustRepositoryImpl @Inject constructor(private val backend: BackendAccess) : WorkerTrustRepository {
 
     override suspend fun getTrustSummary(): TrustSummary {
+        backend.requireDemo()
         delay(300)
         return TrustSummary(
             score = 92,
