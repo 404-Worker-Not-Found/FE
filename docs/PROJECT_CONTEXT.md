@@ -47,8 +47,8 @@ Current state:
 - A single `app` module is scaffolded with Kotlin, Compose, Hilt, navigation, and feature repository interfaces.
 - Owner screens cover home, job posting, applicants, work management, settlement, no-show/rematching, past postings, and my page. Their presence does not imply production API integration.
 - Worker screens cover home, search/detail, application status, matching result, work management, chat, my page, and trust/history. Several device-backed and account actions remain mock or incomplete.
-- The explicit demo entry point is a role switcher. Live mode starts with authentication; see the 2026-11-02 auth/job checkpoint below. Onboarding slides remain unimplemented.
-- Map views and real-time updates remain placeholders/simulations; do not treat them as connected map SDK, push, or WebSocket infrastructure. Live GPS check-in now uses device location and the server attendance policy, but its full real-server success flow needs assigned test work.
+- The explicit demo entry point is a role switcher. Live mode starts with splash/first-run onboarding and authentication; existing sessions skip onboarding and undergo real token validation.
+- Live maps use Naver SDK with guarded empty-key behavior, actual GPS search and address-derived job locations. Live chat uses WSS/STOMP plus REST sync/read. Demo retains simulations; device push and continuous worker tracking are not connected. Full map authentication/tiles and populated work/chat/check-in success flows still need keys/test data.
 - API integration status and confirmed backend differences are tracked in `docs/backend-integration.md`. UI-only changes maintain a separate screen inventory in their branch.
 - A repository-wide verification script exists at `docs/scripts/verify.sh`.
 - External registrations, backend inputs, and remaining frontend work are inventoried in `docs/integration-readiness-audit.md`. Passing integration tests does not imply maps, push, social login, payments, or all specified screens are complete.
@@ -129,3 +129,11 @@ These questions are not yet settled in code:
 - No public category-list endpoint was found. A confirmed category selection contract is needed before creation can be enabled. Toss checkout and callback/approval execution await confirmed test client configuration; no payment is executed by the new UI.
 - The #19 integration branch now includes the friend's #21 checkpoint `8f8f2d5` together with GPS, settlements, and past postings. Combined live/demo verification passes 76 tests. Native emulator QA confirms actual WORKER login, stored-session restart, authenticated empty-work/profile views, and logout persisting across restart.
 - This does not establish successful live signup, owner creation, assigned-work check-in, or payment. See `docs/agent/friend-progress.md` for the friend's original checkpoint and `docs/agent/work-handoff.md` for integration verification and remaining dependencies.
+
+## 2026-11-02 integration checkpoint
+
+- Main integration branch: `feature/#19-api-integration`; durable recovery state: `docs/agent/work-handoff.md`. Original develop is preserved. Friend auth/job branch is already included through `8f8f2d5`.
+- Connected: notification REST/read; contact change/withdrawal asynchronous commands; real review lists/write; work cancellation agreement; owner/worker WSS-STOMP chat/sync/read; worker terminal work/participant settlement history; first-run onboarding; Naver SDK/configuration/GPS search/address-derived pins/detail/workplace maps; publication calendar/time/location inputs.
+- Current verification: live/demo 98 tests per mode, lint and debug APK passed. A passing build does not verify real map tiles, two-account chat, populated matching/check-in/settlement or payment. Four backend test accounts/roles were checked; business lists are empty. No credentials are recorded here.
+- Ignored local map key and actual emulator tiles were confirmed during subsequent QA. Remaining external prerequisites and corresponding frontend work: `docs/human-setup-guide.md` and `docs/integration-readiness-audit.md`. In particular category catalog, Toss checkout/callback, social OAuth, push delivery/device registration, continuous worker tracking, trust summary/contracts and live profile photo upload are incomplete.
+- Resume automation: same chat, Nov 3 00:45 KST, one run. It inspects dirty work/logs/latest checkpoint before continuing, so a quota interruption requires no manual status handoff.
