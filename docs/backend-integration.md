@@ -115,6 +115,8 @@ BE 최신 `e24145f`의 auth/signup/verification/password-reset 및 job/payment c
 
 ## 통합 검증 (#19 + #21)
 
+- 후속 알림 REST 구현: 양 역할 홈→알림 목록/더 보기/unread count/서버 확인 후 읽음/관련 업무 이동 연결. 전체 verify.sh 78 tests 통과. 단말 푸시는 미연결이며 실제 이벤트 데이터 E2E는 별도다.
+
 - 친구 브랜치 `8f8f2d5`를 API 브랜치에 통합했다. develop 및 친구 원격 브랜치는 변경하지 않았다. 인증/공고 코드와 기존 GPS·정산·지난 공고를 함께 빌드했다.
 - 통합 live verify.sh 및 demo lint/test/assemble 통과: 76 tests, 실패/오류 0. 친구의 Windows 환경에서 권한 때문에 실패했던 기존 카메라 symlink 테스트도 이 환경에서는 통과했다. 테스트를 삭제하거나 비활성화하지 않았다.
 - 실제 Android 에뮬레이터에서 WORKER 로그인→홈 진입→프로세스 종료/재시작 후 자동 로그인→근무 관리→출근 패널의 빈 근무 상태→본인 프로필→서버 로그아웃→프로세스 재시작 후 로그인 화면 유지를 확인했다. 계정/토큰 값을 기록하지 않았다.

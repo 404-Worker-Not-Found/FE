@@ -3,6 +3,8 @@ package com.workernotfound.app.core.navigation
 /** App-level navigation routes. Detail routes are added as screens are built. */
 object AppRoute {
     const val ROLE_SWITCHER = "role_switcher"
+    const val WORKER_NOTIFICATIONS = "worker_notifications"
+    const val OWNER_NOTIFICATIONS = "owner_notifications"
 
     // Owner section
     const val OWNER_ROOT = "owner_root"
