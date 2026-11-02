@@ -176,3 +176,11 @@
 - Worker attendance/trust entry now links to terminal work history (COMPLETED/CANCELED/FAILED/NO_SHOW), real job context, next-day schedule, server completedAt and participant settlement records. Reuses existing participant settlement source/card; preserves exact BigDecimal/status/hold/paidAt and never computes a payout from wages.
 - Exact work/job settlement matching rejects ambiguous records; unknown work states are not presented as completed. New contract tests cover terminal status boundaries and mismatched/duplicate payout records.
 - Full verify.sh passed: 97 tests, zero failures/errors. Existing shared AppTopBar positional argument caused the first compile failure, corrected to named onBack and verified again. Actual historical business data is absent, so populated E2E is pending. No secrets added. Next: publication date/time/location UX, live/demo regression and latest handoff/audit.
+
+### Completed unit 10: publication schedule/location input
+
+- Added calendar/date and 24-hour time controls for work date/start/end/deadline. Deadline date selection continues to explicit time confirmation; dismiss does not silently change the form. Existing ISO text entry remains available.
+- Owner publication location now reuses actual address/GPS/map selection while preserving business ID/name. Editing the address invalidates old coordinates until a new location is selected. Draft validation rejects blank address/out-of-range coordinates. After create is attempted, all draft mutation methods remain frozen; resume-by-real-job-ID remains available.
+- Full verify.sh passed: 97 tests, zero failures/errors, including location invalidation/coordinate bounds regression. Confirmed backend JobCommandService accepts address/lat/lng from this public request. Category catalog and Toss setup still required for publication E2E.
+- Automation fe-22-10 was updated at the user's request: ACTIVE, one run Nov 3 00:45 KST, same chat; prompt inspects status/dirty files/logs/latest handoff and resumes without asking the user to restate status. Existing name/prompt previously disagreed with RRULE; tool update and persisted file were checked.
+- Next: live/demo build and emulator smoke, update current inventory/PR22 and verify friend remote changes.

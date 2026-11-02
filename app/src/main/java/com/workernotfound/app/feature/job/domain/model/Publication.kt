@@ -13,7 +13,9 @@ data class PublicationDraft(
 ) {
     fun isValid(now: LocalDateTime): Boolean {
         val minutes = Duration.between(start, end).toMinutes() + if (nextDay) 1440 else 0
-        return business.id > 0 && categoryId > 0 && title.isNotBlank() && description.isNotBlank() &&
+        return business.id > 0 && business.address.isNotBlank() &&
+            business.latitude >= BigDecimal("-90") && business.latitude <= BigDecimal("90") &&
+            business.longitude >= BigDecimal("-180") && business.longitude <= BigDecimal("180") && categoryId > 0 && title.isNotBlank() && description.isNotBlank() &&
             description.length <= 200 && baseWage >= MIN_HOURLY_WAGE && (extraWage == null || extraWage > 0) &&
             count in 1..10 && urgency in setOf("LOW", "MEDIUM", "HIGH") && minutes in 1..1440 &&
             start.second == 0 && end.second == 0 && start.nano == 0 && end.nano == 0 &&
