@@ -59,10 +59,12 @@ fun WorkerTrustScreen(
     onJobClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkerTrustViewModel? = null,
+    onReviews: () -> Unit = {},
 ) {
     if (!com.workernotfound.app.BuildConfig.USE_DEMO_DATA) {
         Column(modifier.fillMaxSize().background(AppColors.WorkerSurface).statusBarsPadding()) {
             AppTopBar(title = stringResource(R.string.attendance_title), onBack = onBack)
+            TextButton(onReviews) { Text(stringResource(R.string.reviews_title)) }
             WorkerAttendancePanel(modifier = Modifier.weight(1f))
         }
         return

@@ -56,6 +56,13 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 OwnerRootScreen(navController = navController)
             }
         }
+        listOf(AppRoute.OWNER_REVIEWS to AppRole.OWNER, AppRoute.WORKER_REVIEWS to AppRole.WORKER).forEach { (route, role) ->
+            composable(route) {
+                WorkerNotFoundTheme(role = role) {
+                    com.workernotfound.app.feature.review.ui.ReviewScreen(onBack = { navController.popBackStack() })
+                }
+            }
+        }
         listOf(AppRoute.OWNER_ACCOUNT to AppRole.OWNER, AppRoute.WORKER_ACCOUNT to AppRole.WORKER).forEach { (route, role) ->
             composable(route) {
                 WorkerNotFoundTheme(role = role) {
@@ -182,7 +189,8 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
                 OwnerPastPostingDetailScreen(
                     onBack = { navController.popBackStack() },
-                    onWriteReview = { postingId -> navController.navigate(AppRoute.ownerReviewWrite(postingId)) },
+                    onWriteReview = { postingId -> navController.navigate(if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA)
+                        AppRoute.ownerReviewWrite(postingId) else AppRoute.OWNER_REVIEWS) },
                 )
             }
         }
@@ -241,6 +249,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 WorkerTrustScreen(
                     onBack = { navController.popBackStack() },
                     onJobClick = { id -> navController.navigate(AppRoute.workerJobDetail(id)) },
+                    onReviews = { navController.navigate(AppRoute.WORKER_REVIEWS) },
                 )
             }
         }

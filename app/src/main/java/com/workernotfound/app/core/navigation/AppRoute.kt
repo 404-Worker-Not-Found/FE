@@ -7,6 +7,8 @@ object AppRoute {
     const val OWNER_NOTIFICATIONS = "owner_notifications"
     const val OWNER_ACCOUNT = "owner_account"
     const val WORKER_ACCOUNT = "worker_account"
+    const val OWNER_REVIEWS = "owner_reviews"
+    const val WORKER_REVIEWS = "worker_reviews"
 
     // Owner section
     const val OWNER_ROOT = "owner_root"

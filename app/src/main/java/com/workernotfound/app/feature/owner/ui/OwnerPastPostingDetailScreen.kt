@@ -98,7 +98,7 @@ private fun OwnerPastPostingDetailContent(
                     canWriteReview = uiState.canWriteReview,
                     nowMillis = uiState.nowMillis,
                     onWriteReview = { onWriteReview(posting.postingId) },
-                ) else Text(stringResource(R.string.settlement_review_unavailable), color = AppColors.TextSub)
+                ) else AppPrimaryButton(text = stringResource(R.string.reviews_title), onClick = { onWriteReview(posting.postingId) })
             }
         }
     }
