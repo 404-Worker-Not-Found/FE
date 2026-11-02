@@ -196,3 +196,8 @@
 - Worker application list/matching result and owner applicant board now re-query the confirmed REST contract on resume and every 15 seconds while the destination is RESUMED. No new matching socket contract is assumed, and no poll is scheduled while paused. Overlapping reads are guarded.
 - Application cancellation and matching response cancel old reads and block poll overlap; result countdown has only one active job. New proposal IDs reset prior response UI, and eventual chat-room creation is picked up by the next query. Demo timers are preserved.
 - Full verify.sh passed: 98 tests, zero failures/errors. Populated proposal/room E2E still awaits backend work data. Next: complete owner native smoke and final live/demo checkpoint.
+
+### Completed unit 13: role colors for Material controls
+
+- Native worker map QA exposed Material TextButton/inputs still inheriting owner orange despite custom worker cards using yellow. The shared light-only theme now derives Material primary/secondary/container/background colors from the existing role tokens; worker text uses WorkerEmphasis and owner retains orange. No hardcoded screen colors or dark variants added.
+- Included in full verify.sh: 98 tests, zero failures/errors. Key presence was discovered in ignored local.properties during native QA (no value printed or committed); the live Naver SDK displayed actual Seoul map tiles with attribution visible. Job pin/real workplace/device geocoder QA still needs populated data. Update older absent-key notes accordingly; do not request another key blindly.
