@@ -1,5 +1,11 @@
 package com.workernotfound.app.feature.worker.data
 
+import com.workernotfound.app.core.network.ApiException
+import com.workernotfound.app.feature.worker.domain.model.WorkAttendance
+import com.workernotfound.app.feature.worker.domain.repository.CheckInReceipt
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.worker.data.remote.WorkerJobApiService
@@ -17,20 +23,36 @@ class WorkerWorkRepositoryImpl @Inject constructor(private val backend: BackendA
     private val jobs: WorkerJobApiService,
 ) : WorkerWorkRepository {
 
+    override suspend fun checkIn(workId: String, latitude: Double, longitude: Double): CheckInReceipt {
+        if (BuildConfig.USE_DEMO_DATA) throw ApiException("LIVE_ATTENDANCE_ONLY")
+        backend.requireSession()
+        val response = api.checkIn(workId.toLong(), com.workernotfound.app.feature.worker.data.remote.WorkCheckInRequestDto(latitude, longitude)).requireData()
+        return confirmedCheckInReceipt(workId, response)
+    }
+
     override suspend fun getWorks(): List<WorkSchedule> {
         if (!BuildConfig.USE_DEMO_DATA) {
             backend.requireSession()
             val all = mutableListOf<WorkSchedule>()
+            val policy = api.policy().requireData()
+            val radius = policy.radiusMeters ?: throw ApiException("ATTENDANCE_POLICY_MISSING")
+            val early = policy.earlyWindowSeconds ?: throw ApiException("ATTENDANCE_POLICY_MISSING")
+            val late = policy.lateWindowSeconds ?: throw ApiException("ATTENDANCE_POLICY_MISSING")
+            if (!radius.isFinite() || radius <= 0 || early < 0 || late < 0) throw ApiException("ATTENDANCE_POLICY_INVALID")
             var page = 0
             do {
                 val result = api.list(page).requireData()
                 for (work in result.content.filter { it.status in setOf("SCHEDULED", "CHECKED_IN", "IN_PROGRESS") }) {
                     val job = jobs.detail(work.jobPostId).requireData()
+                    val startsAt = LocalDate.parse(work.workDate).atTime(LocalTime.parse(work.startTime))
+                        .atZone(ZoneId.of(policy.timeZone)).toInstant().toEpochMilli()
                     all += WorkSchedule(
                         id = work.workId.toString(), jobId = work.jobPostId.toString(), address = job.address, storeName = job.storeName, category = job.categoryName,
                         workDate = work.workDate, timeRange = "${work.startTime.take(5)} ~ ${work.endTime.take(5)}",
                         hourlyWage = job.baseHourlyWage + job.extraWage,
-                        status = if (work.status == "SCHEDULED" && startsInSeconds(work.workDate, work.startTime) > 3600) WorkStatus.SCHEDULED else WorkStatus.IN_PROGRESS,
+                        status = if (work.status == "SCHEDULED" && startsAt - System.currentTimeMillis() > 3_600_000) WorkStatus.SCHEDULED else WorkStatus.IN_PROGRESS,
+                        attendance = WorkAttendance(work.status, work.latitude, work.longitude, radius,
+                            startsAt - early * 1000, startsAt + late * 1000, work.checkedInAt != null, policy.timeZone),
                     )
                 }
                 page++
@@ -77,4 +99,10 @@ class WorkerWorkRepositoryImpl @Inject constructor(private val backend: BackendA
             ),
         )
     }
+}
+
+
+internal fun confirmedCheckInReceipt(workId: String, response: com.workernotfound.app.feature.worker.data.remote.WorkResponseDto): CheckInReceipt {
+    if (response.workId.toString() != workId || response.checkedInAt.isNullOrBlank()) throw ApiException("CHECK_IN_NOT_CONFIRMED")
+    return CheckInReceipt(workId, response.status, response.checkedInAt)
 }

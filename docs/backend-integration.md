@@ -32,7 +32,7 @@ BE의 `deploy/Caddyfile` `FRONTEND_ORIGIN`은 브라우저 CORS 설정이며 `co
 | 공고 상세 3-3 | `GET /api/jobs/{id}`, 지원 | baseHourlyWage+extraWage 표시. 미제공 거리·반경·점수·지원자 수를 발명하지 않음 |
 | 지원 현황 3-4 | `GET /api/applications`, `GET /api/jobs/{id}`, `PATCH /api/applications/{id}/cancel` | 지원 ID와 공고 ID 구분. 서버 수락 후 상태 갱신. 실제 모드의 타이머 매칭 시뮬레이션 제거. WebSocket 미연결 |
 | 매칭 결과 3-5 | 지원·매칭 목록/상세, `PATCH /api/matchings/{id}/accept`·`decline`, 실제 방 조회 | PENDING 제안의 서버 expiresAt 사용. 수락 응답 CONFIRMED 확인. SELECTED는 최종 confirmation saga 이후 확정 상태. 방 목록의 matchingId로 실제 chatRoomId 조회 |
-| 알바생 근무 목록 3-6 | `GET /api/works/me`, 공고 상세 조합 | 예정/진행 상태 표시. 출근·근무완료·취소 API 연결은 후속 |
+| 알바생 근무 목록 3-6 | `GET /api/works/me`, 공고 상세 조합 | 예정/진행 상태 표시. GPS 출근은 독립 출근 패널에 연결. 근무 취소 API UI는 후속 |
 | 채팅 목록/내역 | `GET /api/chat-rooms/me`, 방 상세, 메시지 내역, 공고 상세 | 모든 목록 페이지, 메시지 cursor 조회; 읽음·실시간 sync는 후속 |
 | 채팅 전송 | `POST /api/chat-rooms/me/{id}/messages` | clientMessageId 유지 재시도, 서버 수락한 메시지만 추가 |
 | 점주 홈 2-1 | `GET /api/jobs/me`, 공고 상세 | 실제 title, PAYMENT_PENDING/OPEN/MATCHING/CLOSED 및 funding-blocked 표시. 지원자 수 null은 미제공 |
@@ -41,7 +41,7 @@ BE의 `deploy/Caddyfile` `FRONTEND_ORIGIN`은 브라우저 CORS 설정이며 `co
 | 점주 근무 2-4 | 근무 목록/상세, attendance-policy, start·complete API | 실제 startedAt 타이머와 서버 완료 역할/조기완료 정책 반영. 근무완료와 지급완료 분리 |
 | 점주 정산/지난 공고 | 정산 cursor 조회와 본인 근무·공고 조합 | 서버 BigDecimal 금액·통화·지급 상태 표시. 다중 근무자는 workId별 구분. 지급 승인·수동 노쇼 공개 API는 없음 |
 | 점주·알바생 마이페이지 | `GET/PATCH /api/members/me`, AuthRepository 로그아웃 | 기본 프로필 조회/이름 변경 연결. API 없는 사진·알림 설정은 실제 모드 비노출. 로그인 UI는 후속 |
-| 알바생 신뢰도 | 준비 중 | 리뷰 API는 있으나 신뢰점수·노쇼 위험도 등 전체 UI 계약 없음 |
+| 알바생 신뢰도/출근 | GPS 정책 조회·실제 위치·check-in POST 연결 | 신뢰점수 통계는 미지원으로 분리. 시간/반경/정확한 권한을 확인하고 서버 수락 후 출근 완료 |
 
 ## 확인된 UI와 백엔드 차이
 
@@ -81,3 +81,6 @@ BE의 `deploy/Caddyfile` `FRONTEND_ORIGIN`은 브라우저 CORS 설정이며 `co
 - 제공받은 알바생 테스트 계정으로 로그인 성공과 WORKER 역할을 확인했다. 본인 근무·지원·매칭·정산은 모두 200/빈 목록이었으며 임시 로그인 세션은 로그아웃했다. 자격증명은 저장하지 않았다. 구글 계정은 용도 확인 전 사용자 지시로 보류다.
 - 정산 응답은 Spring page가 아닌 beforeId cursor 목록이다. 합계에서 시급별 breakdown을 역산하지 않으며 paidAt가 null이라고 분쟁 처리 중으로 표시하지 않는다.
 - 지난 공고에는 같은 공고의 서로 다른 근무가 존재할 수 있어 항목/상세 이동을 workId로 구별한다. 근무 취소·실패를 완료로 바꾸지 않는다. live 리뷰 상세 화면은 아직 후속이다.
+
+- GPS 출근은 서버의 radiusMeters/earlyWindowSeconds/lateWindowSeconds/timeZone을 사용한다. 기기 위치를 확인한 뒤에만 출근 버튼을 활성화하고 제출 때 다시 위치를 읽는다. 서버 수락 없이 완료를 표시하지 않는다.
+- 정확한 위치 권한 거부·GPS 비활성·현재 위치 없음·20초 제한·인증 반경 밖 상태를 구별한다. 실제 출근 E2E는 배정 근무 데이터가 없어 미검증이며 계약/경계 테스트와 전체 빌드는 통과했다.
