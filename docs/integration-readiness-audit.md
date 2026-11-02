@@ -62,3 +62,7 @@
 - [Toss 결제창 연동](https://docs.tosspayments.com/guides/v2/payment-window/integration)
 
 문서 점검 작업으로 앱 소스 변경 없음. 기존 76 tests 검증 이후 새 앱 검증을 실행한 것으로 표시하지 않는다. 외부 콘솔 등록과 실서버 설정 상태는 계속 미확인이다.
+
+### Live map implementation follow-up
+
+GPS distance query, address-derived search pins/detail map and server workplace coordinate map are connected. Demo diagrams remain demo only. Key issuance and real-device authentication/tiles/geocoding QA are pending. Continuous worker location sharing still needs a backend contract. Full verification: 95 tests passed.
