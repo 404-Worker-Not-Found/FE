@@ -59,6 +59,7 @@ fun OwnerWorkDetailScreen(
     onNoShowConfirmed: (workId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OwnerWorkDetailViewModel = hiltViewModel(),
+    onCancellation: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val openSettlement by rememberUpdatedState(onOpenSettlement)
@@ -83,6 +84,7 @@ fun OwnerWorkDetailScreen(
         onComplete = viewModel::requestComplete,
         onStart = viewModel::startWork,
         onOpenSettlement = viewModel::openSettlement,
+        onCancellation = onCancellation,
         modifier = modifier,
     )
     WorkDetailDialogs(
@@ -102,6 +104,7 @@ private fun OwnerWorkDetailContent(
     onComplete: () -> Unit,
     onStart: () -> Unit,
     onOpenSettlement: () -> Unit,
+    onCancellation: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -130,6 +133,7 @@ private fun OwnerWorkDetailContent(
                     WorkHeader(timing)
                     AttendanceSection(timing)
                     TimerSection(timing)
+                    if (!BuildConfig.USE_DEMO_DATA) androidx.compose.material3.TextButton({ onCancellation(timing.work.id) }) { Text(androidx.compose.ui.res.stringResource(R.string.cancellation_title)) }
                 }
                 ActionBar(
                     timing = timing,

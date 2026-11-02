@@ -59,6 +59,7 @@ fun WorkerRootScreen(navController: NavHostController) {
                 modifier = contentModifier,
             )
             2 -> WorkerWorkScreen(
+                onCancellation = { navController.navigate(AppRoute.workerCancellation(it)) },
                 modifier = contentModifier,
                 onTrustClick = { navController.navigate(AppRoute.WORKER_TRUST) },
                 onApplicationsClick = { navController.navigate(AppRoute.WORKER_APPLICATIONS) },
