@@ -58,6 +58,7 @@ fun OwnerMyPageScreen(
     viewModel: OwnerMyPageViewModel = hiltViewModel(),
     onAccountSettings: () -> Unit = {},
     onReviews: () -> Unit = {},
+    onChat: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(uiState.isLoggedOut) { if (uiState.isLoggedOut) onLogout() }
@@ -71,6 +72,7 @@ fun OwnerMyPageScreen(
         onPhotoSelected = viewModel::updatePhoto,
         onAccountSettings = onAccountSettings,
         onReviews = onReviews,
+        onChat = onChat,
         modifier = modifier,
     )
     uiState.nameDraft?.let { draft ->
@@ -104,6 +106,7 @@ private fun OwnerMyPageContent(
     onPhotoSelected: (String) -> Unit,
     onAccountSettings: () -> Unit,
     onReviews: () -> Unit,
+    onChat: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val profile = uiState.profile
@@ -142,6 +145,7 @@ private fun OwnerMyPageContent(
                 if (BuildConfig.USE_DEMO_DATA) ActionRow(label = "회원 탈퇴", color = AppColors.Danger, onClick = onWithdraw)
                 else androidx.compose.material3.TextButton(onAccountSettings) { Text(stringResource(R.string.account_title)) }
                 if (!BuildConfig.USE_DEMO_DATA) androidx.compose.material3.TextButton(onReviews) { Text(stringResource(R.string.reviews_title)) }
+                if (!BuildConfig.USE_DEMO_DATA) androidx.compose.material3.TextButton(onChat) { Text(stringResource(R.string.chat_title)) }
             }
         }
     }

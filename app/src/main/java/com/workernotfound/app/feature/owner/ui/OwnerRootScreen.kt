@@ -65,6 +65,7 @@ fun OwnerRootScreen(navController: NavHostController) {
                 onLogout = { navController.popBackStack(AppRoute.ROLE_SWITCHER, inclusive = false) },
                 onAccountSettings = { navController.navigate(AppRoute.OWNER_ACCOUNT) },
                 onReviews = { navController.navigate(AppRoute.OWNER_REVIEWS) },
+                onChat = { navController.navigate(AppRoute.OWNER_CHATS) },
                 modifier = contentModifier,
             )
         }

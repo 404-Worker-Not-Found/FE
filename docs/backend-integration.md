@@ -115,6 +115,8 @@ BE 최신 `e24145f`의 auth/signup/verification/password-reset 및 job/payment c
 
 ## 통합 검증 (#19 + #21)
 
+- 후속 WSS/STOMP·heartbeat/재연결·REST cursor sync·실제 가시 메시지 read-position·상대 읽음/미읽음과 점주 채팅 진입을 구현했다. 전체 verify.sh 92 tests 통과. 새 OWNER 2개/WORKER 2개 계정의 로그인·본인/빈 업무 목록·점주 사업장은 실서버 확인했고 임시 세션은 로그아웃했다. 실제 방 채팅 E2E는 데이터 대기.
+
 - 후속 근무 취소/합의: 요청/조회/승인/거절/철회와 양 역할 진입, 재확인·시작 전/미출근 조건·UUID 멱등키·서버 receipt 확인을 구현했다. 전체 verify.sh 87 tests 통과, 실서버 근무 변경은 하지 않았다.
 
 - 후속 리뷰: 실제 작성 대상/받은 리뷰·평균/페이지/등록과 양 역할 진입을 구현했다. 서버 작성 기한과 성공 영수증(workId/상대/내용)을 검증하며 임의 신뢰점수를 만들지 않는다. 전체 verify.sh 84 tests 통과, 실제 계정에 리뷰를 생성하지 않았다.
