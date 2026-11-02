@@ -14,6 +14,7 @@ junit = "4.13.2"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
 gson = "2.11.0"
+naverMap = "3.24.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -44,6 +45,7 @@ retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", ver
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+naver-map = { group = "com.naver.maps", name = "map-sdk", version.ref = "naverMap" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -68,7 +68,12 @@ private fun AuthContent(
             Text(stringResource(R.string.auth_verification_rule))
             AuthInput(AuthField.PHONE, state, edit)
             VerificationFields(true, state, edit, send, verify)
-            listOf(AuthField.ADDRESS, AuthField.LATITUDE, AuthField.LONGITUDE, AuthField.BUSINESS_TYPE).forEach { AuthInput(it, state, edit) }
+            com.workernotfound.app.feature.location.LocationPicker(
+                address = state[AuthField.ADDRESS], latitude = state[AuthField.LATITUDE], longitude = state[AuthField.LONGITUDE], enabled = !state.busy,
+                onAddress = { edit(AuthField.ADDRESS, it); edit(AuthField.LATITUDE, ""); edit(AuthField.LONGITUDE, "") },
+                onPick = { point -> edit(AuthField.ADDRESS, point.address); edit(AuthField.LATITUDE, point.latitude.toString()); edit(AuthField.LONGITUDE, point.longitude.toString()) },
+            )
+            AuthInput(AuthField.BUSINESS_TYPE, state, edit)
             if (state.role == "OWNER") {
                 listOf(AuthField.BUSINESS_NUMBER, AuthField.STORE_NAME).forEach { AuthInput(it, state, edit) }
                 Text(stringResource(R.string.auth_business_verification))

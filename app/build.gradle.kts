@@ -14,6 +14,8 @@ val localConfiguration = Properties().apply {
 val apiBaseUrl = providers.gradleProperty("api.baseUrl").orNull
     ?: localConfiguration.getProperty("api.baseUrl", "https://api.15-165-106-227.sslip.io/")
 val useDemoData = providers.gradleProperty("demo.enabled").orNull?.toBooleanStrictOrNull() ?: false
+val naverMapClientId = providers.gradleProperty("naver.mapClientId").orNull
+    ?: localConfiguration.getProperty("naver.mapClientId", "")
 require(apiBaseUrl.startsWith("https://") && apiBaseUrl.endsWith("/")) {
     "api.baseUrl must be an HTTPS URL with a trailing slash"
 }
@@ -29,6 +31,7 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         buildConfigField("boolean", "USE_DEMO_DATA", useDemoData.toString())
+        buildConfigField("String", "NAVER_MAP_CLIENT_ID", "\"${naverMapClientId.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
         buildConfigField("String", "API_BASE_URL", "\"${apiBaseUrl.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -85,6 +88,7 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp)
     implementation(libs.gson)
+    implementation(libs.naver.map)
 
     testImplementation(libs.junit)
     testImplementation(libs.okhttp.mockwebserver)
