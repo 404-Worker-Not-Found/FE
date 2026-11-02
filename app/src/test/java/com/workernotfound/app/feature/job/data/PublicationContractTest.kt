@@ -42,6 +42,9 @@ class PublicationContractTest {
             PublicationField.START to "09:00", PublicationField.END to "12:00", PublicationField.BASE_WAGE to "10320",
             PublicationField.COUNT to "2", PublicationField.DEADLINE to tomorrow.atTime(8, 0).toString()))
         assertTrue(state.canCreate)
+        assertFalse(state.copy(locationSelected = false).canCreate)
+        assertFalse(state.copy(business = business.copy(address = "")).canCreate)
+        assertFalse(state.copy(business = business.copy(latitude = "91".toBigDecimal())).canCreate)
         assertFalse(state.copy(categories = emptyList()).canCreate)
         assertFalse(state.copy(selectedCategory = null).canCreate)
         assertFalse(state.copy(selectedCategory = PostingCategory(99, "미확인 업종")).canCreate)

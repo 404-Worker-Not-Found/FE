@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 enum class PublicationField { TITLE, DESCRIPTION, DATE, START, END, BASE_WAGE, EXTRA_WAGE, COUNT, DEADLINE, RESUME_ID }
 data class JobPublicationUiState(
     val fields: Map<PublicationField, String> = emptyMap(), val business: PostingBusiness? = null,
+    val locationSelected: Boolean = true,
     val nextDay: Boolean = false, val urgency: String = "MEDIUM",
     val categories: List<PostingCategory> = emptyList(), val selectedCategory: PostingCategory? = null,
     val busy: Boolean = false, val error: String? = null, val jobId: Long? = null,
@@ -23,7 +24,7 @@ data class JobPublicationUiState(
 ) {
     operator fun get(field: PublicationField) = fields[field].orEmpty()
     fun draft(): PublicationDraft? = try {
-        business?.let { PublicationDraft(it, requireNotNull(selectedCategory).id, this[PublicationField.TITLE],
+        business?.takeIf { locationSelected }?.let { PublicationDraft(it, requireNotNull(selectedCategory).id, this[PublicationField.TITLE],
             this[PublicationField.DESCRIPTION], LocalDate.parse(this[PublicationField.DATE]), LocalTime.parse(this[PublicationField.START]),
             LocalTime.parse(this[PublicationField.END]), nextDay, this[PublicationField.BASE_WAGE].toInt(),
             this[PublicationField.EXTRA_WAGE].takeIf { it.isNotBlank() }?.toInt(), this[PublicationField.COUNT].toInt(),
@@ -40,18 +41,30 @@ class JobPublicationViewModel @Inject constructor(
     private val state = MutableStateFlow(JobPublicationUiState(jobId = saved["publicationJobId"], creationAttempted = saved["publicationAttempted"] ?: false))
     val uiState = state.asStateFlow()
     init { if (state.value.jobId != null) refresh() else loadBusiness() }
-    fun loadBusiness() = action {
+    fun loadBusiness() {
+        if (state.value.creationAttempted) return
+        action {
         val business = repository.business()
         val categories = repository.categories()
-        state.update { it.copy(business = business, categories = categories) }
+        state.update { it.copy(business = business, categories = categories, locationSelected = true) }
+        }
     }
     fun edit(field: PublicationField, value: String) {
-        if (!state.value.busy) state.update { it.copy(fields = it.fields + (field to value), error = null) }
+        if (!state.value.busy && (!state.value.creationAttempted || field == PublicationField.RESUME_ID)) state.update { it.copy(fields = it.fields + (field to value), error = null) }
     }
-    fun nextDay(value: Boolean) { if (!state.value.busy) state.update { it.copy(nextDay = value) } }
-    fun urgency(value: String) { if (!state.value.busy) state.update { it.copy(urgency = value) } }
+    fun nextDay(value: Boolean) { if (!state.value.busy && !state.value.creationAttempted) state.update { it.copy(nextDay = value) } }
+    fun urgency(value: String) { if (!state.value.busy && !state.value.creationAttempted) state.update { it.copy(urgency = value) } }
     fun category(value: PostingCategory) {
-        if (!state.value.busy && value in state.value.categories) state.update { it.copy(selectedCategory = value) }
+        if (!state.value.busy && !state.value.creationAttempted && value in state.value.categories) state.update { it.copy(selectedCategory = value) }
+    }
+    fun address(value: String) {
+        if (state.value.busy || state.value.creationAttempted) return
+        state.update { it.copy(business = it.business?.copy(address = value), locationSelected = false) }
+    }
+    fun location(value: com.workernotfound.app.core.location.ResolvedAddress) {
+        if (state.value.busy || state.value.creationAttempted || !value.latitude.isFinite() || !value.longitude.isFinite()) return
+        state.update { it.copy(business = it.business?.copy(address = value.address,
+            latitude = java.math.BigDecimal.valueOf(value.latitude), longitude = java.math.BigDecimal.valueOf(value.longitude)), locationSelected = true) }
     }
     fun create() {
         val s = state.value

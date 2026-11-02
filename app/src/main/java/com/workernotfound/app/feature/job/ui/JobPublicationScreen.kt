@@ -41,7 +41,13 @@ fun JobPublicationScreen(onBack: () -> Unit, viewModel: JobPublicationViewModel 
                     TextButton(viewModel::loadBusiness, enabled = !state.busy) { Text(stringResource(R.string.publication_business_reload)) }
                 } else {
                     Text(requireNotNull(state.business).name, style = MaterialTheme.typography.titleMedium)
-                    Text(requireNotNull(state.business).address)
+                    val business = requireNotNull(state.business)
+                    com.workernotfound.app.feature.location.LocationPicker(
+                        address = business.address,
+                        latitude = if (state.locationSelected) business.latitude.toPlainString() else "",
+                        longitude = if (state.locationSelected) business.longitude.toPlainString() else "",
+                        enabled = !state.busy && !state.creationAttempted,
+                        onAddress = viewModel::address, onPick = viewModel::location)
                     Text(stringResource(R.string.publication_business_id, requireNotNull(state.business).id))
                 }
                 if (state.creationAttempted) Text(stringResource(R.string.publication_uncertain), color = AppColors.Danger)
@@ -54,12 +60,12 @@ fun JobPublicationScreen(onBack: () -> Unit, viewModel: JobPublicationViewModel 
                     ChoiceChipRow(state.categories.map { it.name }, state.categories.indexOf(state.selectedCategory),
                         onSelect = { viewModel.category(state.categories[it]) })
                 }
-                Row { Checkbox(state.nextDay, viewModel::nextDay, enabled = !state.busy); Text(stringResource(R.string.publication_next_day)) }
+                Row { Checkbox(state.nextDay, viewModel::nextDay, enabled = !state.busy && !state.creationAttempted); Text(stringResource(R.string.publication_next_day)) }
                 val urgencies = listOf("LOW", "MEDIUM", "HIGH")
                 val labels = listOf(R.string.publication_low, R.string.publication_medium, R.string.publication_high)
                 Row {
                     urgencies.forEachIndexed { i, value ->
-                        FilterChip(state.urgency == value, { viewModel.urgency(value) }, label = { Text(stringResource(labels[i])) }, enabled = !state.busy)
+                        FilterChip(state.urgency == value, { viewModel.urgency(value) }, label = { Text(stringResource(labels[i])) }, enabled = !state.busy && !state.creationAttempted)
                     }
                 }
                 Text(stringResource(R.string.publication_rules), color = AppColors.TextSub)
@@ -84,6 +90,10 @@ private fun PublicationInput(field: PublicationField, state: JobPublicationUiSta
         PublicationField.BASE_WAGE -> R.string.publication_base_wage; PublicationField.EXTRA_WAGE -> R.string.publication_extra_wage
         PublicationField.COUNT -> R.string.publication_count; PublicationField.DEADLINE -> R.string.publication_deadline
         PublicationField.RESUME_ID -> R.string.publication_resume_id
+    }
+    if (field in setOf(PublicationField.DATE, PublicationField.START, PublicationField.END, PublicationField.DEADLINE)) {
+        PublicationScheduleInput(field, state[field], stringResource(label), !state.busy && !state.creationAttempted) { edit(field, it) }
+        return
     }
     OutlinedTextField(state[field], { edit(field, it) }, Modifier.fillMaxWidth(),
         label = { Text(stringResource(label)) }, enabled = !state.busy && (!state.creationAttempted || field == PublicationField.RESUME_ID),
