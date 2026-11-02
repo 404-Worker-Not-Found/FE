@@ -1,6 +1,6 @@
 # 백엔드 연결 현황
 
-확인일: 2026-11-01. 배포된 8개 서비스 OpenAPI와 BE `0c3b320`의 controller/DTO를 대조했다. 민감한 Swagger 인증정보와 앱 로그인 자격증명은 이 문서 및 앱에 포함하지 않는다.
+확인일: 2026-11-02. 배포된 8개 서비스 OpenAPI와 BE `0c3b320`의 controller/DTO를 대조했다. 이후 BE `e24145f`까지 재확인했고, 변경 범위는 Android 배포 설정·검증·문서이며 앱 API/가입 조건은 동일하다. 민감한 Swagger 인증정보와 앱 로그인 자격증명은 이 문서 및 앱에 포함하지 않는다.
 
 ## 주소와 인증
 
@@ -15,7 +15,7 @@
 
 Native Android REST 호출에는 웹 프론트 배포 도메인이나 localhost Origin이 필요하지 않다. 앱은 서버 URL로 나가는 HTTPS 요청을 보낸다. APK/AAB 배포와 API 주소는 다른 문제다.
 
-BE의 `deploy/Caddyfile` `FRONTEND_ORIGIN`은 브라우저 CORS 설정이며 `compose.deploy.yml`은 이를 chat allowed origins에도 전달한다. `docs/operations/backend-deployment.md`는 웹 프론트 배포 예시와, 비브라우저 검증 시 placeholder Origin 유지 설명을 포함한다. Android만 사용하는 현재 구성에서 임의의 웹 도메인을 발급해서 넣을 필요는 없다. 백엔드 팀이 그 외 용도로 주소를 요청했는지 별도로 확인한다.
+BE `e24145f`는 기존 웹 프론트 전제를 수정해 `FRONTEND_ORIGIN` 의존과 웹 프론트 CORS 허용을 제거했다. chat의 브라우저 허용 Origin은 API 호스트에서 파생하고, native Android는 Origin 없이 인증한다. BE 배포 문서에는 서버 반영 기록도 있다. Android용 프론트 배포 주소나 localhost 주소를 전달할 필요는 없다. OAuth 복귀 설정은 별개다.
 
 소셜 로그인 `OAuthLoginRequest.redirectUri`는 별도의 OAuth redirect 설정이다. 앱에 등록한 URI/scheme 또는 HTTPS App Link를 서버·OAuth 공급자와 합의해야 한다. HTTPS App Links를 선택하면 도메인의 `assetlinks.json`과 앱 서명 인증서 연결이 추가로 필요하다. 일반 REST 통신용 도메인과 혼동하지 않는다.
 
@@ -69,6 +69,13 @@ BE의 `deploy/Caddyfile` `FRONTEND_ORIGIN`은 브라우저 CORS 설정이며 `co
 7. 회원가입/온보딩/소셜/비밀번호 찾기 등 현재 미구현 화면은 현재 화면 연결 후 별도 작업.
 
 ## 검증 및 테스트 데이터
+
+### 점주 테스트 계정을 직접 만들 수 있는 조건
+
+- `POST /api/auth/signup/owner`는 가입 목적 이메일 인증과 SMS 인증을 모두 요구한다. 인증번호는 무작위이며, 소스상 고정 테스트 코드/공개 우회 경로는 없다.
+- 점주 생성 시 국세청 사업자 상태 조회에서 정상 영업(`01`)으로 확인되어야 한다. 이메일/전화/사업자 정보를 임의 생성해서 테스트 점주로 가입할 수는 없다.
+- 사용자 소유 또는 사용 허가된 가입용 이메일·휴대폰과 사업자 정보가 있으면 공개 가입 API로 생성할 수 있다. 없다면 백엔드 운영 담당자가 개발용 seed/관리 절차로 테스트 OWNER 계정을 마련해야 한다. 앱에 인증 우회 기능을 추가하거나 internal API를 호출하지 않는다.
+- 가장 빠른 E2E 준비 요청: OWNER 앱 로그인 정보, 이 계정의 테스트 사업장 `businessId`와 사용 가능한 `categoryId`, 기존 WORKER 계정에 연결된 테스트 근무(근무일/시간/좌표 포함), Toss 테스트 모드·공개 client key. 로그인 계정 생성과 유료 공고 게시/근무 데이터 준비는 별도 단계다. 실제 금전 결제는 수행하지 않는다.
 
 - Basic 인증으로 8개 Swagger/OpenAPI를 읽었고 BE controller와 DTO를 대조했다.
 - 실제 `GET /api/jobs/search?page=0&size=20`: 200, success=true, jobs=[], totalCount=0. `GET /api/jobs/1`: 404. 현재 공개 공고가 없으므로 빈 목록이 정상이다.
