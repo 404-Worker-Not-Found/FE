@@ -11,6 +11,7 @@ data class WorkSchedule(
     val status: WorkStatus,
     val jobId: String? = null,
     val address: String? = null,
+    val attendance: WorkAttendance? = null,
 )
 
 /** 3-6: 예정 근무(SCHEDULED) / 진행 중 근무(IN_PROGRESS). */

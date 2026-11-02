@@ -15,6 +15,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
@@ -47,6 +51,12 @@ fun WorkerWorkScreen(
     viewModel: WorkerWorkViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) viewModel.load() }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     WorkerWorkContent(
         uiState = uiState, onRetry = viewModel::load, onTrustClick = onTrustClick,
         onApplicationsClick = onApplicationsClick, modifier = modifier,
@@ -79,7 +89,7 @@ private fun WorkerWorkContent(
                 Text(stringResource(R.string.worker_applications))
             }
             TextButton(onClick = onTrustClick, modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.worker_trust_history))
+                Text(stringResource(if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) R.string.worker_trust_history else R.string.attendance_title))
             }
         }
         when {
@@ -119,7 +129,9 @@ private fun WorkCard(work: WorkSchedule) {
                 Spacer(Modifier.height(2.dp))
                 Text(text = "${work.category} · ${work.workDate}", color = AppColors.TextSub, fontSize = 12.sp)
             }
-            WorkStatusBadge(work)
+            if (work.attendance?.checkedIn == true)
+                Text(stringResource(R.string.attendance_complete), color = AppColors.Success)
+            else WorkStatusBadge(work)
         }
         Spacer(Modifier.height(10.dp))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -137,6 +149,10 @@ private fun WorkCard(work: WorkSchedule) {
 
 @Composable
 private fun WorkStatusBadge(work: WorkSchedule) {
+    if (work.attendance?.status == "SCHEDULED") {
+        AppBadge(text = stringResource(R.string.attendance_before_work), background = AppColors.WorkerLight, contentColor = AppColors.WorkerEmphasis)
+        return
+    }
     when (work.status) {
         com.workernotfound.app.feature.worker.domain.model.WorkStatus.IN_PROGRESS ->
             StatusBadge(status = AppStatus.WORKING)

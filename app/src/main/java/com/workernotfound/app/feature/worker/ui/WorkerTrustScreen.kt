@@ -58,12 +58,20 @@ fun WorkerTrustScreen(
     onBack: () -> Unit,
     onJobClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: WorkerTrustViewModel = hiltViewModel(),
+    viewModel: WorkerTrustViewModel? = null,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    if (!com.workernotfound.app.BuildConfig.USE_DEMO_DATA) {
+        Column(modifier.fillMaxSize().background(AppColors.WorkerSurface).statusBarsPadding()) {
+            AppTopBar(title = stringResource(R.string.attendance_title), onBack = onBack)
+            WorkerAttendancePanel(modifier = Modifier.weight(1f))
+        }
+        return
+    }
+    val resolvedViewModel = viewModel ?: hiltViewModel<WorkerTrustViewModel>()
+    val uiState by resolvedViewModel.uiState.collectAsStateWithLifecycle()
     WorkerTrustContent(
-        uiState = uiState, onBack = onBack, onRetry = viewModel::load,
-        onRetrySchedule = viewModel::loadSchedule, onJobClick = onJobClick, modifier = modifier,
+        uiState = uiState, onBack = onBack, onRetry = resolvedViewModel::load,
+        onRetrySchedule = resolvedViewModel::loadSchedule, onJobClick = onJobClick, modifier = modifier,
     )
 }
 

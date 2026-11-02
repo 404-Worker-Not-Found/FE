@@ -48,7 +48,7 @@ Current state:
 - Owner screens cover home, job posting, applicants, work management, settlement, no-show/rematching, past postings, and my page. Their presence does not imply production API integration.
 - Worker screens cover home, search/detail, application status, matching result, work management, chat, my page, and trust/history. Several device-backed and account actions remain mock or incomplete.
 - The demo entry point is a role switcher. Onboarding, signup, and login screens are not implemented yet.
-- Map views and real-time behavior are demo placeholders/simulations; do not treat them as connected SDK, GPS, push, or WebSocket infrastructure.
+- Map views and real-time updates remain placeholders/simulations; do not treat them as connected map SDK, push, or WebSocket infrastructure. Live GPS check-in now uses device location and the server attendance policy, but its full real-server success flow needs assigned test work.
 - API integration status and confirmed backend differences are tracked in `docs/backend-integration.md`. UI-only changes maintain a separate screen inventory in their branch.
 - A repository-wide verification script exists at `docs/scripts/verify.sh`.
 - The package structure is defined in `docs/architecture/package-structure.md`.

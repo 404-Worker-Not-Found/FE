@@ -56,4 +56,13 @@
 - 주 작업 worktree는 `/private/tmp/fe-api-integration`, 브랜치는 `feature/#19-api-integration`이다. 친구 브랜치의 인계 기준은 `78e4e0f`이며 그 이후 이 채팅 변경은 친구 브랜치에 강제로 반영하지 않는다.
 - 실제 정산 read-only 조회, cursor 전체 조회, BigDecimal 금액 표시, 지급 상태·보류 사유 표시와 완료 근무→정산 이동을 구현했다. 지급 승인 API가 없어 live 지급 승인 버튼은 제거했다.
 - 지난 공고는 근무/본인 공고/정산을 조합하고 다중 근무자를 `workId`별 항목으로 분리했다. 취소·실패·노쇼·마감을 구별하며 지급일시 미제공을 분쟁으로 추정하지 않는다.
-- 위 변경은 전체 verify.sh(lint·unit tests·debug APK)를 통과했다. 테스트 62개, 실패 0개다. 다음 큰 작업은 GPS 출근이며 아직 GPS 소스는 추가하지 않았다.
+- 위 변경은 전체 verify.sh(lint·unit tests·debug APK)를 통과했다. 테스트 62개, 실패 0개다. 이후 GPS 구현도 추가했다. 아래 최신 체크포인트를 따른다.
+
+
+## 최신 체크포인트: GPS 출근 연결
+
+- `DeviceLocationProvider`는 정확한 위치 권한·GPS 활성 여부를 확인하고 실제 위치를 읽는다. API 26~29와 API 30+ 경로, 20초 제한과 취소 정리를 포함한다. 좌표는 저장·로그하지 않는다.
+- 서버 attendance-policy의 반경·출근 가능 시간·시간대를 WorkAttendance domain 모델로 매핑하고, 출근 전 실제 위치 확인으로 반경 내 여부를 확인한다. 제출 시 위치를 새로 읽고 서버가 해당 workId의 checkedInAt를 확인한 경우에만 완료로 표시한다.
+- live 신뢰도 화면은 미지원 통계 때문에 출근 UI가 가려지지 않도록 독립 근무/출근 패널을 표시한다. 근무 화면 복귀 시 서버 상태를 새로 읽는다. demo의 기존 신뢰도 UI는 유지한다.
+- 전체 verify.sh 통과: 66 tests, 실패 0, lint/debug APK 성공. 실제 알바생 계정에 배정 근무가 0건이어서 실서버 출근 성공과 실제 GPS permission/반경 UI 전체 E2E는 아직 검증하지 못했다.
+- 다음 행동: demo 회귀 검증, 카메라 촬영/취소 기기 QA, 현재 API 브랜치 draft PR 정리. 친구가 인증 화면과 공고 생성/결제를 구현하면 변경을 확인하고 통합한다. 실제 근무 테스트 데이터/점주 계정은 백엔드에 요청해야 한다.
