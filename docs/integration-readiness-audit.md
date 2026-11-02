@@ -1,6 +1,6 @@
 # 외부 설정·잔여 구현 점검
 
-확인일: 2026-11-02 (Asia/Seoul). FE 통합 기준 `61ee749`, BE 확인 기준 `e24145f`.
+확인일: 2026-11-02 (Asia/Seoul). FE 통합 기준 `61ee749`, BE 확인 기준 `212b81d`.
 
 화면 명세, Gradle/catalog, AndroidManifest, 실제 UI/DTO/repository와 BE 공개 controller/서비스를 대조했다. 클라우드 콘솔·운영 서버 비밀 설정은 열람하지 않았으므로 발급/설정 여부가 불명인 항목은 미확인으로 적는다. live/demo 각각 98개 테스트 통과는 지도·푸시·결제까지 전체 앱이 완성됐다는 뜻이 아니다.
 
@@ -9,7 +9,7 @@
 | 우선순위 | 항목 | 담당 / 필요한 입력 | 현재 상태와 이후 구현 |
 |---|---|---|---|
 | 높음 | 네이버 지도 | 계정 소유자: Naver Cloud Maps 애플리케이션 등록, Dynamic Map 선택, Android 패키지 `com.workernotfound.app` 등록, Client ID 제공 | 후속 SDK 3.24/키 주입/AppMap lifecycle·마커·인증 오류/주소 선택 기반 구현 및 빌드 완료. 사용자는 처음 키 미발급이라고 답했으나 후속 native QA에서 ignored local.properties의 키 존재와 실제 지도 타일 표시를 확인함. 탐색 GPS 거리 query/주소 핀·상세/점주 근무지 지도 연결. 실제 공고 핀/업무 위치 E2E는 데이터 필요 |
-| 높음 | 업종 카탈로그 | 백엔드: 실제 사용할 category ID/name 목록의 공식 계약 또는 조회 API 제공 | 새 공고 저장이 비활성화됨. 확인된 카탈로그를 repository에 연결해야 함. 임의 seed ID를 추정하지 않음 |
+| 높음 | 업종 카탈로그 | 백엔드: 새 GET /api/jobs/categories 배포 확인 | BE 212b81d의 계층형 목록 계약으로 프론트 연결 완료. 실제 배포 주소는 400을 반환해 목록/공고 등록 E2E는 대기. 실패 시 등록 차단·목록 재시도, 임의 ID 없음 |
 | 높음 | 업무 테스트 데이터 | 백엔드: WORKER에 연결된 테스트 근무와 일정/좌표, 공고/매칭/채팅방 | 후속으로 OWNER 2개/WORKER 2개 로그인·본인 조회 및 점주 사업장을 확인함. 공고/근무/채팅/알림/리뷰 대상은 모두 빈 목록. 계정 재요청 대신 실제 업무 데이터를 요청할 것 |
 | 높음 | Toss 테스트 설정 | 백엔드/가맹점 계정 소유자: 서버 테스트 키와 짝이 맞는 공개 client key, 테스트 사용 가능 여부, 성공/실패 복귀 경로 및 웹훅 설정 확인 | 결제/공개 상태 조회까지만 연결. checkout, 앱 복귀, confirm 연결은 미완. `TOSS_ENABLED` 실제 값은 미확인. 시크릿 키는 서버에서만 보관 |
 | 기능 사용 시 필수 | 가입·복구 인증의 외부 발송 | 백엔드: SMTP 계정/앱 비밀번호, SOLAPI 계정·인증된 발신번호, 실제 발송 가능 여부 확인 | API/UI는 있으나 실제 이메일/SMS 발송·코드 입력 성공은 미검증. 프론트에 서버 발송 비밀키를 주는 작업이 아님 |
@@ -66,3 +66,5 @@
 ### Live map implementation follow-up
 
 GPS distance query, address-derived search pins/detail map and server workplace coordinate map are connected. Demo diagrams remain demo only. Ignored local key and actual emulator map tiles were confirmed; populated pins/device geocoding QA remain pending. Continuous worker location sharing still needs a backend contract. Full verification: 95 tests passed.
+
+2026-11-03 후속: Toss 테스트 공개 키는 전달받아 ignored 로컬 설정/BuildConfig에 주입했다. 실제 결제창·복귀/서버 confirm 실행은 아직 미구현이며, 서버와 키 짝 및 성공/실패 복귀 URL 확인을 요청했다. 키 값은 기록하지 않는다.

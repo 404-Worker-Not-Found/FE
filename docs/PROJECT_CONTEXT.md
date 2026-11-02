@@ -137,3 +137,7 @@ These questions are not yet settled in code:
 - Current verification: live/demo 98 tests per mode, lint and debug APK passed. A passing build does not verify real map tiles, two-account chat, populated matching/check-in/settlement or payment. Four backend test accounts/roles were checked; business lists are empty. No credentials are recorded here.
 - Ignored local map key and actual emulator tiles were confirmed during subsequent QA. Remaining external prerequisites and corresponding frontend work: `docs/human-setup-guide.md` and `docs/integration-readiness-audit.md`. In particular category catalog, Toss checkout/callback, social OAuth, push delivery/device registration, continuous worker tracking, trust summary/contracts and live profile photo upload are incomplete.
 - Resume automation: same chat, Nov 3 00:45 KST, one run. It inspects dirty work/logs/latest checkpoint before continuing, so a quota interruption requires no manual status handoff.
+
+## 2026-11-03 follow-up
+
+Backend 212b81d adds the hierarchical public category catalog. Owner publication now fetches/selects real IDs with retry and malformed-ID checks; the deployed route still returns 400, so catalog/publication E2E awaits deployment confirmation. A provided Toss test public key is configured locally via toss.clientKey/BuildConfig with a test-only guard. Checkout/callback/confirm execution still awaits agreed return URLs and paired backend test settings. No keys are recorded in tracked files.

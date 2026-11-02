@@ -33,4 +33,6 @@
     <string name="publication_create">결제 대기 공고 저장</string>
     <string name="publication_resume">기존 공고 결제 상태 조회</string>
     <string name="publication_back">돌아가기</string>
+    <string name="publication_category_reload">업종 목록 다시 불러오기</string>
+    <string name="publication_category_select">업종 선택</string>
 </resources>
