@@ -32,7 +32,11 @@ class AccountRepositoryImpl @Inject constructor(private val api: AccountApi,
     }
     override suspend fun change(key: String, channel: ContactChannel, target: String, code: String): AccountCommand {
         requireAccount()
-        return api.change(key, ContactChangeBody(channel.name, target, code)).requireData().toDomain(key)
+        return try { api.change(key, ContactChangeBody(channel.name, target, code)).requireData().toDomain(key) }
+        catch (error: Exception) {
+            if (isRejectedContactCode(error)) throw ContactCodeRejected()
+            throw error
+        }
     }
     override suspend fun contactStatus(key: String): AccountCommand {
         requireAccount()
@@ -56,4 +60,14 @@ object AccountModule {
     @Provides fun api(client: OkHttpClient): AccountApi = Retrofit.Builder().baseUrl(BuildConfig.API_BASE_URL)
         .client(client).addConverterFactory(GsonConverterFactory.create()).build().create(AccountApi::class.java)
     @Provides fun repository(impl: AccountRepositoryImpl): AccountRepository = impl
+}
+
+/** This exact backend error occurs before command persistence. Transport/conflict errors remain ambiguous. */
+internal fun isRejectedContactCode(error: Exception): Boolean {
+    if (error is ApiException) return error.code == "AUTH-400-005"
+    if (error !is retrofit2.HttpException || error.code() != 400) return false
+    return try {
+        val body = error.response()?.errorBody()?.string() ?: return false
+        com.google.gson.JsonParser.parseString(body).asJsonObject.get("code")?.asString == "AUTH-400-005"
+    } catch (_: Exception) { false }
 }

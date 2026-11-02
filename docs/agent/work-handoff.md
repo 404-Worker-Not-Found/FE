@@ -46,7 +46,7 @@
 
 ## 자동 재개
 
-- 이 채팅에 2026-11-02 22:10 Asia/Seoul 일회성 재개 예약을 등록했다 (`fe-22-10`).
+- 이 채팅에 최초 22:10 일회성 예약을 등록했으며, 이후 사용자의 요청으로 2026-11-03 00:45 Asia/Seoul로 변경했다 (`fe-22-10`, ACTIVE).
 - 재개 시 사용자에게 상태를 재전달받지 않는다. 이 문서와 git status/worktree/branch log, 원격 PR·친구 진행 문서를 비교해서 현재 위치를 복원한다.
 - 재개 예약 자체가 토큰 충전을 보장하지는 않는다. 실제 실행 가능 여부는 그 시점의 계정 사용 한도에 따른다.
 - 중단 전에는 완료된 단위를 커밋하고 이 문서에 다음 행동·미완 파일·마지막 검증을 남긴다. 친구 담당 파일은 수정하지 않는다.
@@ -101,7 +101,7 @@
 - 통합 live verify.sh와 demo lint/test/assemble 모두 통과했다. 76 tests, 실패/오류 0이다. Windows 권한 때문에 친구가 실행하지 못한 기존 카메라 symlink 테스트도 여기서는 통과했다.
 - 실제 WORKER 계정으로 Android 앱 로그인, 서버 본인 조회에 의한 저장 세션 확인/재시작 자동 로그인, 근무 관리/출근 패널의 빈 목록, 실제 프로필 표시, 서버 로그아웃과 재시작 후 로그아웃 유지까지 확인했다. 자격증명/토큰을 파일이나 Git에 추가하지 않았다. 기기의 설치 앱은 통합 live 모드이며 로그아웃된 상태다.
 - 친구의 미완 항목을 완료로 바꾸지 않는다: 카테고리 카탈로그 계약이 없어 새 공고 생성은 UI에서 차단되며 Toss checkout/callback 실행 연결은 미완이다. 점주 실계정/사업장/실제 배정 근무/소셜 설정도 여전히 없다. 회원가입 성공·실제 결제·실제 출근 성공은 미검증이다.
-- 다음 재개: #19 PR #22와 친구 PR #23의 새 커밋을 확인한다. 통합한 인증/GPS/정산을 다시 구현하지 않는다. 외부 계약/데이터가 도착하면 위 미완 흐름부터 검증한다. 오늘 22:10 재개 예약은 유지한다.
+- 다음 재개: #19 PR #22와 친구 PR #23의 새 커밋을 확인한다. 통합한 인증/GPS/정산을 다시 구현하지 않는다. 외부 계약/데이터가 도착하면 위 미완 흐름부터 검증한다. 당시의 22:10 예약은 이후 사용자 요청으로 Nov 3 00:45 KST로 변경했다.
 
 ## 전체 설정·잔여 구현 감사
 
@@ -184,3 +184,9 @@
 - Full verify.sh passed: 97 tests, zero failures/errors, including location invalidation/coordinate bounds regression. Confirmed backend JobCommandService accepts address/lat/lng from this public request. Category catalog and Toss setup still required for publication E2E.
 - Automation fe-22-10 was updated at the user's request: ACTIVE, one run Nov 3 00:45 KST, same chat; prompt inspects status/dirty files/logs/latest handoff and resumes without asking the user to restate status. Existing name/prompt previously disagreed with RRULE; tool update and persisted file were checked.
 - Next: live/demo build and emulator smoke, update current inventory/PR22 and verify friend remote changes.
+
+### Completed unit 11: contact code retry boundary
+
+- Inspection found invalid/expired verification codes left the command UI locked. Confirmed AUTH-400-005 in BE ContactChangeTransactionService occurs before command persistence. Only that exact error now unlocks code correction/new command; transport errors, conflict and server failures preserve the ambiguous existing key. No automatic duplicate command is created.
+- Contract test checks exact business-code/HTTP status boundaries and malformed bodies. Full verify.sh passed: 98 tests, zero failures/errors. No actual contact mutation/withdrawal was run.
+- Live emulator worker1 login succeeded. Notification unread=0/list empty, real profile, account settings, attendance empty and terminal work history empty render correctly. First-run onboarding 1/2/3 and start→login were checked. Populated E2E remains pending. Native test used the pre-retry-fix APK; the retry fix itself is contract/build verified.
