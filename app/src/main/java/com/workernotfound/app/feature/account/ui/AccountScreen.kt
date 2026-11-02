@@ -49,6 +49,7 @@ fun AccountScreen(onBack: () -> Unit, onLogin: () -> Unit, modifier: Modifier = 
                 if (s.command?.terminal != true) TextButton(viewModel::refresh, enabled = !s.busy) { Text(stringResource(R.string.account_check)) }
                 TextButton(onLogin, enabled = !s.busy) { Text(stringResource(R.string.account_login)) }
             }
+            if (s.invalidCode) Text(stringResource(R.string.account_invalid_code), color = AppColors.Danger)
             if (s.busy) CircularProgressIndicator()
             s.error?.let { Text(it, color = AppColors.Danger) }
         }

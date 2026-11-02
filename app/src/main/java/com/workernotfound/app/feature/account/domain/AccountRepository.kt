@@ -1,5 +1,7 @@
 package com.workernotfound.app.feature.account.domain
 
+class ContactCodeRejected : Exception()
+
 enum class ContactChannel { EMAIL, PHONE }
 data class AccountCommand(val id: String, val status: String) {
     val terminal get() = status in setOf("SUCCEEDED", "REJECTED")

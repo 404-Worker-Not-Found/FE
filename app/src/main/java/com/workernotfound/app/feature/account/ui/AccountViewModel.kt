@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 
 data class AccountUiState(val channel: ContactChannel = ContactChannel.PHONE, val target: String = "",
     val code: String = "", val busy: Boolean = false, val cooldown: Int = 0,
+    val invalidCode: Boolean = false,
     val sent: Boolean = false, val key: String? = null, val withdrawing: Boolean = false,
     val command: AccountCommand? = null, val confirmWithdrawal: Boolean = false, val error: String? = null) {
     val validTarget get() = if (channel == ContactChannel.EMAIL) target.length <= 255 && Regex("[^@\\s]+@[^@\\s]+\\.[^@\\s]+").matches(target)
@@ -27,9 +28,9 @@ class AccountViewModel @Inject constructor(private val repository: AccountReposi
     private val state = MutableStateFlow(AccountUiState(key = saved["accountCommand"], withdrawing = saved["withdrawing"] ?: false))
     val uiState = state.asStateFlow()
     init { viewModelScope.launch { while (true) { delay(1000); state.update { it.copy(cooldown = (it.cooldown - 1).coerceAtLeast(0)) } } } }
-    fun channel(value: ContactChannel) { if (!state.value.busy && state.value.key == null) state.update { it.copy(channel = value, target = "", code = "", sent = false, error = null) } }
-    fun target(value: String) { if (!state.value.busy && state.value.key == null) state.update { it.copy(target = value, code = "", sent = false, error = null) } }
-    fun code(value: String) { if (!state.value.busy && state.value.key == null) state.update { it.copy(code = value) } }
+    fun channel(value: ContactChannel) { if (!state.value.busy && state.value.key == null) state.update { it.copy(channel = value, target = "", code = "", sent = false, error = null, invalidCode = false) } }
+    fun target(value: String) { if (!state.value.busy && state.value.key == null) state.update { it.copy(target = value, code = "", sent = false, error = null, invalidCode = false) } }
+    fun code(value: String) { if (!state.value.busy && state.value.key == null) state.update { it.copy(code = value, invalidCode = false) } }
     fun send() {
         val s = state.value
         if (!s.validTarget || s.cooldown > 0 || s.key != null) return
@@ -69,6 +70,11 @@ class AccountViewModel @Inject constructor(private val repository: AccountReposi
         viewModelScope.launch {
             try { block() }
             catch (e: CancellationException) { throw e }
+            catch (_: ContactCodeRejected) {
+                saved.remove<String>("accountCommand"); saved.remove<Boolean>("withdrawing")
+                state.update { it.copy(key = null, command = null, withdrawing = false,
+                    code = "", invalidCode = true, error = null) }
+            }
             catch (e: Exception) { state.update { it.copy(error = backend.message(e)) } }
             finally { state.update { it.copy(busy = false) } }
         }
