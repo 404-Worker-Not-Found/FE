@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,9 +38,19 @@ fun WorkerChatListScreen(
     onRoomClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkerChatListViewModel = hiltViewModel(),
+    onBack: (() -> Unit)? = null,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    WorkerChatListContent(uiState = uiState, onRoomClick = onRoomClick, modifier = modifier)
+    androidx.lifecycle.compose.LifecycleResumeEffect(viewModel) { viewModel.load(); onPauseOrDispose { } }
+    Column(if (onBack != null) modifier.statusBarsPadding() else modifier) {
+        if (onBack != null) com.workernotfound.app.core.designsystem.component.AppTopBar(
+            androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_title), onBack = onBack)
+        uiState.errorMessage?.let {
+            Text(it, color = AppColors.Danger)
+            androidx.compose.material3.TextButton(viewModel::load) { Text(androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_retry)) }
+        }
+        WorkerChatListContent(uiState = uiState, onRoomClick = onRoomClick, modifier = Modifier.weight(1f))
+    }
 }
 
 @Composable
@@ -92,6 +103,7 @@ private fun ChatRoomRow(room: ChatRoom, onClick: () -> Unit) {
                 )
             }
             Text(text = room.lastTimeText, fontSize = 11.sp, color = AppColors.TextPlaceholder)
+            if (room.unreadCount > 0) Text(androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_unread_count, room.unreadCount), color = AppColors.TextSub)
         }
     }
 }

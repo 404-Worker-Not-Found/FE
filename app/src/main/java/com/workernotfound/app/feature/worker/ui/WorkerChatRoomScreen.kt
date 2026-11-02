@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -28,6 +29,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import kotlinx.coroutines.flow.distinctUntilChanged
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -54,11 +68,17 @@ fun WorkerChatRoomScreen(
     viewModel: WorkerChatRoomViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    LifecycleResumeEffect(viewModel) {
+        viewModel.startUpdates()
+        onPauseOrDispose { viewModel.stopUpdates() }
+    }
     WorkerChatRoomContent(
         uiState = uiState,
         onBack = onBack,
         onDraftChange = viewModel::onDraftChange,
         onSend = viewModel::send,
+        onRetry = viewModel::load,
+        onVisible = viewModel::visible,
         modifier = modifier,
     )
 }
@@ -69,19 +89,28 @@ private fun WorkerChatRoomContent(
     onBack: () -> Unit,
     onDraftChange: (String) -> Unit,
     onSend: () -> Unit,
+    onRetry: () -> Unit,
+    onVisible: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(AppColors.WorkerSurface)
+            .background(AppTheme.role.screenBackground)
             .statusBarsPadding(),
     ) {
         AppTopBar(title = uiState.room?.storeName ?: "채팅", onBack = onBack)
+        if (uiState.reconnecting) Text(stringResource(R.string.chat_reconnecting), color = AppColors.TextSub)
+        uiState.errorMessage?.let {
+            Text(it, color = AppColors.Danger)
+            TextButton(onRetry) { Text(stringResource(R.string.chat_retry)) }
+        }
         when {
             uiState.isLoading -> LoadingBox()
+            uiState.room == null -> Spacer(Modifier.weight(1f))
             else -> {
-                MessageList(messages = uiState.messages, modifier = Modifier.weight(1f))
+                MessageList(messages = uiState.messages, otherReadId = uiState.room?.otherLastReadId,
+                    onVisible = onVisible, modifier = Modifier.weight(1f))
                 ChatInputBar(draft = uiState.draft, onDraftChange = onDraftChange, onSend = onSend)
             }
         }
@@ -89,14 +118,32 @@ private fun WorkerChatRoomContent(
 }
 
 @Composable
-private fun MessageList(messages: List<ChatMessage>, modifier: Modifier = Modifier) {
+private fun MessageList(messages: List<ChatMessage>, otherReadId: Long?, onVisible: (Long) -> Unit, modifier: Modifier = Modifier) {
+    val listState = rememberLazyListState()
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var previousCount by remember { mutableIntStateOf(0) }
+    LaunchedEffect(messages.lastOrNull()?.id) {
+        val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+        if (messages.isNotEmpty() && (previousCount == 0 || lastVisible >= previousCount - 1)) listState.scrollToItem(messages.lastIndex)
+        previousCount = messages.size
+    }
+    LaunchedEffect(listState, lifecycle) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.mapNotNull { it.key.toString().toLongOrNull() }.maxOrNull() }
+            .distinctUntilChanged().flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED)
+            .collect { id -> if (id != null) onVisible(id) }
+    }
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(AppDimens.screenPadding),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(items = messages, key = { it.id }) { message ->
-            MessageBubble(message)
+            Column {
+                MessageBubble(message)
+                if (message.fromMe && otherReadId != null && (message.id.toLongOrNull() ?: Long.MAX_VALUE) <= otherReadId)
+                    Text(stringResource(R.string.chat_read), color = AppColors.TextSub)
+            }
         }
     }
 }

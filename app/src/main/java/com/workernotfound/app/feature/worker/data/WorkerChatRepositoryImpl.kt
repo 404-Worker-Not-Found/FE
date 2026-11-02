@@ -13,6 +13,8 @@ import com.workernotfound.app.feature.worker.domain.model.ChatRoom
 import com.workernotfound.app.feature.worker.domain.repository.WorkerChatRepository
 import javax.inject.Inject
 import kotlinx.coroutines.delay
+import com.workernotfound.app.feature.worker.data.remote.nextCursor
+import com.workernotfound.app.feature.worker.data.remote.confirm
 
 /**
  * Mock chat repository (UI spec: 채팅). Room ids match matched application ids
@@ -22,7 +24,31 @@ class WorkerChatRepositoryImpl @Inject constructor(private val backend: BackendA
     private val api: WorkerChatApiService,
     private val jobs: WorkerJobApiService,
     private val sessions: SessionStore,
+    private val realtime: com.workernotfound.app.feature.worker.data.remote.ChatRealtime,
 ) : WorkerChatRepository {
+    override fun changes(roomId: String): kotlinx.coroutines.flow.Flow<Unit> =
+        if (BuildConfig.USE_DEMO_DATA) kotlinx.coroutines.flow.emptyFlow() else realtime.changes(roomId.toLong())
+
+    override suspend fun sync(roomId: String, afterId: Long): List<ChatMessage> {
+        if (BuildConfig.USE_DEMO_DATA) return emptyList()
+        backend.requireSession()
+        val result = mutableListOf<ChatMessage>()
+        var after = afterId
+        do {
+            val page = api.sync(roomId.toLong(), after).requireData()
+            val next = page.nextCursor(after)
+            result += page.content.map { it.toDomain() }
+            if (next == null) break
+            after = next
+        } while (true)
+        return result.distinctBy { it.id }.sortedBy { it.id.toLong() }
+    }
+    override suspend fun read(roomId: String, lastVisibleId: Long): Long {
+        if (BuildConfig.USE_DEMO_DATA) return lastVisibleId
+        backend.requireSession()
+        val response = api.read(roomId.toLong(), com.workernotfound.app.feature.worker.data.remote.ChatReadBody(lastVisibleId)).requireData()
+        return response.confirm(roomId, lastVisibleId)
+    }
 
     override suspend fun send(roomId: String, clientMessageId: String, text: String): ChatMessage {
         if (BuildConfig.USE_DEMO_DATA) return ChatMessage(clientMessageId, text, true, "")
@@ -77,11 +103,11 @@ class WorkerChatRepositoryImpl @Inject constructor(private val backend: BackendA
     private suspend fun roomToDomain(room: ChatRoomResponseDto): ChatRoom {
         val job = jobs.detail(room.jobPostId).requireData()
         val latest = api.messages(room.chatRoomId, size = 1).requireData().content.firstOrNull()
-        return ChatRoom(room.chatRoomId.toString(), job.storeName, job.categoryName, latest?.content.orEmpty(), latest?.createdAt.orEmpty())
+        return ChatRoom(room.chatRoomId.toString(), job.storeName, job.categoryName, latest?.content.orEmpty(), latest?.createdAt.orEmpty(), room.otherReadPosition?.lastReadMessageId, room.unreadCount)
     }
 
-    private fun ChatMessageResponseDto.toDomain() = ChatMessage(
-        messageId.toString(), content, senderMemberId == sessions.read()?.memberId, createdAt,
+    private suspend fun ChatMessageResponseDto.toDomain() = ChatMessage(
+        messageId.toString(), content, senderMemberId == kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { sessions.read()?.memberId }, createdAt,
     )
 
     private companion object {
