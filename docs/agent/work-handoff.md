@@ -201,3 +201,9 @@
 
 - Native worker map QA exposed Material TextButton/inputs still inheriting owner orange despite custom worker cards using yellow. The shared light-only theme now derives Material primary/secondary/container/background colors from the existing role tokens; worker text uses WorkerEmphasis and owner retains orange. No hardcoded screen colors or dark variants added.
 - Included in full verify.sh: 98 tests, zero failures/errors. Key presence was discovered in ignored local.properties during native QA (no value printed or committed); the live Naver SDK displayed actual Seoul map tiles with attribution visible. Job pin/real workplace/device geocoder QA still needs populated data. Update older absent-key notes accordingly; do not request another key blindly.
+
+### Completed unit 14: native UI follow-ups
+
+- Owner chat list no longer repeats its title below the back toolbar. Publication calendar disables dates outside today/tomorrow in the backend time zone, matching the server's publication restriction. Existing ISO validation still guards final submission.
+- Full verify.sh passed: 98 tests, zero failures/errors. Native read-only smoke confirmed worker and owner login/profile, notification empty list, account form, worker attendance/history and both roles' reviews/chat empty state. Owner publication displays actual business/address/map and calendar opens. No job was posted, no review/cancellation submitted, no contact/account mutation performed.
+- Demo final verification rerun in progress; saved current live APK at /private/tmp/fe-final-live.apk. Before resuming native tests, query actual UI/device state: multiple independent app installers/chats can share the emulator, so never infer the installed mode from a Gradle output filename.

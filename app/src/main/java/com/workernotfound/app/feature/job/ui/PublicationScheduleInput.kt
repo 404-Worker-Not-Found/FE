@@ -27,7 +27,13 @@ internal fun PublicationScheduleInput(field: PublicationField, value: String, la
     }
     if (dateOpen) {
         val initial = runCatching { LocalDate.parse(value.substringBefore('T')).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() }.getOrNull()
-        val picker = rememberDatePickerState(initialSelectedDateMillis = initial)
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val available = remember(today) { object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean =
+                Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneOffset.UTC).toLocalDate() in today..today.plusDays(1)
+            override fun isSelectableYear(year: Int) = year in today.year..today.plusDays(1).year
+        } }
+        val picker = rememberDatePickerState(initialSelectedDateMillis = initial, selectableDates = available)
         DatePickerDialog(onDismissRequest = { dateOpen = false }, confirmButton = {
             TextButton({
                 val date = picker.selectedDateMillis?.let { Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toString() }
