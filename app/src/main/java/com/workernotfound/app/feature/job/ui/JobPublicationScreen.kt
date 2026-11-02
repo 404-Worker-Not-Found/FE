@@ -56,9 +56,12 @@ fun JobPublicationScreen(onBack: () -> Unit, viewModel: JobPublicationViewModel 
                 }
                 if (state.categories.isEmpty()) {
                     Text(stringResource(R.string.publication_category_help), color = AppColors.TextSub)
+                    TextButton(viewModel::loadCategories, enabled = !state.busy && !state.creationAttempted) {
+                        Text(stringResource(R.string.publication_category_reload))
+                    }
                 } else {
-                    ChoiceChipRow(state.categories.map { it.name }, state.categories.indexOf(state.selectedCategory),
-                        onSelect = { viewModel.category(state.categories[it]) })
+                    PublicationCategoryPicker(state.categories, state.selectedCategory,
+                        enabled = !state.busy && !state.creationAttempted, onSelect = viewModel::category)
                 }
                 Row { Checkbox(state.nextDay, viewModel::nextDay, enabled = !state.busy && !state.creationAttempted); Text(stringResource(R.string.publication_next_day)) }
                 val urgencies = listOf("LOW", "MEDIUM", "HIGH")
@@ -98,4 +101,20 @@ private fun PublicationInput(field: PublicationField, state: JobPublicationUiSta
     OutlinedTextField(state[field], { edit(field, it) }, Modifier.fillMaxWidth(),
         label = { Text(stringResource(label)) }, enabled = !state.busy && (!state.creationAttempted || field == PublicationField.RESUME_ID),
         singleLine = field != PublicationField.DESCRIPTION)
+}
+
+@Composable
+private fun PublicationCategoryPicker(categories: List<com.workernotfound.app.feature.job.domain.model.PostingCategory>,
+    selected: com.workernotfound.app.feature.job.domain.model.PostingCategory?, enabled: Boolean,
+    onSelect: (com.workernotfound.app.feature.job.domain.model.PostingCategory) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        OutlinedButton({ expanded = true }, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
+            Text(selected?.name ?: stringResource(R.string.publication_category_select))
+        }
+        DropdownMenu(expanded && enabled, onDismissRequest = { expanded = false }) {
+            categories.forEach { category -> DropdownMenuItem(text = { Text(category.name) },
+                onClick = { onSelect(category); expanded = false }) }
+        }
+    }
 }

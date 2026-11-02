@@ -44,10 +44,18 @@ class JobPublicationViewModel @Inject constructor(
     fun loadBusiness() {
         if (state.value.creationAttempted) return
         action {
-        val business = repository.business()
-        val categories = repository.categories()
-        state.update { it.copy(business = business, categories = categories, locationSelected = true) }
+            val business = repository.business()
+            state.update { it.copy(business = business, locationSelected = true, categories = emptyList(), selectedCategory = null) }
+            fetchCategories()
         }
+    }
+    fun loadCategories() {
+        if (!state.value.creationAttempted) action { fetchCategories() }
+    }
+    private suspend fun fetchCategories() {
+        state.update { it.copy(categories = emptyList(), selectedCategory = null) }
+        val categories = repository.categories()
+        state.update { it.copy(categories = categories) }
     }
     fun edit(field: PublicationField, value: String) {
         if (!state.value.busy && (!state.value.creationAttempted || field == PublicationField.RESUME_ID)) state.update { it.copy(fields = it.fields + (field to value), error = null) }

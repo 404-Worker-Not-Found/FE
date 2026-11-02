@@ -5,6 +5,7 @@ import java.math.BigDecimal
 import retrofit2.http.*
 
 interface JobPublicationApiService {
+    @GET("api/jobs/categories") suspend fun categories(): ApiResponse<JobCategoryListDto>
     @GET("api/members/me") suspend fun me(): ApiResponse<PostingMemberDto>
     @POST("api/jobs") suspend fun create(@Body request: CreateJobDto): ApiResponse<Long>
     @GET("api/jobs/{id}/payment-order") suspend fun payment(@Path("id") id: Long): ApiResponse<JobPaymentDto>
@@ -28,3 +29,7 @@ data class JobPaymentDto(
 data class PaymentChangeDto(val status: String)
 data class PaymentOrderDto(val orderId: String, val jobPostId: Long, val jobVersion: Long,
     val amount: BigDecimal, val currency: String, val status: String)
+
+data class JobCategoryListDto(val categories: List<JobCategoryDto>)
+data class JobCategoryDto(val id: Long, val name: String, val subCategories: List<JobSubCategoryDto>)
+data class JobSubCategoryDto(val id: Long, val name: String)

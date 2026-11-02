@@ -12,8 +12,7 @@ import javax.inject.Inject
 class JobPublicationRepositoryImpl @Inject constructor(
     private val api: JobPublicationApiService, private val backend: BackendAccess,
 ) : JobPublicationRepository {
-    // No public catalog contract yet. Never substitute seed IDs or ask users for internal IDs.
-    override suspend fun categories(): List<PostingCategory> = emptyList()
+    override suspend fun categories(): List<PostingCategory> = api.categories().requireData().toPostingCategories()
 
     override suspend fun business(): PostingBusiness {
         backend.requireSession()
@@ -55,4 +54,17 @@ internal fun validateOrder(job: JobPaymentDto, order: PaymentOrderDto) {
         job.amount == null || order.amount.compareTo(job.amount) != 0 || order.currency != job.currency || order.currency != "KRW") {
         throw ApiException("ORDER_MISMATCH")
     }
+}
+
+/** Preserve actual IDs and hierarchy labels; no guessed seeds or selectable duplicate IDs. */
+internal fun JobCategoryListDto.toPostingCategories(): List<PostingCategory> {
+    val result = categories.flatMap { parent ->
+        if (parent.id <= 0 || parent.name.isBlank()) throw ApiException("INVALID_CATEGORY_CATALOG")
+        listOf(PostingCategory(parent.id, parent.name)) + parent.subCategories.map { child ->
+            if (child.id <= 0 || child.name.isBlank()) throw ApiException("INVALID_CATEGORY_CATALOG")
+            PostingCategory(child.id, "${parent.name} / ${child.name}")
+        }
+    }
+    if (result.map { it.id }.distinct().size != result.size) throw ApiException("INVALID_CATEGORY_CATALOG")
+    return result
 }
