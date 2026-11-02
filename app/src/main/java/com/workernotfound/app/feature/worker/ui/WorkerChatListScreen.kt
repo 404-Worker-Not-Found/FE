@@ -49,7 +49,7 @@ fun WorkerChatListScreen(
             Text(it, color = AppColors.Danger)
             androidx.compose.material3.TextButton(viewModel::load) { Text(androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_retry)) }
         }
-        WorkerChatListContent(uiState = uiState, onRoomClick = onRoomClick, modifier = Modifier.weight(1f))
+        WorkerChatListContent(uiState = uiState, onRoomClick = onRoomClick, showTitle = onBack == null, modifier = Modifier.weight(1f))
     }
 }
 
@@ -57,10 +57,11 @@ fun WorkerChatListScreen(
 private fun WorkerChatListContent(
     uiState: WorkerChatListUiState,
     onRoomClick: (String) -> Unit,
+    showTitle: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        Text(
+        if (showTitle) Text(
             text = "채팅",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
