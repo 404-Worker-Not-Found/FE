@@ -14,9 +14,11 @@ import kotlinx.coroutines.Dispatchers
 class AuthRepositoryImpl @Inject constructor(
     private val api: AuthApiService,
     private val store: SessionStore,
+    private val profiles: com.workernotfound.app.feature.mypage.data.remote.MemberProfileApiService,
 ) : AuthRepository {
     override suspend fun login(email: String, password: String): AuthSession = kotlinx.coroutines.withContext(Dispatchers.IO) {
         val response = api.login(LoginRequestDto(email, password, store.deviceId())).requireData()
+        response.validateSession()
         store.save(StoredSession(response.memberId, response.role, response.tokenResponse.accessToken, response.tokenResponse.refreshToken))
         AuthSession(response.memberId, response.role)
     }
@@ -30,5 +32,11 @@ class AuthRepositoryImpl @Inject constructor(
         store.clearIfCurrent(session)
     }
 
-    override suspend fun currentSession(): AuthSession? = kotlinx.coroutines.withContext(Dispatchers.IO) { store.read()?.toDomain() }
+    override suspend fun currentSession(): AuthSession? = kotlinx.coroutines.withContext(Dispatchers.IO) {
+        val session = store.read() ?: return@withContext null
+        // Validates on the server and uses the existing 401 refresh mechanism.
+        val profile = profiles.get().requireData()
+        if (profile.memberId != session.memberId || profile.role != session.role) throw ApiException("INVALID_SESSION")
+        session.toDomain()
+    }
 }
