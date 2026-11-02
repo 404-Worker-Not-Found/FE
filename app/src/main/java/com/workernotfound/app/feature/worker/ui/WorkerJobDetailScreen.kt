@@ -27,6 +27,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -176,6 +178,10 @@ private fun WageBreakdownCard(detail: WorkerJobDetail) {
             Spacer(Modifier.height(6.dp))
             WageRow("시간대 가산", detail.timeBonus, isBonus = true)
         }
+        if (detail.extraWage > 0) {
+            Spacer(Modifier.height(AppDimens.cardGap))
+            WageRow(stringResource(R.string.backend_extra_wage), detail.extraWage, isBonus = true)
+        }
         Spacer(Modifier.height(10.dp))
         Divider(color = AppColors.Border)
         Spacer(Modifier.height(10.dp))
@@ -262,9 +268,9 @@ private fun ApplicantStatusCard(detail: WorkerJobDetail) {
         SectionLabel(text = "해당 가게 지원 현황")
         Spacer(Modifier.height(10.dp))
         Row(modifier = Modifier.fillMaxWidth()) {
-            StatChip(label = "현재 지원자", value = "${detail.applicantCount}명", modifier = Modifier.weight(1f))
+            StatChip(label = "현재 지원자", value = detail.applicantCount?.let { stringResource(R.string.backend_applicant_count, it) } ?: stringResource(R.string.backend_not_provided), modifier = Modifier.weight(1f))
             Spacer(Modifier.width(AppDimens.cardGap))
-            StatChip(label = "매칭 점수", value = "${detail.matchScore}점", modifier = Modifier.weight(1f))
+            StatChip(label = "매칭 점수", value = detail.matchScore?.let { stringResource(R.string.backend_match_score, it) } ?: stringResource(R.string.backend_not_provided), modifier = Modifier.weight(1f))
         }
     }
 }
@@ -298,20 +304,20 @@ private fun BottomApplyBar(detail: WorkerJobDetail, onApply: () -> Unit) {
         AppPrimaryButton(
             text = when {
                 applied -> "지원 완료"
-                !detail.withinRadius -> "모집 반경 밖이에요"
+                detail.withinRadius == false -> "모집 반경 밖이에요"
                 else -> "즉시 지원하기"
             },
             onClick = onApply,
-            enabled = !applied && detail.withinRadius,
+            enabled = !applied && detail.withinRadius != false,
         )
     }
 }
 
 @Composable
 private fun AvailabilityRow(detail: WorkerJobDetail) {
-    val bg = if (detail.withinRadius) AppColors.SuccessBg else AppColors.DangerBg
-    val color = if (detail.withinRadius) AppColors.Success else AppColors.Danger
-    val text = if (detail.withinRadius) "지원 가능 · ${detail.radiusText}" else "지원 불가 · ${detail.radiusText}"
+    val bg = when (detail.withinRadius) { true -> AppColors.SuccessBg; false -> AppColors.DangerBg; null -> AppColors.Border }
+    val color = when (detail.withinRadius) { true -> AppColors.Success; false -> AppColors.Danger; null -> AppColors.TextSub }
+    val text = if (detail.withinRadius == null) detail.radiusText else if (detail.withinRadius == true) "지원 가능 · ${detail.radiusText}" else "지원 불가 · ${detail.radiusText}"
     Box(
         modifier = Modifier
             .fillMaxWidth()

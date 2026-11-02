@@ -16,8 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppTheme
+import com.workernotfound.app.core.designsystem.component.AppBadge
 import com.workernotfound.app.core.designsystem.component.AppCard
 import com.workernotfound.app.core.designsystem.component.AppStatus
 import com.workernotfound.app.core.designsystem.component.StatusBadge
@@ -37,10 +39,16 @@ fun OwnerJobCard(
                 UrgentBadge()
                 Spacer(Modifier.width(6.dp))
             }
-            StatusBadge(status = posting.status.toBadge())
+            when (posting.status) {
+                PostingStatus.PAYMENT_PENDING, PostingStatus.FUNDING_BLOCKED -> AppBadge(
+                    text = androidx.compose.ui.res.stringResource(if (posting.status == PostingStatus.PAYMENT_PENDING) R.string.backend_payment_pending else R.string.backend_funding_blocked),
+                    background = AppColors.WarningBg, contentColor = AppColors.Warning,
+                )
+                else -> StatusBadge(status = posting.status.toBadge())
+            }
             Spacer(Modifier.weight(1f))
             Text(
-                text = "지원자 ${posting.applicantCount}명",
+                text = posting.applicantCount?.let { androidx.compose.ui.res.stringResource(R.string.backend_applicant_count, it) } ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided),
                 color = AppColors.TextSub,
                 fontSize = 12.sp,
             )
@@ -79,4 +87,6 @@ private fun PostingStatus.toBadge(): AppStatus = when (this) {
     PostingStatus.RECRUITING -> AppStatus.RECRUITING
     PostingStatus.CLOSED -> AppStatus.CLOSED
     PostingStatus.DONE -> AppStatus.DONE
+    PostingStatus.MATCHING -> AppStatus.MATCHING
+    PostingStatus.PAYMENT_PENDING, PostingStatus.FUNDING_BLOCKED -> AppStatus.CLOSED
 }

@@ -1,5 +1,7 @@
 package com.workernotfound.app.feature.worker.viewmodel
 
+import com.workernotfound.app.core.network.BackendAccess
+import kotlinx.coroutines.CancellationException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.workernotfound.app.feature.worker.domain.model.WorkStatus
@@ -15,6 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class WorkerWorkViewModel @Inject constructor(
     private val repository: WorkerWorkRepository,
+    private val backend: BackendAccess,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WorkerWorkUiState())
@@ -35,7 +38,8 @@ class WorkerWorkViewModel @Inject constructor(
                     }
                 }
                 .onFailure { t ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = t.message ?: "근무 정보를 불러오지 못했습니다.") }
+                    if (t is CancellationException) throw t
+                    _uiState.update { it.copy(isLoading = false, errorMessage = backend.message(t)) }
                 }
         }
     }

@@ -16,8 +16,14 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import com.workernotfound.app.BuildConfig
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
+import com.workernotfound.app.feature.mypage.ui.ProfilePhotoButton
+import com.workernotfound.app.feature.mypage.ui.ProfileNameDialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,14 +58,24 @@ fun OwnerMyPageScreen(
     viewModel: OwnerMyPageViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(uiState.isLoggedOut) { if (uiState.isLoggedOut) onLogout() }
     OwnerMyPageContent(
         uiState = uiState,
         onRetry = viewModel::load,
         onToggle = viewModel::setNotification,
-        onLogout = onLogout,
+        onLogout = viewModel::logout,
         onWithdraw = viewModel::showWithdrawDialog,
+        onEditName = viewModel::editName,
+        onPhotoSelected = viewModel::updatePhoto,
         modifier = modifier,
     )
+    uiState.nameDraft?.let { draft ->
+        ProfileNameDialog(
+            name = draft, isValid = uiState.isNameValid, isSaving = uiState.isSavingName,
+            hasSaveError = uiState.hasNameSaveError, onNameChange = viewModel::changeName,
+            onSave = viewModel::saveName, onDismiss = viewModel::dismissName,
+        )
+    }
     if (uiState.isWithdrawDialogVisible) {
         OwnerDialog(
             title = "회원 탈퇴",
@@ -80,6 +96,8 @@ private fun OwnerMyPageContent(
     onToggle: (NotificationChannel, Boolean) -> Unit,
     onLogout: () -> Unit,
     onWithdraw: () -> Unit,
+    onEditName: () -> Unit,
+    onPhotoSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val profile = uiState.profile
@@ -105,20 +123,25 @@ private fun OwnerMyPageContent(
                 color = AppColors.TextMain,
                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
             )
-            ProfileCard(profile)
-            AccountCard(profile)
-            NotificationCard(settings = profile.notificationSettings, onToggle = onToggle)
+            if (uiState.hasPhotoSaveError || uiState.hasNotificationSaveError) Text(stringResource(R.string.profile_save_error), color = AppColors.Danger)
+            uiState.errorMessage?.let { Text(it, color = AppColors.Danger) }
+            ProfileCard(profile, onPhotoSelected)
+            AccountCard(profile, onEditName)
+            profile.notificationSettings?.let { settings ->
+                NotificationCard(settings = settings, onToggle = onToggle, enabled = !uiState.isSavingNotification)
+            } ?: Text(stringResource(R.string.profile_settings_unavailable), color = AppColors.TextSub)
             AppCard(modifier = Modifier.fillMaxWidth()) {
                 ActionRow(label = "로그아웃", color = AppColors.TextMain, onClick = onLogout)
                 CardDivider()
-                ActionRow(label = "회원 탈퇴", color = AppColors.Danger, onClick = onWithdraw)
+                if (BuildConfig.USE_DEMO_DATA) ActionRow(label = "회원 탈퇴", color = AppColors.Danger, onClick = onWithdraw)
+                else Text(stringResource(R.string.profile_withdraw_unavailable), color = AppColors.TextSub)
             }
         }
     }
 }
 
 @Composable
-private fun ProfileCard(profile: OwnerProfile) {
+private fun ProfileCard(profile: OwnerProfile, onPhotoSelected: (String) -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             ProfileAvatar(name = profile.name, imageUrl = profile.profileImageUrl, size = 52.dp)
@@ -129,6 +152,8 @@ private fun ProfileCard(profile: OwnerProfile) {
                 Text(text = "점주 · ${profile.email}", fontSize = 12.sp, color = AppColors.TextSub)
             }
         }
+        if (BuildConfig.USE_DEMO_DATA) ProfilePhotoButton(onSelected = onPhotoSelected)
+        else Text(stringResource(R.string.profile_photo_unavailable), color = AppColors.TextSub)
         Spacer(Modifier.height(12.dp))
         Text(
             text = "🏪 ${profile.storeName}",
@@ -140,32 +165,35 @@ private fun ProfileCard(profile: OwnerProfile) {
 }
 
 @Composable
-private fun AccountCard(profile: OwnerProfile) {
+private fun AccountCard(profile: OwnerProfile, onEditName: () -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
-        OwnerInfoLine(label = "이름", value = profile.name)
+        androidx.compose.material3.TextButton(onClick = onEditName, modifier = Modifier.fillMaxWidth()) {
+            OwnerInfoLine(label = stringResource(R.string.profile_edit_name), value = profile.name)
+        }
         CardDivider()
-        OwnerInfoLine(label = "연락처", value = profile.phone)
+        OwnerInfoLine(label = "연락처", value = profile.phone ?: stringResource(R.string.profile_unavailable_field))
     }
 }
 
 @Composable
-private fun NotificationCard(settings: NotificationSettings, onToggle: (NotificationChannel, Boolean) -> Unit) {
+private fun NotificationCard(settings: NotificationSettings, onToggle: (NotificationChannel, Boolean) -> Unit, enabled: Boolean) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Text(text = "알림 설정", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.TextSub)
         Spacer(Modifier.height(8.dp))
-        ToggleRow("Push 알림", settings.isPushEnabled) { onToggle(NotificationChannel.PUSH, it) }
-        ToggleRow("이메일 알림", settings.isEmailEnabled) { onToggle(NotificationChannel.EMAIL, it) }
-        ToggleRow("SMS 알림", settings.isSmsEnabled) { onToggle(NotificationChannel.SMS, it) }
+        ToggleRow("Push 알림", settings.isPushEnabled, enabled) { onToggle(NotificationChannel.PUSH, it) }
+        ToggleRow("이메일 알림", settings.isEmailEnabled, enabled) { onToggle(NotificationChannel.EMAIL, it) }
+        ToggleRow("SMS 알림", settings.isSmsEnabled, enabled) { onToggle(NotificationChannel.SMS, it) }
     }
 }
 
 @Composable
-private fun ToggleRow(label: String, isChecked: Boolean, onChange: (Boolean) -> Unit) {
+private fun ToggleRow(label: String, isChecked: Boolean, enabled: Boolean, onChange: (Boolean) -> Unit) {
     Row(modifier = Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(text = label, fontSize = 14.sp, color = AppColors.TextMain)
         Spacer(Modifier.weight(1f))
         Switch(
             checked = isChecked,
+            enabled = enabled,
             onCheckedChange = onChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = AppColors.CardSurface,

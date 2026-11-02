@@ -11,7 +11,7 @@ data class WorkerJobDetail(
     val storeName: String,
     val category: String,
     val address: String,
-    val distanceKm: Double,
+    val distanceKm: Double?,
     val baseWage: Int,
     val urgentBonus: Int,
     val timeBonus: Int,
@@ -21,12 +21,13 @@ data class WorkerJobDetail(
     val startsInSeconds: Long,
     val applyDeadlineText: String? = null,
     val description: String,
-    val withinRadius: Boolean,
+    val withinRadius: Boolean?,
     val radiusText: String,
-    val applicantCount: Int,
-    val matchScore: Int,
+    val applicantCount: Int?,
+    val matchScore: Int?,
     val isUrgent: Boolean,
     val applyStatus: ApplyStatus = ApplyStatus.AVAILABLE,
+    val extraWage: Int = 0,
 ) {
-    val finalWage: Int get() = baseWage + urgentBonus + timeBonus
+    val finalWage: Int get() = baseWage + urgentBonus + timeBonus + extraWage
 }

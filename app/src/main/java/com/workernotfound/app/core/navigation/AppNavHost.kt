@@ -27,7 +27,7 @@ import com.workernotfound.app.feature.worker.ui.WorkerRootScreen
 import com.workernotfound.app.feature.worker.ui.WorkerTrustScreen
 
 /**
- * Top-level navigation. Starts on the demo role switcher, then enters the
+ * Top-level navigation. Live mode starts with authentication; demo retains role selection. Enters the
  * owner or worker section. Each section re-applies its role theme so the
  * accent color follows the role (style guide: 오렌지=점주, 노랑=알바생).
  */
@@ -35,10 +35,20 @@ import com.workernotfound.app.feature.worker.ui.WorkerTrustScreen
 fun AppNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = AppRoute.ROLE_SWITCHER) {
         composable(AppRoute.ROLE_SWITCHER) {
-            RoleSwitcherScreen(
-                onSelectOwner = { navController.navigate(AppRoute.OWNER_ROOT) },
-                onSelectWorker = { navController.navigate(AppRoute.WORKER_ROOT) },
-            )
+            if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) {
+                RoleSwitcherScreen(
+                    onSelectOwner = { navController.navigate(AppRoute.OWNER_ROOT) },
+                    onSelectWorker = { navController.navigate(AppRoute.WORKER_ROOT) },
+                )
+            } else {
+                com.workernotfound.app.feature.auth.ui.AuthScreen(onAuthenticated = { session ->
+                    val route = if (session.role == "OWNER") AppRoute.OWNER_ROOT else AppRoute.WORKER_ROOT
+                    navController.navigate(route) {
+                        popUpTo(AppRoute.ROLE_SWITCHER)
+                        launchSingleTop = true
+                    }
+                })
+            }
         }
 
         composable(AppRoute.OWNER_ROOT) {
@@ -184,6 +194,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 WorkerMatchResultScreen(
                     onBack = { navController.popBackStack() },
                     onGoChat = { roomId -> navController.navigate(AppRoute.workerChatRoom(roomId)) },
+                    onHome = { navController.popBackStack(AppRoute.WORKER_ROOT, inclusive = false) },
                 )
             }
         }
@@ -197,7 +208,10 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         }
         composable(AppRoute.WORKER_TRUST) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
-                WorkerTrustScreen(onBack = { navController.popBackStack() })
+                WorkerTrustScreen(
+                    onBack = { navController.popBackStack() },
+                    onJobClick = { id -> navController.navigate(AppRoute.workerJobDetail(id)) },
+                )
             }
         }
     }

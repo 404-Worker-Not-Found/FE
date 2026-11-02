@@ -3,18 +3,22 @@ package com.workernotfound.app.feature.worker.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.workernotfound.app.BuildConfig
+import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.worker.domain.repository.WorkerApplicationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class WorkerMatchResultViewModel @Inject constructor(
+    private val backend: BackendAccess,
     private val repository: WorkerApplicationRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -39,14 +43,15 @@ class WorkerMatchResultViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             application = app,
-                            remainingSeconds = if (app.hasRematchOffer) REMATCH_LIMIT_SECONDS else 0,
+                            remainingSeconds = if (app.hasRematchOffer) app.proposalExpiresInSeconds ?: if (BuildConfig.USE_DEMO_DATA) REMATCH_LIMIT_SECONDS else 0 else 0,
                         )
                     }
                     if (app.hasRematchOffer) startCountdown()
                 }
                 .onFailure { t ->
+                    if (t is CancellationException) throw t
                     _uiState.update {
-                        it.copy(isLoading = false, errorMessage = t.message ?: "매칭 정보를 불러오지 못했습니다.")
+                        it.copy(isLoading = false, errorMessage = backend.message(t))
                     }
                 }
         }
@@ -68,9 +73,27 @@ class WorkerMatchResultViewModel @Inject constructor(
     }
 
     /** 재매칭 수락 → 즉시 새 근무자로 매칭 확정 (UI spec 3-5). */
-    fun accept() = _uiState.update { it.copy(outcome = RematchOutcome.ACCEPTED) }
+    private var isResponding = false
+    fun accept() = respond(accept = true)
+    fun reject() = respond(accept = false)
 
-    fun reject() = _uiState.update { it.copy(outcome = RematchOutcome.REJECTED) }
+    private fun respond(accept: Boolean) {
+        if (isResponding) return
+        if (BuildConfig.USE_DEMO_DATA) {
+            _uiState.update { it.copy(outcome = if (accept) RematchOutcome.ACCEPTED else RematchOutcome.REJECTED) }
+            return
+        }
+        isResponding = true
+        viewModelScope.launch {
+            try {
+                val app = repository.respondToMatching(applicationId, accept)
+                _uiState.update { it.copy(application = app, errorMessage = null, outcome = if (accept) RematchOutcome.ACCEPTED else RematchOutcome.REJECTED) }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(errorMessage = backend.message(error)) }
+            } finally { isResponding = false }
+        }
+    }
 
     private companion object {
         const val REMATCH_LIMIT_SECONDS = 5 * 60L

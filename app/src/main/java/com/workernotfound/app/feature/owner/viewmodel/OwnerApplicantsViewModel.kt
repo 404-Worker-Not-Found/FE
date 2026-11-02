@@ -3,17 +3,20 @@ package com.workernotfound.app.feature.owner.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.owner.domain.repository.OwnerApplicantRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class OwnerApplicantsViewModel @Inject constructor(
+    private val backend: BackendAccess,
     private val repository: OwnerApplicantRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -32,7 +35,8 @@ class OwnerApplicantsViewModel @Inject constructor(
             runCatching { repository.getApplicantBoard(postingId) }
                 .onSuccess { board -> _uiState.update { it.copy(isLoading = false, board = board) } }
                 .onFailure { t ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = t.message ?: "지원자를 불러오지 못했습니다.") }
+                    if (t is CancellationException) throw t
+                    _uiState.update { it.copy(isLoading = false, errorMessage = backend.message(t)) }
                 }
         }
     }

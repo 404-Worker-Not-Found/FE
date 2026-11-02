@@ -2,6 +2,7 @@ package com.workernotfound.app.feature.owner.ui.component
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.component.AppBadge
 import com.workernotfound.app.core.designsystem.component.AppStatus
@@ -26,6 +27,9 @@ internal fun WorkProgressBadge(timing: WorkTiming, modifier: Modifier = Modifier
         timing.work.status == WorkProgressStatus.AWAITING_SETTLEMENT ->
             AppBadge(text = "정산 대기", background = AppColors.WarningBg, contentColor = AppColors.Warning, modifier = modifier)
         timing.work.status == WorkProgressStatus.NO_SHOW -> StatusBadge(status = AppStatus.NO_SHOW, modifier = modifier)
+        timing.work.status == WorkProgressStatus.COMPLETED -> StatusBadge(status = AppStatus.DONE, modifier = modifier)
+        timing.work.status == WorkProgressStatus.CANCELED -> StatusBadge(status = AppStatus.CANCELED, modifier = modifier)
+        timing.work.status == WorkProgressStatus.FAILED -> AppBadge(text = androidx.compose.ui.res.stringResource(R.string.backend_work_failed), background = AppColors.DangerBg, contentColor = AppColors.Danger, modifier = modifier)
         timing.work.status == WorkProgressStatus.SETTLED -> StatusBadge(status = AppStatus.DONE, modifier = modifier)
         !timing.hasStarted ->
             AppBadge(text = "시작 전", background = AppColors.Border, contentColor = AppColors.TextSub, modifier = modifier)

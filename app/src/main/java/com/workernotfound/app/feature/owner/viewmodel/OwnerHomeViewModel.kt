@@ -2,19 +2,22 @@ package com.workernotfound.app.feature.owner.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.owner.domain.model.OwnerHomeSummary
 import com.workernotfound.app.feature.owner.domain.model.PostingStatus
 import com.workernotfound.app.feature.owner.domain.repository.OwnerHomeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class OwnerHomeViewModel @Inject constructor(
+    private val backend: BackendAccess,
     private val repository: OwnerHomeRepository,
 ) : ViewModel() {
 
@@ -44,7 +47,7 @@ class OwnerHomeViewModel @Inject constructor(
             runCatching { repository.getMyPostings() }
                 .onSuccess { postings ->
                     val activeCount = postings.count { it.status == PostingStatus.RECRUITING }
-                    val totalApplicants = postings.sumOf { it.applicantCount }
+                    val totalApplicants = if (postings.any { it.applicantCount == null }) null else postings.sumOf { requireNotNull(it.applicantCount) }
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -54,10 +57,11 @@ class OwnerHomeViewModel @Inject constructor(
                     }
                 }
                 .onFailure { throwable ->
+                    if (throwable is CancellationException) throw throwable
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = throwable.message ?: "공고를 불러오지 못했습니다.",
+                            errorMessage = backend.message(throwable),
                         )
                     }
                 }
