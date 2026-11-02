@@ -90,6 +90,8 @@
 4. 등록한 애플리케이션의 인증 정보에서 **Client ID/키 ID**를 확인해 프론트 담당자에게 전달한다. 네이버 로그인 앱 키와 구분한다.
 5. 프론트가 gitignore된 로컬 설정으로 주입하고 SDK·핀·위치·오류 처리를 구현한다. 주소 변환 등 다른 API 사용은 별도 서비스 활성화가 필요할 수 있다.
 
+프론트 후속: SDK/AppMap/주소 선택 기반을 구현했다. 에이전트는 제공받은 값을 gitignore된 `local.properties`의 `naver.mapClientId` 또는 같은 이름의 Gradle property로 주입한다. 값이 없으면 앱은 준비 중 안내로 실행된다. 실제 지도 표시 성공을 뜻하지 않는다.
+
 완료 기준: 앱 화면에 실제 지도 타일이 나오고 실제 좌표에 핀이 표시된다. Client ID 발급만으로 현재 도식 화면이 자동으로 바뀌지는 않는다.
 
 [공식 발급 절차](https://navermaps.github.io/android-map-sdk/guide-ko/1.html)

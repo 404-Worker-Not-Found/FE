@@ -10,4 +10,5 @@ object AppDimens {
     val cardPadding = 16.dp     // 카드 내부 패딩
     val cardGap = 12.dp         // 카드 간격
     val borderWidth = 1.dp      // 카드 stroke (shadow 대신 테두리)
+    val locationMapHeight = 200.dp
 }
