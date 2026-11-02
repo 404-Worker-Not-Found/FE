@@ -159,3 +159,9 @@
 - 회원가입에서 위도·경도 직접 입력을 주소 검색→후보 선택/현재 GPS/지도 선택 흐름으로 대체했다. 주소를 수정하면 선택 좌표를 지워 이전 주소의 좌표로 가입하지 않게 한다. 메일/SMS/사업자 검증은 기존 실제 API 조건을 유지한다.
 - 전체 verify.sh 통과(93 tests, 실패/오류 0). SDK D8의 stack-map 경고와 native symbol strip 안내가 있지만 빌드 실패는 없었다. 외부 라이브러리 경고를 숨기기 위해 도구 버전을 변경하지 않았다.
 - 다음 작업: 탐색 실제 주소 핀·GPS 거리 query, 공고 상세/점주 근무지 지도 연결, 온보딩·근무 이력. 서버 공고 목록/상세에 좌표가 없어 주소 변환으로 핀을 구성하되 미변환 주소에 임의 좌표를 넣지 않는다.
+
+### Completed unit 7: GPS search and live maps
+
+- GPS permission/failure/retry sends actual workerLat/workerLng and optional maxDistanceKm. Invalid coordinate pairs and radius queries without location are rejected. Location survives filter edits; old search jobs are cancelled.
+- Live search uses address-derived pins, detail uses an address map, owner attendance shows the server workplace coordinate. Missing locations are explicit; no fake pins/current positions outside demo. Preview sits below the map to preserve Naver attribution. Continuous worker tracking remains unsupported by the confirmed public contract.
+- Full verify.sh passed: 95 tests, zero failures/errors. Map key is still absent: actual auth/tiles and device geocoding require QA after issuance. No secrets added. Next: first-run onboarding/splash, worker history.
