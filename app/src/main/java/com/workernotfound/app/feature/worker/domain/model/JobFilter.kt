@@ -10,6 +10,8 @@ data class JobFilter(
     val timeSlot: TimeSlot = TimeSlot.ANY,
     val categories: Set<String> = emptySet(),
     val urgentOnly: Boolean = false,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
 ) {
     val isActive: Boolean
         get() = maxDistanceKm < MAX_DISTANCE_KM || minWage > 0 ||

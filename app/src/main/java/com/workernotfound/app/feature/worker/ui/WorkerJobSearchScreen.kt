@@ -24,6 +24,13 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
+import com.workernotfound.app.BuildConfig
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +66,9 @@ fun WorkerJobSearchScreen(
     viewModel: WorkerJobSearchViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+        if (grants[Manifest.permission.ACCESS_FINE_LOCATION] == true) viewModel.locate() else viewModel.locationDenied()
+    }
 
     if (uiState.isFilterSheetOpen) {
         JobFilterSheet(
@@ -75,6 +85,7 @@ fun WorkerJobSearchScreen(
         onJobClick = onJobClick,
         onApply = viewModel::applyTo,
         onRetry = viewModel::retry,
+        onLocate = { permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) },
         modifier = modifier,
     )
 }
@@ -87,10 +98,18 @@ private fun WorkerJobSearchContent(
     onJobClick: (String) -> Unit,
     onApply: (String) -> Unit,
     onRetry: () -> Unit,
+    onLocate: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(AppDimens.screenPadding)) {
+            if (!BuildConfig.USE_DEMO_DATA) {
+                TextButton(onLocate, enabled = !uiState.locating) {
+                    Text(stringResource(if (uiState.locating) R.string.map_locating else R.string.map_use_current))
+                }
+                if (uiState.locationError) Text(stringResource(R.string.map_address_failed), color = AppColors.Danger)
+                if (uiState.filter.latitude != null) Text(stringResource(R.string.map_current_used), color = AppColors.TextSub)
+            }
             SearchBarRow(filterActive = uiState.filter.isActive, onOpenFilter = onOpenFilter)
             Spacer(Modifier.height(12.dp))
             ModeRow(
@@ -238,6 +257,13 @@ private fun MapView(
 ) {
     val jobs: List<WorkerJobPosting> = uiState.urgentJobs + uiState.recommendedJobs
     var selectedId by remember { mutableStateOf<String?>(null) }
+    if (!BuildConfig.USE_DEMO_DATA) {
+        com.workernotfound.app.feature.worker.ui.component.LiveJobMap(
+            jobs = jobs, selectedId = selectedId, onSelect = { selectedId = it },
+            latitude = uiState.filter.latitude, longitude = uiState.filter.longitude,
+            onJobClick = onJobClick, onApply = onApply)
+        return
+    }
     WorkerJobMapView(
         jobs = jobs,
         selectedJobId = selectedId,

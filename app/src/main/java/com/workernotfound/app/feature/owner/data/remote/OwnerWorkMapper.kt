@@ -33,6 +33,7 @@ class OwnerWorkMapper @Inject constructor(@ApplicationContext private val contex
                 else -> throw ApiException("UNKNOWN_WORK_STATUS")
             },
             backendStatus = work.status,
+            targetLatitude = work.latitude, targetLongitude = work.longitude,
             actualStartedMillis = work.startedAt?.let { LocalDateTime.parse(it).atZone(ZoneId.of(policy.timeZone)).toInstant().toEpochMilli() },
             canStart = work.status == "CHECKED_IN",
             completionAllowed = policy.completionRole == "OWNER", allowEarlyCompletion = policy.allowEarlyCompletion,

@@ -146,7 +146,9 @@ private fun StoreInfoCard(detail: WorkerJobDetail) {
         Spacer(Modifier.height(4.dp))
         Text(text = detail.address, color = AppColors.TextSub, fontSize = 13.sp)
         Spacer(Modifier.height(12.dp))
-        MiniMap()
+        if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) MiniMap()
+        else com.workernotfound.app.feature.location.AddressMap(detail.address,
+            modifier = Modifier.fillMaxWidth().height(AppDimens.locationMapHeight))
     }
 }
 

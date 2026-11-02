@@ -36,6 +36,6 @@ class AddressResolver @Inject constructor(@ApplicationContext private val contex
         }
         return result.filter { it.hasLatitude() && it.hasLongitude() }.map {
             ResolvedAddress(it.getAddressLine(0).orEmpty(), it.latitude, it.longitude)
-        }.filter { it.address.isNotBlank() }.distinctBy { Triple(it.address, it.latitude, it.longitude) }
+        }.filter { it.address.isNotBlank() && it.latitude.isFinite() && it.longitude.isFinite() && it.latitude in -90.0..90.0 && it.longitude in -180.0..180.0 }.distinctBy { Triple(it.address, it.latitude, it.longitude) }
     }
 }

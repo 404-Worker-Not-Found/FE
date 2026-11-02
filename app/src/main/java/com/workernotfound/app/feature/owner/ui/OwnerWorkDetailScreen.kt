@@ -181,6 +181,13 @@ private fun AttendanceSection(timing: WorkTiming) {
                 AttendanceBadge(isVerified = work.isAttendanceVerified)
             }
             Spacer(Modifier.height(12.dp))
+            if (!com.workernotfound.app.BuildConfig.USE_DEMO_DATA && work.targetLatitude != null && work.targetLongitude != null) {
+                val label = androidx.compose.ui.res.stringResource(R.string.map_workplace)
+                Text(label, color = AppColors.TextSub)
+                com.workernotfound.app.core.maps.AppMap(listOf(com.workernotfound.app.core.maps.MapPoint(
+                    work.id, work.targetLatitude, work.targetLongitude, label)),
+                    modifier = Modifier.fillMaxWidth().height(AppDimens.locationMapHeight))
+            }
             work.workerDistanceMeters?.let { OwnerLiveLocationMap(distanceMeters = it) }
                 ?: Text(text = androidx.compose.ui.res.stringResource(R.string.backend_live_location_unavailable), color = AppColors.TextSub)
         }
