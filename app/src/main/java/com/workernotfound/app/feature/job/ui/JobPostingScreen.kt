@@ -57,6 +57,10 @@ fun JobPostingScreen(
     onSuccess: () -> Unit,
     viewModel: JobPostingViewModel = hiltViewModel(),
 ) {
+    if (!com.workernotfound.app.BuildConfig.USE_DEMO_DATA) {
+        JobPublicationScreen(onBack = onBack)
+        return
+    }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     JobPostingContent(

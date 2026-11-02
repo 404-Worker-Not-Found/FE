@@ -47,7 +47,7 @@ Current state:
 - A single `app` module is scaffolded with Kotlin, Compose, Hilt, navigation, and feature repository interfaces.
 - Owner screens cover home, job posting, applicants, work management, settlement, no-show/rematching, past postings, and my page. Their presence does not imply production API integration.
 - Worker screens cover home, search/detail, application status, matching result, work management, chat, my page, and trust/history. Several device-backed and account actions remain mock or incomplete.
-- The demo entry point is a role switcher. Onboarding, signup, and login screens are not implemented yet.
+- The explicit demo entry point is a role switcher. Live mode starts with authentication; see the 2026-11-02 auth/job checkpoint below. Onboarding slides remain unimplemented.
 - Map views and real-time updates remain placeholders/simulations; do not treat them as connected map SDK, push, or WebSocket infrastructure. Live GPS check-in now uses device location and the server attendance policy, but its full real-server success flow needs assigned test work.
 - API integration status and confirmed backend differences are tracked in `docs/backend-integration.md`. UI-only changes maintain a separate screen inventory in their branch.
 - A repository-wide verification script exists at `docs/scripts/verify.sh`.
@@ -107,7 +107,7 @@ Current priorities:
 - Keep explicit demo behavior separate from live mode; do not report mock data or simulated mutations as server success.
 - Obtain backend-provided worker/owner test accounts, a registered owner business, and payment test configuration for authenticated end-to-end verification.
 - Complete missing behavior in existing owner/worker UIs on the UI-only branch.
-- Implement missing auth screens as follow-up work, then connect them to secure token/session handling.
+- Verify the connected auth/signup/reset screens with real accounts and complete the pending social provider/callback and onboarding setup.
 - Keep project and agent documents aligned as decisions are made.
 
 ## Open Questions
@@ -118,3 +118,13 @@ These questions are not yet settled in code:
 - Which screen requirements lack backend support or need frontend changes? Consult the integration inventory, and distinguish implemented adapters from flows tested against the live server.
 - What OAuth provider redirect URIs and app identifiers will be registered when social login is implemented?
 - What map, push, and real-time infrastructure remains necessary after the current UI work?
+
+
+## 2026-11-02 Auth and Job Integration Checkpoint (#21)
+
+- Live mode now includes login, validated stored-session entry, OWNER/WORKER routing, email/SMS verification, role-specific signup, and code-based password reset. Existing encrypted session storage and refresh infrastructure are reused. Social login awaits provider/callback registration.
+- Live job creation uses the authenticated owner's profile ID/business location, prepares the actual required creation fields behind a repository. New creation stays disabled until a real category catalog contract is available; users never type internal category IDs. The demo posting form remains separate.
+- Creation returns a real job ID; payment-order and payment order queries keep order creation, deposit status, and server-confirmed publication separate. The app preserves the created ID for recovery and does not automatically retry a non-idempotent creation request.
+- No public category-list endpoint was found. A confirmed category selection contract is needed before creation can be enabled. Toss checkout and callback/approval execution await confirmed test client configuration; no payment is executed by the new UI.
+- The #19 integration branch now includes the friend's #21 checkpoint `8f8f2d5` together with GPS, settlements, and past postings. Combined live/demo verification passes 76 tests. Native emulator QA confirms actual WORKER login, stored-session restart, authenticated empty-work/profile views, and logout persisting across restart.
+- This does not establish successful live signup, owner creation, assigned-work check-in, or payment. See `docs/agent/friend-progress.md` for the friend's original checkpoint and `docs/agent/work-handoff.md` for integration verification and remaining dependencies.
