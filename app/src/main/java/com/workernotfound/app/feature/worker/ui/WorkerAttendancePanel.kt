@@ -121,11 +121,11 @@ private fun WorkerAttendanceContent(
                             if (state.busyWorkId == work.id) Text(stringResource(R.string.attendance_locating))
                             if (attendance.latitude == null || attendance.longitude == null) Text(stringResource(R.string.attendance_missing_target), color = AppColors.TextSub)
                             if (!inTime) Text(stringResource(R.string.attendance_time), color = AppColors.TextSub)
-                            TextButton(onClick = { onPosition(work.id, false) }, enabled = inTime && attendance.latitude != null && attendance.longitude != null && state.busyWorkId == null) {
+                            TextButton(onClick = { onPosition(work.id, false) }, enabled = !state.isLoading && inTime && attendance.latitude != null && attendance.longitude != null && state.busyWorkId == null) {
                                 Text(stringResource(R.string.attendance_prepare))
                             }
                             AppPrimaryButton(text = stringResource(R.string.attendance_submit), onClick = { onPosition(work.id, true) },
-                                enabled = ready && inTime && state.problem == null && state.busyWorkId == null)
+                                enabled = !state.isLoading && ready && inTime && state.problem == null && state.busyWorkId == null)
                         }
                     }
                 }

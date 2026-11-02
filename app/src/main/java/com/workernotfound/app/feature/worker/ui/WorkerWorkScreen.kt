@@ -129,7 +129,7 @@ private fun WorkCard(work: WorkSchedule) {
                 Spacer(Modifier.height(2.dp))
                 Text(text = "${work.category} · ${work.workDate}", color = AppColors.TextSub, fontSize = 12.sp)
             }
-            if (work.attendance?.checkedIn == true)
+            if (work.attendance?.checkedIn == true && work.attendance.status != "IN_PROGRESS")
                 Text(stringResource(R.string.attendance_complete), color = AppColors.Success)
             else WorkStatusBadge(work)
         }

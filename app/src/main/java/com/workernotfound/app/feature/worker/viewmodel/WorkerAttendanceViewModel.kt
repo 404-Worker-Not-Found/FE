@@ -64,7 +64,7 @@ class WorkerAttendanceViewModel @Inject constructor(
     fun checkIn(workId: String) = readPosition(workId, submit = true)
 
     private fun readPosition(workId: String, submit: Boolean) {
-        if (state.value.busyWorkId != null) return
+        if (state.value.isLoading || state.value.busyWorkId != null) return
         val work = state.value.works.firstOrNull { it.id == workId } ?: return
         val attendance = work.attendance ?: return
         if (attendance.checkedIn) return
