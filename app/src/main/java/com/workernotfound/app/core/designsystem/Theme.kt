@@ -18,12 +18,13 @@ data class RoleColors(
     val accent: Color,
     val accentPressed: Color,
     val accentTint: Color,
+    val onAccent: Color = AppColors.OnAccent,
     val screenBackground: Color,
 )
 
 private val OwnerColors = RoleColors(
     accent = AppColors.Primary,
-    accentPressed = AppColors.Primary,
+    accentPressed = AppColors.PrimaryEmphasis,
     accentTint = AppColors.PrimaryLight,
     screenBackground = AppColors.Surface,
 )
@@ -43,16 +44,40 @@ object AppTheme {
         @Composable get() = LocalRoleColors.current
 }
 
-private val AppColorScheme = lightColorScheme(
-    primary = AppColors.Primary,
+private fun appColorScheme(role: RoleColors) = lightColorScheme(
+    primary = role.accentPressed,
     onPrimary = Color.White,
-    background = AppColors.Surface,
+    primaryContainer = role.accentTint,
+    onPrimaryContainer = role.accentPressed,
+    secondary = role.accentPressed,
+    onSecondary = Color.White,
+    secondaryContainer = AppColors.SurfaceMuted,
+    onSecondaryContainer = AppColors.TextMain,
+    tertiary = AppColors.Success,
+    onTertiary = Color.White,
+    tertiaryContainer = AppColors.SuccessBg,
+    onTertiaryContainer = AppColors.Success,
+    background = role.screenBackground,
     onBackground = AppColors.TextMain,
     surface = AppColors.CardSurface,
     onSurface = AppColors.TextMain,
-    surfaceVariant = AppColors.PrimaryLight,
-    outline = AppColors.Border,
+    surfaceVariant = AppColors.SurfaceMuted,
+    onSurfaceVariant = AppColors.TextSub,
+    surfaceContainerLowest = AppColors.CardSurface,
+    surfaceContainerLow = role.screenBackground,
+    surfaceContainer = AppColors.SurfaceMuted,
+    surfaceContainerHigh = AppColors.Border,
+    surfaceContainerHighest = AppColors.Border,
+    surfaceTint = role.accentPressed,
+    outline = AppColors.TextPlaceholder,
+    outlineVariant = AppColors.Border,
     error = AppColors.Danger,
+    onError = Color.White,
+    errorContainer = AppColors.DangerBg,
+    onErrorContainer = AppColors.Danger,
+    inverseSurface = AppColors.TextMain,
+    inverseOnSurface = AppColors.CardSurface,
+    inversePrimary = role.accent,
 )
 
 @Composable
@@ -66,7 +91,7 @@ fun WorkerNotFoundTheme(
     }
     CompositionLocalProvider(LocalRoleColors provides roleColors) {
         MaterialTheme(
-            colorScheme = AppColorScheme,
+            colorScheme = appColorScheme(roleColors),
             typography = AppTypography,
             shapes = AppShapes,
             content = content,

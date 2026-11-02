@@ -482,3 +482,20 @@ Related files:
 - `docs/UI_Specification.md`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/backend-integration.md`
+
+## 2026-11-02 - UI Redesign With Existing Brand Roles
+
+Decision:
+- User-authorized redesign supersedes the earlier requirement to preserve exact visual styling during integration. Keep orange/yellow role identity and light-only support, but use readable foreground colors, a full type scale, restrained containment, and adaptive presentation in the updated style guide.
+- Keep API contracts, ViewModels, repositories, domain policies, routes and navigation callbacks unchanged. No runtime dependencies are added.
+- Use project-local `material-design-3-ui` 1.1.1 guidance, with current Android official accessibility guidance. Dynamic color and dark mode remain off to preserve established product constraints.
+- Per user request, branch `design/android-ui-redesign` starts from the current feature checkpoint rather than develop. Work in an isolated Git worktree; do not push, create issues/PRs, or alter the original checkout.
+
+Reason:
+- The user explicitly requested a complete visual redesign, a named branch, preservation of existing functionality, and local-only work. Existing integration commits are not all present on develop.
+- Brand fills need separate text roles for contrast. Dense reading areas benefit from lists, while urgent jobs benefit from contained emphasis.
+
+Related files:
+- `docs/agent/style_guide.md`
+- `docs/ui-redesign-report.md`
+- `.agents/skills/material-design-3-ui/SKILL.md`

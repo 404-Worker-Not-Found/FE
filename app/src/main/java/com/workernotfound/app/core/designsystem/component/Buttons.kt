@@ -1,7 +1,7 @@
 package com.workernotfound.app.core.designsystem.component
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,15 +33,15 @@ fun AppPrimaryButton(
         enabled = enabled,
         modifier = modifier
             .fillMaxWidth()
-            .height(52.dp),
+            .heightIn(min = com.workernotfound.app.core.designsystem.AppDimens.buttonHeight),
         shape = RoundedCornerShape(if (pill) AppRadius.pill else AppRadius.button),
         colors = ButtonDefaults.buttonColors(
             containerColor = accent,
-            contentColor = Color.White,
+            contentColor = AppTheme.role.onAccent,
             disabledContainerColor = AppColors.Border,
             disabledContentColor = AppColors.TextPlaceholder,
         ),
     ) {
-        Text(text = text, fontWeight = FontWeight.Bold)
+        Text(text = text, style = androidx.compose.material3.MaterialTheme.typography.labelLarge)
     }
 }
