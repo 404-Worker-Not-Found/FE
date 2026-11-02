@@ -123,7 +123,7 @@ private fun HomeHeader(onNotificationsClick: () -> Unit) {
         }
         Icon(
             imageVector = Icons.Outlined.Notifications,
-            contentDescription = "지원 현황",
+            contentDescription = androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.notifications_title),
             tint = AppColors.TextSub,
             modifier = Modifier
                 .size(24.dp)

@@ -56,6 +56,24 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 OwnerRootScreen(navController = navController)
             }
         }
+        composable(AppRoute.WORKER_NOTIFICATIONS) {
+            WorkerNotFoundTheme(role = AppRole.WORKER) {
+                com.workernotfound.app.feature.notification.ui.NotificationScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpen = { item -> navController.navigate(if (item.applicationId != null)
+                        AppRoute.workerMatchResult(item.applicationId.toString()) else AppRoute.workerJobDetail(item.jobId.toString())) },
+                )
+            }
+        }
+        composable(AppRoute.OWNER_NOTIFICATIONS) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                com.workernotfound.app.feature.notification.ui.NotificationScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpen = { item -> navController.navigate(if (item.workId != null)
+                        AppRoute.ownerWorkDetail(item.workId.toString()) else AppRoute.ownerApplicants(item.jobId.toString())) },
+                )
+            }
+        }
         composable(AppRoute.OWNER_JOB_POSTING) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
                 JobPostingScreen(

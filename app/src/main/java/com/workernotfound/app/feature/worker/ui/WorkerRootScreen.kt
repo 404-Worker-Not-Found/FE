@@ -51,7 +51,7 @@ fun WorkerRootScreen(navController: NavHostController) {
         when (selectedTab) {
             0 -> WorkerHomeScreen(
                 onJobClick = { jobId -> navController.navigate(AppRoute.workerJobDetail(jobId)) },
-                onNotificationsClick = { navController.navigate(AppRoute.WORKER_APPLICATIONS) },
+                onNotificationsClick = { navController.navigate(AppRoute.WORKER_NOTIFICATIONS) },
                 modifier = contentModifier,
             )
             1 -> WorkerJobSearchScreen(
