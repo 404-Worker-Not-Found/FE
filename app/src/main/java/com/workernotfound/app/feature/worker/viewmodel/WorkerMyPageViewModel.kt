@@ -49,7 +49,11 @@ class WorkerMyPageViewModel @Inject constructor(
     fun load() {
         state.update { it.copy(isLoading = true, profile = null, errorMessage = null) }
         viewModelScope.launch {
-            try { repository.load() }
+            try {
+                repository.load()
+                // A cached demo value may equal the existing StateFlow value and not emit again.
+                state.update { it.copy(profile = repository.profile.value) }
+            }
             catch (error: Exception) { report(error) }
             finally { state.update { it.copy(isLoading = false) } }
         }

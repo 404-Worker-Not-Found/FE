@@ -84,3 +84,5 @@ BE의 `deploy/Caddyfile` `FRONTEND_ORIGIN`은 브라우저 CORS 설정이며 `co
 
 - GPS 출근은 서버의 radiusMeters/earlyWindowSeconds/lateWindowSeconds/timeZone을 사용한다. 기기 위치를 확인한 뒤에만 출근 버튼을 활성화하고 제출 때 다시 위치를 읽는다. 서버 수락 없이 완료를 표시하지 않는다.
 - 정확한 위치 권한 거부·GPS 비활성·현재 위치 없음·20초 제한·인증 반경 밖 상태를 구별한다. 실제 출근 E2E는 배정 근무 데이터가 없어 미검증이며 계약/경계 테스트와 전체 빌드는 통과했다.
+
+- 최종 회귀 검증은 live/demo 모두 통과했다(66 tests). 외부 카메라 촬영 완료·프로필 미리보기·취소/기존 사진 유지와 임시파일 정리를 에뮬레이터에서 확인했다. GPS 실서버 성공은 배정 근무가 없어 후속이다.
