@@ -93,7 +93,7 @@ This is the conceptual feature map. Existing screens are primarily grouped under
 - Backend repository: `https://github.com/404-Worker-Not-Found/BE.git`.
 - Deployed API base: `https://api.15-165-106-227.sslip.io/`. Service Swagger documents live under `/docs/{auth,member,job,matching,payment,work,chat,notification}/swagger-ui/index.html` and require separate documentation credentials. Never commit those credentials.
 - The user chose the confirmed backend contract over conflicting frontend fields/behavior during integration. Start with existing screens and track missing screens as follow-up work.
-- Backend `FRONTEND_ORIGIN` configures browser CORS and chat WebSocket allowed origins. Native Android HTTP calls do not need a hosted frontend origin. OAuth redirect URIs and Android App Links are separate feature-specific setup.
+- Backend `e24145f` removes the former `FRONTEND_ORIGIN` dependency and web frontend CORS configuration for the native Android deployment. Native Android HTTP calls do not need a hosted frontend origin. OAuth redirect URIs and Android App Links are separate feature-specific setup.
 - Cross-feature data in the app should be combined in the `domain`/`data` layer, not in Composables.
 - Authentication is JWT Access Token + Refresh Token. The app stores tokens securely and refreshes transparently.
 - WebSocket application-status updates are a UI requirement (see UI spec 3-4), not proof that the backend exposes a corresponding endpoint. Confirm service contracts before implementing them.
