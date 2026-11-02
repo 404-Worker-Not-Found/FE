@@ -188,7 +188,7 @@ private fun ReviewSection(
 
 private fun reviewHint(posting: PastPosting, canWriteReview: Boolean, nowMillis: Long): String =
     if (canWriteReview) {
-        "리뷰 작성 기간이 ${ReviewPolicy.remainingDays(posting.workEndMillis, nowMillis)}일 남았어요."
+        "리뷰 작성 기간이 ${ReviewPolicy.remainingDays(posting.reviewStartMillis, nowMillis)}일 남았어요."
     } else {
         "리뷰는 근무 종료 후 ${ReviewPolicy.REVIEW_WINDOW_DAYS}일 이내에만 작성할 수 있어요."
     }
