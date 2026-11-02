@@ -21,6 +21,16 @@
             android:name="com.naver.maps.map.NCP_KEY_ID"
             android:value="${naverMapClientId}" /> -->
 
+        <provider
+            android:name=".feature.mypage.data.ProfilePhotoFileProvider"
+            android:authorities="${applicationId}.profile.photos"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/profile_photo_paths" />
+        </provider>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
