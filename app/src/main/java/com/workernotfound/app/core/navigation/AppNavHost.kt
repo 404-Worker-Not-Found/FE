@@ -56,6 +56,18 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 OwnerRootScreen(navController = navController)
             }
         }
+        listOf(AppRoute.OWNER_ACCOUNT to AppRole.OWNER, AppRoute.WORKER_ACCOUNT to AppRole.WORKER).forEach { (route, role) ->
+            composable(route) {
+                WorkerNotFoundTheme(role = role) {
+                    com.workernotfound.app.feature.account.ui.AccountScreen(
+                        onBack = { navController.popBackStack() },
+                        onLogin = { navController.navigate(AppRoute.ROLE_SWITCHER) {
+                            popUpTo(AppRoute.ROLE_SWITCHER) { inclusive = true }; launchSingleTop = true
+                        } },
+                    )
+                }
+            }
+        }
         composable(AppRoute.WORKER_NOTIFICATIONS) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
                 com.workernotfound.app.feature.notification.ui.NotificationScreen(

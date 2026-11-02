@@ -60,6 +60,7 @@ fun WorkerMyPageScreen(
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkerMyPageViewModel = hiltViewModel(),
+    onAccountSettings: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(uiState.isLoggedOut) { if (uiState.isLoggedOut) onLogout() }
@@ -115,7 +116,7 @@ fun WorkerMyPageScreen(
             ActionRow(stringResource(R.string.profile_logout), AppColors.TextMain, onClick = viewModel::logout)
             Spacer(Modifier.height(10.dp)); Divider(color = AppColors.Border); Spacer(Modifier.height(10.dp))
             if (BuildConfig.USE_DEMO_DATA) ActionRow("회원 탈퇴", AppColors.Danger, onClick = viewModel::showWithdrawDialog)
-            else Text(stringResource(R.string.profile_withdraw_unavailable), color = AppColors.TextSub)
+            else TextButton(onAccountSettings) { Text(stringResource(R.string.account_title)) }
         }
     }
 

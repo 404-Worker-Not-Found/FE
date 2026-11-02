@@ -56,6 +56,7 @@ fun OwnerMyPageScreen(
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OwnerMyPageViewModel = hiltViewModel(),
+    onAccountSettings: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(uiState.isLoggedOut) { if (uiState.isLoggedOut) onLogout() }
@@ -67,6 +68,7 @@ fun OwnerMyPageScreen(
         onWithdraw = viewModel::showWithdrawDialog,
         onEditName = viewModel::editName,
         onPhotoSelected = viewModel::updatePhoto,
+        onAccountSettings = onAccountSettings,
         modifier = modifier,
     )
     uiState.nameDraft?.let { draft ->
@@ -98,6 +100,7 @@ private fun OwnerMyPageContent(
     onWithdraw: () -> Unit,
     onEditName: () -> Unit,
     onPhotoSelected: (String) -> Unit,
+    onAccountSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val profile = uiState.profile
@@ -134,7 +137,7 @@ private fun OwnerMyPageContent(
                 ActionRow(label = "로그아웃", color = AppColors.TextMain, onClick = onLogout)
                 CardDivider()
                 if (BuildConfig.USE_DEMO_DATA) ActionRow(label = "회원 탈퇴", color = AppColors.Danger, onClick = onWithdraw)
-                else Text(stringResource(R.string.profile_withdraw_unavailable), color = AppColors.TextSub)
+                else androidx.compose.material3.TextButton(onAccountSettings) { Text(stringResource(R.string.account_title)) }
             }
         }
     }

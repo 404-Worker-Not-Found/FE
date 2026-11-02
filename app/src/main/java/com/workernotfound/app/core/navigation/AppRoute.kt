@@ -5,6 +5,8 @@ object AppRoute {
     const val ROLE_SWITCHER = "role_switcher"
     const val WORKER_NOTIFICATIONS = "worker_notifications"
     const val OWNER_NOTIFICATIONS = "owner_notifications"
+    const val OWNER_ACCOUNT = "owner_account"
+    const val WORKER_ACCOUNT = "worker_account"
 
     // Owner section
     const val OWNER_ROOT = "owner_root"
