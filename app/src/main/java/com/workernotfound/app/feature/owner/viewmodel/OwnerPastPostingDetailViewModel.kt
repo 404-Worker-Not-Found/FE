@@ -1,6 +1,8 @@
 package com.workernotfound.app.feature.owner.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
+import com.workernotfound.app.core.network.BackendAccess
+import kotlinx.coroutines.CancellationException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.workernotfound.app.feature.owner.domain.repository.OwnerPastPostingRepository
@@ -15,6 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class OwnerPastPostingDetailViewModel @Inject constructor(
     private val repository: OwnerPastPostingRepository,
+    private val backend: BackendAccess,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -39,7 +42,8 @@ class OwnerPastPostingDetailViewModel @Inject constructor(
                     }
                 }
                 .onFailure { t ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = t.message ?: "지난 공고를 불러오지 못했습니다.") }
+                    if (t is CancellationException) throw t
+                    _uiState.update { it.copy(isLoading = false, errorMessage = backend.message(t)) }
                 }
         }
     }

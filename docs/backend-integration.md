@@ -39,7 +39,7 @@ BE의 `deploy/Caddyfile` `FRONTEND_ORIGIN`은 브라우저 CORS 설정이며 `co
 | 점주 공고 등록 2-2 | 준비 중 | 필수 title/businessId/categoryId/storeName/applicationDeadline/urgencyLevel, 좌표 입력과 선결제 흐름이 현재 UI에 없음. 허위 기본값으로 생성하지 않음 |
 | 점주 지원자 2-3 | 지원자 목록/상세, 수동 매칭 제안 생성 API | 페이지 사이 scoreBatchId 유지. 미제공 나이·평점·이력·신뢰도 등은 nullable. 제안 성공을 즉시 근무확정으로 표시하지 않음 |
 | 점주 근무 2-4 | 근무 목록/상세, attendance-policy, start·complete API | 실제 startedAt 타이머와 서버 완료 역할/조기완료 정책 반영. 근무완료와 지급완료 분리 |
-| 점주 노쇼/정산/지난 공고 | 준비 중 | 수동 노쇼 공개 API 없음. 정산·지난 공고 데이터 조합은 후속 |
+| 점주 정산/지난 공고 | 정산 cursor 조회와 본인 근무·공고 조합 | 서버 BigDecimal 금액·통화·지급 상태 표시. 다중 근무자는 workId별 구분. 지급 승인·수동 노쇼 공개 API는 없음 |
 | 점주·알바생 마이페이지 | `GET/PATCH /api/members/me`, AuthRepository 로그아웃 | 기본 프로필 조회/이름 변경 연결. API 없는 사진·알림 설정은 실제 모드 비노출. 로그인 UI는 후속 |
 | 알바생 신뢰도 | 준비 중 | 리뷰 API는 있으나 신뢰점수·노쇼 위험도 등 전체 UI 계약 없음 |
 
@@ -75,3 +75,9 @@ BE의 `deploy/Caddyfile` `FRONTEND_ORIGIN`은 브라우저 CORS 설정이며 `co
 - 운영 서버에는 계정/공고/결제 데이터를 임의로 생성하지 않았다. Swagger Basic 계정은 앱 테스트 계정이 아니다.
 - 서버 팀에 OWNER/WORKER 앱 테스트 계정, 계정별 등록 사업장·카테고리, 공개 테스트 공고, 결제 테스트 모드/키·승인 범위를 요청해야 한다. 계정이 없어서 인증 기능의 실서버 성공 흐름은 아직 검증하지 못했다.
 - 로컬 계약 테스트: 실제 응답 envelope, flat query, null distance, 한국 시간 카운트다운. 인증 테스트: Bearer 첨부·access/refresh 회전·한 번 재시도·익명 401·갱신 거부·일시 장애·갱신 중 로그아웃/다른 계정 로그인 보존, 인증 처리 전 계정 변경 시 이전 요청 재실행 차단.
+
+## 2026-11-02 추가 확인
+
+- 제공받은 알바생 테스트 계정으로 로그인 성공과 WORKER 역할을 확인했다. 본인 근무·지원·매칭·정산은 모두 200/빈 목록이었으며 임시 로그인 세션은 로그아웃했다. 자격증명은 저장하지 않았다. 구글 계정은 용도 확인 전 사용자 지시로 보류다.
+- 정산 응답은 Spring page가 아닌 beforeId cursor 목록이다. 합계에서 시급별 breakdown을 역산하지 않으며 paidAt가 null이라고 분쟁 처리 중으로 표시하지 않는다.
+- 지난 공고에는 같은 공고의 서로 다른 근무가 존재할 수 있어 항목/상세 이동을 workId로 구별한다. 근무 취소·실패를 완료로 바꾸지 않는다. live 리뷰 상세 화면은 아직 후속이다.
