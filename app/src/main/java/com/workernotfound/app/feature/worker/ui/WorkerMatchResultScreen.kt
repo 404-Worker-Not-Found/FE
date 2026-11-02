@@ -59,6 +59,7 @@ fun WorkerMatchResultScreen(
     viewModel: WorkerMatchResultViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    com.workernotfound.app.core.ui.RefreshWhileResumed(!BuildConfig.USE_DEMO_DATA, viewModel::poll)
     WorkerMatchResultContent(
         uiState = uiState,
         onBack = onBack,

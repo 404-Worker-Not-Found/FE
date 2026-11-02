@@ -30,19 +30,27 @@ class WorkerMatchResultViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(WorkerMatchResultUiState())
     val uiState: StateFlow<WorkerMatchResultUiState> = _uiState.asStateFlow()
 
+    private var loading: kotlinx.coroutines.Job? = null
+    private var countdown: kotlinx.coroutines.Job? = null
+
     init {
         load()
     }
 
-    fun load() {
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-        viewModelScope.launch {
+    fun load() = refresh(silent = false)
+    fun poll() = refresh(silent = true)
+    private fun refresh(silent: Boolean) {
+        if (loading?.isActive == true || isResponding) return
+        _uiState.update { it.copy(isLoading = if (silent) it.isLoading else true, errorMessage = null) }
+        loading = viewModelScope.launch {
             runCatching { repository.getApplication(applicationId) }
                 .onSuccess { app ->
+                    countdown?.cancel()
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             application = app,
+                            outcome = if (it.application?.matchingId != app.matchingId) RematchOutcome.PENDING else it.outcome,
                             remainingSeconds = if (app.hasRematchOffer) app.proposalExpiresInSeconds ?: if (BuildConfig.USE_DEMO_DATA) REMATCH_LIMIT_SECONDS else 0 else 0,
                         )
                     }
@@ -59,7 +67,8 @@ class WorkerMatchResultViewModel @Inject constructor(
 
     /** 재매칭 응답 제한시간 카운트다운. 0이 되면 시간 초과 처리 (UI spec 3-5). */
     private fun startCountdown() {
-        viewModelScope.launch {
+        countdown?.cancel()
+        countdown = viewModelScope.launch {
             while (_uiState.value.remainingSeconds > 0 &&
                 _uiState.value.outcome == RematchOutcome.PENDING
             ) {
@@ -84,13 +93,15 @@ class WorkerMatchResultViewModel @Inject constructor(
             return
         }
         isResponding = true
+        loading?.cancel()
+        countdown?.cancel()
         viewModelScope.launch {
             try {
                 val app = repository.respondToMatching(applicationId, accept)
-                _uiState.update { it.copy(application = app, errorMessage = null, outcome = if (accept) RematchOutcome.ACCEPTED else RematchOutcome.REJECTED) }
+                _uiState.update { it.copy(isLoading = false, application = app, errorMessage = null, outcome = if (accept) RematchOutcome.ACCEPTED else RematchOutcome.REJECTED) }
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
-                _uiState.update { it.copy(errorMessage = backend.message(error)) }
+                _uiState.update { it.copy(isLoading = false, errorMessage = backend.message(error)) }
             } finally { isResponding = false }
         }
     }

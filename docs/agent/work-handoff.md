@@ -190,3 +190,9 @@
 - Inspection found invalid/expired verification codes left the command UI locked. Confirmed AUTH-400-005 in BE ContactChangeTransactionService occurs before command persistence. Only that exact error now unlocks code correction/new command; transport errors, conflict and server failures preserve the ambiguous existing key. No automatic duplicate command is created.
 - Contract test checks exact business-code/HTTP status boundaries and malformed bodies. Full verify.sh passed: 98 tests, zero failures/errors. No actual contact mutation/withdrawal was run.
 - Live emulator worker1 login succeeded. Notification unread=0/list empty, real profile, account settings, attendance empty and terminal work history empty render correctly. First-run onboarding 1/2/3 and start→login were checked. Populated E2E remains pending. Native test used the pre-retry-fix APK; the retry fix itself is contract/build verified.
+
+### Completed unit 12: visible matching freshness
+
+- Worker application list/matching result and owner applicant board now re-query the confirmed REST contract on resume and every 15 seconds while the destination is RESUMED. No new matching socket contract is assumed, and no poll is scheduled while paused. Overlapping reads are guarded.
+- Application cancellation and matching response cancel old reads and block poll overlap; result countdown has only one active job. New proposal IDs reset prior response UI, and eventual chat-room creation is picked up by the next query. Demo timers are preserved.
+- Full verify.sh passed: 98 tests, zero failures/errors. Populated proposal/room E2E still awaits backend work data. Next: complete owner native smoke and final live/demo checkpoint.
