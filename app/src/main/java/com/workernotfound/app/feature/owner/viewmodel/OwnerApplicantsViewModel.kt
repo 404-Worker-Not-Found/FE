@@ -29,9 +29,11 @@ class OwnerApplicantsViewModel @Inject constructor(
     val uiState: StateFlow<OwnerApplicantsUiState> = _uiState.asStateFlow()
 
     /** Called on every resume so a match confirmed on the detail screen shows up here. */
+    private var loading: kotlinx.coroutines.Job? = null
     fun refresh() {
+        if (loading?.isActive == true) return
         _uiState.update { it.copy(isLoading = it.board == null, errorMessage = null) }
-        viewModelScope.launch {
+        loading = viewModelScope.launch {
             runCatching { repository.getApplicantBoard(postingId) }
                 .onSuccess { board -> _uiState.update { it.copy(isLoading = false, board = board) } }
                 .onFailure { t ->

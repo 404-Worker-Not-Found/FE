@@ -25,13 +25,19 @@ class WorkerApplicationViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(WorkerApplicationUiState())
     val uiState: StateFlow<WorkerApplicationUiState> = _uiState.asStateFlow()
 
+    private var loading: kotlinx.coroutines.Job? = null
+    private var cancelling = false
+
     init {
         load()
     }
 
-    fun load() {
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-        viewModelScope.launch {
+    fun load() = refresh(silent = false)
+    fun poll() = refresh(silent = true)
+    private fun refresh(silent: Boolean) {
+        if (loading?.isActive == true || cancelling) return
+        _uiState.update { it.copy(isLoading = if (silent) it.isLoading else true, errorMessage = null) }
+        loading = viewModelScope.launch {
             runCatching { repository.getApplications() }
                 .onSuccess { apps ->
                     _uiState.update { it.copy(isLoading = false, applications = apps) }
@@ -74,17 +80,20 @@ class WorkerApplicationViewModel @Inject constructor(
     /** 지원 취소: 목록에서 제거하지 않고 상태만 CANCELED로 표시 (communication diagram: setCanceled). */
     fun confirmCancel() {
         val id = _uiState.value.pendingCancelId ?: return
+        if (cancelling) return
+        cancelling = true
+        loading?.cancel()
         viewModelScope.launch {
             try {
                 repository.cancel(id)
                 _uiState.update { state -> state.copy(
                     applications = state.applications.map { if (it.id == id) it.copy(status = ApplicationStatus.CANCELED) else it },
-                    pendingCancelId = null,
+                    pendingCancelId = null, isLoading = false,
                 ) }
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
-                _uiState.update { it.copy(pendingCancelId = null, errorMessage = backend.message(error)) }
-            }
+                _uiState.update { it.copy(pendingCancelId = null, isLoading = false, errorMessage = backend.message(error)) }
+            } finally { cancelling = false }
         }
     }
 }
