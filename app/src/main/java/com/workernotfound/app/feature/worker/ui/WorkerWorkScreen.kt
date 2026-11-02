@@ -49,6 +49,7 @@ fun WorkerWorkScreen(
     onApplicationsClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkerWorkViewModel = hiltViewModel(),
+    onCancellation: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -60,6 +61,7 @@ fun WorkerWorkScreen(
     WorkerWorkContent(
         uiState = uiState, onRetry = viewModel::load, onTrustClick = onTrustClick,
         onApplicationsClick = onApplicationsClick, modifier = modifier,
+        onCancellation = onCancellation,
     )
 }
 
@@ -69,6 +71,7 @@ private fun WorkerWorkContent(
     onRetry: () -> Unit,
     onTrustClick: () -> Unit,
     onApplicationsClick: () -> Unit,
+    onCancellation: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -109,11 +112,11 @@ private fun WorkerWorkContent(
             ) {
                 if (uiState.inProgress.isNotEmpty()) {
                     item { SectionLabel(text = "진행 중 근무") }
-                    items(items = uiState.inProgress, key = { it.id }) { WorkCard(it) }
+                    items(items = uiState.inProgress, key = { it.id }) { WorkCard(it, onCancellation) }
                 }
                 if (uiState.scheduled.isNotEmpty()) {
                     item { SectionLabel(text = "예정 근무") }
-                    items(items = uiState.scheduled, key = { it.id }) { WorkCard(it) }
+                    items(items = uiState.scheduled, key = { it.id }) { WorkCard(it, onCancellation) }
                 }
             }
         }
@@ -121,8 +124,9 @@ private fun WorkerWorkContent(
 }
 
 @Composable
-private fun WorkCard(work: WorkSchedule) {
+private fun WorkCard(work: WorkSchedule, onCancellation: (String) -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
+        if (!com.workernotfound.app.BuildConfig.USE_DEMO_DATA) TextButton({ onCancellation(work.id) }) { Text(stringResource(R.string.cancellation_title)) }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = work.storeName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)

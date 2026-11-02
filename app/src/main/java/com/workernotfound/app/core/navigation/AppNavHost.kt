@@ -56,6 +56,13 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 OwnerRootScreen(navController = navController)
             }
         }
+        listOf(AppRoute.OWNER_CANCELLATION to AppRole.OWNER, AppRoute.WORKER_CANCELLATION to AppRole.WORKER).forEach { (route, role) ->
+            composable(route, arguments = listOf(navArgument("workId") { type = NavType.StringType })) {
+                WorkerNotFoundTheme(role = role) {
+                    com.workernotfound.app.feature.cancellation.ui.CancellationScreen(onBack = { navController.popBackStack() })
+                }
+            }
+        }
         listOf(AppRoute.OWNER_REVIEWS to AppRole.OWNER, AppRoute.WORKER_REVIEWS to AppRole.WORKER).forEach { (route, role) ->
             composable(route) {
                 WorkerNotFoundTheme(role = role) {
@@ -138,6 +145,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         ) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
                 OwnerWorkDetailScreen(
+                    onCancellation = { id -> navController.navigate(AppRoute.ownerCancellation(id)) },
                     onBack = { navController.popBackStack() },
                     onOpenSettlement = { workId -> navController.navigate(AppRoute.ownerSettlement(workId)) },
                     onNoShowConfirmed = { workId ->

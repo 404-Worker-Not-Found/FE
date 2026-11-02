@@ -23,7 +23,7 @@ interface WorkerWorkApiService {
     suspend fun list(@Query("page") page: Int, @Query("size") size: Int = 100): ApiResponse<WorkPageResponseDto>
 }
 data class WorkPageResponseDto(val content: List<WorkResponseDto>, val totalPages: Int)
-data class WorkResponseDto(val workId: Long, val jobPostId: Long, val workDate: String, val startTime: String, val endTime: String, val endTimeNextDay: Boolean, val status: String, val workerMemberId: Long, val checkedInAt: String?, val startedAt: String?, val latitude: Double? = null, val longitude: Double? = null)
+data class WorkResponseDto(val workId: Long, val jobPostId: Long, val workDate: String, val startTime: String, val endTime: String, val endTimeNextDay: Boolean, val status: String, val workerMemberId: Long, val checkedInAt: String?, val startedAt: String?, val latitude: Double? = null, val longitude: Double? = null, val confirmedAt: String? = null)
 
 data class AttendancePolicyResponseDto(val timeZone: String, val allowEarlyCompletion: Boolean, val completionRole: String, val radiusMeters: Double? = null, val earlyWindowSeconds: Long? = null, val lateWindowSeconds: Long? = null)
 data class WorkCheckInRequestDto(val latitude: Double, val longitude: Double)

@@ -9,6 +9,10 @@ object AppRoute {
     const val WORKER_ACCOUNT = "worker_account"
     const val OWNER_REVIEWS = "owner_reviews"
     const val WORKER_REVIEWS = "worker_reviews"
+    const val OWNER_CANCELLATION = "owner_cancellation/{workId}"
+    const val WORKER_CANCELLATION = "worker_cancellation/{workId}"
+    fun ownerCancellation(workId: String) = "owner_cancellation/$workId"
+    fun workerCancellation(workId: String) = "worker_cancellation/$workId"
 
     // Owner section
     const val OWNER_ROOT = "owner_root"
