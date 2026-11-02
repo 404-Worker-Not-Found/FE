@@ -15,6 +15,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import com.workernotfound.app.BuildConfig
+import com.workernotfound.app.R
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.feature.owner.ui.component.ServerSettlementCard
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -81,7 +85,7 @@ private fun OwnerSettlementContent(
         val settlement = uiState.settlement
         when {
             uiState.isLoading -> OwnerLoadingBox()
-            work == null || settlement == null -> OwnerMessageBox(
+            work == null || (BuildConfig.USE_DEMO_DATA && settlement == null) -> OwnerMessageBox(
                 message = uiState.errorMessage ?: "정산 내역을 불러오지 못했어요.",
                 actionText = "다시 시도",
                 onAction = onRetry,
@@ -95,12 +99,13 @@ private fun OwnerSettlementContent(
                     verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
                 ) {
                     WorkSummaryCard(work)
-                    SettlementCard(settlement)
+                    if (BuildConfig.USE_DEMO_DATA) SettlementCard(requireNotNull(settlement))
+                    else ServerSettlementCard(uiState.serverSettlement)
                 }
                 AppPrimaryButton(
-                    text = if (uiState.isApproved) "지급 승인 완료" else "정산 확인",
-                    onClick = onApprove,
-                    enabled = uiState.canApprove,
+                    text = if (!BuildConfig.USE_DEMO_DATA) stringResource(R.string.settlement_close) else if (uiState.isApproved) "지급 승인 완료" else "정산 확인",
+                    onClick = if (BuildConfig.USE_DEMO_DATA) onApprove else onBack,
+                    enabled = !BuildConfig.USE_DEMO_DATA || uiState.canApprove,
                     modifier = Modifier
                         .navigationBarsPadding()
                         .padding(AppDimens.screenPadding),

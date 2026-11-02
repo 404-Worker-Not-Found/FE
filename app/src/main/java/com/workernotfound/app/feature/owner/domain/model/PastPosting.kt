@@ -10,10 +10,14 @@ data class PastPosting(
     val hourlyWage: Int,
     val status: PastPostingStatus,
     val settlement: SettlementRecord?,
-)
+    val workId: String? = null,
+    val serverSettlement: ServerSettlement? = null,
+) {
+    val entryId: String get() = workId?.let { "work-$it" } ?: postingId
+}
 
 /** UI spec 2-6: 완료 / 노쇼 / 분쟁. */
-enum class PastPostingStatus { COMPLETED, NO_SHOW, DISPUTE }
+enum class PastPostingStatus { COMPLETED, NO_SHOW, DISPUTE, CANCELED, FAILED, CLOSED }
 
 /** Final settlement of a past posting. [paidAtMillis] is null while payment is on hold. */
 data class SettlementRecord(

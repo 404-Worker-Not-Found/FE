@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settlement_close">확인</string>
+    <string name="settlement_server_amount">정산 금액</string>
+    <string name="settlement_server_status">지급 상태</string>
+    <string name="settlement_reserved">정산 예약</string>
+    <string name="settlement_on_hold">지급 보류</string>
+    <string name="settlement_requested">지급 처리 중</string>
+    <string name="settlement_failed">지급 실패</string>
+    <string name="settlement_paid">지급 완료</string>
+    <string name="settlement_unknown">정산 상태 확인 필요</string>
+    <string name="settlement_preparing">아직 정산 내역이 생성되지 않았습니다.</string>
+    <string name="settlement_paid_at">지급 일시</string>
+    <string name="settlement_payable_at">지급 가능 일시</string>
+    <string name="settlement_review_required">지급 검토가 필요합니다.</string>
+    <string name="settlement_funding_blocked">결제 예치금 확인이 필요해 지급이 보류되었습니다.</string>
+    <string name="settlement_work_terminated">근무 취소 또는 노쇼 처리로 지급이 보류되었습니다.</string>
+    <string name="settlement_read_only">정산은 서버에서 처리됩니다. 지급 상태를 확인해 주세요.</string>
+    <string name="settlement_view">정산 내역 보기</string>
+    <string name="settlement_not_paid_yet">아직 지급되지 않았습니다.</string>
+    <string name="settlement_review_unavailable">리뷰 작성 화면을 준비 중입니다.</string>
+    <string name="past_status_closed">마감</string>
+    <string name="past_status_failed">근무 실패</string>
+    <string name="past_no_worker">매칭된 알바생 없음</string>
+</resources>

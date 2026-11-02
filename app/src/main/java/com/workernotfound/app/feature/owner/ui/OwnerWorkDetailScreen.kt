@@ -234,6 +234,9 @@ private fun ActionBar(
                 AppPrimaryButton(text = androidx.compose.ui.res.stringResource(R.string.backend_start_work), onClick = onStart,
                     enabled = !isProcessing && System.currentTimeMillis() >= timing.work.scheduledStartMillis)
             }
+            if (timing.work.backendStatus == "COMPLETED") {
+                AppPrimaryButton(text = androidx.compose.ui.res.stringResource(R.string.settlement_view), onClick = onOpenSettlement)
+            }
             if (timing.work.backendStatus == "IN_PROGRESS") {
                 AppPrimaryButton(text = "근무 완료", onClick = onComplete, enabled = !isProcessing && timing.canCompleteWork)
             }
