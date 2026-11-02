@@ -63,6 +63,7 @@ fun OwnerRootScreen(navController: NavHostController) {
             )
             else -> OwnerMyPageScreen(
                 onLogout = { navController.popBackStack(AppRoute.ROLE_SWITCHER, inclusive = false) },
+                onAccountSettings = { navController.navigate(AppRoute.OWNER_ACCOUNT) },
                 modifier = contentModifier,
             )
         }
