@@ -99,7 +99,7 @@ private fun ChatRoomRow(room: ChatRoom, onClick: () -> Unit) {
 @Composable
 private fun LoadingBox() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = AppTheme.role.accent)
+        CircularProgressIndicator(color = AppTheme.role.accentPressed)
     }
 }
 

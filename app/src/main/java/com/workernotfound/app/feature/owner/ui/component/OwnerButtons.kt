@@ -2,7 +2,7 @@ package com.workernotfound.app.feature.owner.ui.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
@@ -31,7 +31,7 @@ internal fun OwnerOutlinedButton(
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.fillMaxWidth().height(52.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = AppDimens.buttonHeight),
         shape = RoundedCornerShape(AppRadius.button),
         border = BorderStroke(AppDimens.borderWidth, if (enabled) color else AppColors.Border),
         colors = ButtonDefaults.outlinedButtonColors(

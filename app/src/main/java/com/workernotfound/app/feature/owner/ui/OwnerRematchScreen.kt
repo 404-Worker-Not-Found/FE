@@ -108,7 +108,7 @@ private fun SearchingView() {
         modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        CircularProgressIndicator(color = AppTheme.role.accent)
+        CircularProgressIndicator(color = AppTheme.role.accentPressed)
         Spacer(Modifier.height(16.dp))
         Text(text = "자동 재매칭 중...", color = AppColors.TextMain, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(4.dp))

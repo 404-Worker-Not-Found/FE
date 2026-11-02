@@ -3,14 +3,25 @@ package com.workernotfound.app.feature.worker.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -111,55 +122,31 @@ private fun WorkerJobSearchContent(
 
 @Composable
 private fun SearchBarRow(filterActive: Boolean, onOpenFilter: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .height(44.dp)
-                .background(AppColors.CardSurface, RoundedCornerShape(AppRadius.pill))
-                .border(AppDimens.borderWidth, AppColors.Border, RoundedCornerShape(AppRadius.pill))
-                .padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Outlined.Search, contentDescription = null, tint = AppColors.TextPlaceholder, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(text = "동네 · 가게 검색", color = AppColors.TextPlaceholder, fontSize = 13.sp)
-        }
-        Spacer(Modifier.width(10.dp))
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .background(
-                    if (filterActive) AppTheme.role.accent else AppColors.CardSurface,
-                    RoundedCornerShape(AppRadius.inner),
-                )
-                .border(AppDimens.borderWidth, AppColors.Border, RoundedCornerShape(AppRadius.inner))
-                .clickable(onClick = onOpenFilter),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                Icons.Outlined.Tune,
-                contentDescription = "필터",
-                tint = if (filterActive) Color.White else AppColors.TextSub,
-                modifier = Modifier.size(20.dp),
-            )
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(stringResource(R.string.design_browse), Modifier.weight(1f),
+            style = MaterialTheme.typography.titleLarge, color = AppColors.TextMain)
+        IconButton(onClick = onOpenFilter) {
+            Icon(Icons.Outlined.Tune, stringResource(R.string.design_filter),
+                tint = if (filterActive) AppTheme.role.accentPressed else AppColors.TextSub)
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ModeRow(totalCount: Int, viewMode: JobViewMode, onSetViewMode: (JobViewMode) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    FlowRow(modifier = Modifier.fillMaxWidth().selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(AppDimens.spaceSm),
+        verticalArrangement = Arrangement.spacedBy(AppDimens.spaceSm)) {
         Text(
-            text = "총 ${totalCount}개 공고",
+            text = stringResource(R.string.design_job_count, totalCount),
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             color = AppColors.TextSub,
         )
-        Spacer(Modifier.weight(1f))
-        ModeToggle("리스트", viewMode == JobViewMode.LIST) { onSetViewMode(JobViewMode.LIST) }
+        ModeToggle(stringResource(R.string.design_list), viewMode == JobViewMode.LIST) { onSetViewMode(JobViewMode.LIST) }
         Spacer(Modifier.width(6.dp))
-        ModeToggle("지도", viewMode == JobViewMode.MAP) { onSetViewMode(JobViewMode.MAP) }
+        ModeToggle(stringResource(R.string.design_map), viewMode == JobViewMode.MAP) { onSetViewMode(JobViewMode.MAP) }
     }
 }
 
@@ -169,15 +156,16 @@ private fun ModeToggle(label: String, selected: Boolean, onClick: () -> Unit) {
         text = label,
         fontSize = 12.sp,
         fontWeight = FontWeight.Bold,
-        color = if (selected) Color.White else AppColors.TextSub,
+        color = if (selected) AppTheme.role.accentPressed else AppColors.TextSub,
         modifier = Modifier
             .background(
-                if (selected) AppTheme.role.accent else AppColors.CardSurface,
+                if (selected) AppTheme.role.accentTint else AppColors.CardSurface,
                 RoundedCornerShape(AppRadius.pill),
             )
             .border(AppDimens.borderWidth, AppColors.Border, RoundedCornerShape(AppRadius.pill))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 6.dp),
+            .heightIn(min = AppDimens.touchTarget)
+            .selectable(selected, role = Role.Tab, onClick = onClick)
+            .padding(horizontal = AppDimens.spaceMd, vertical = AppDimens.spaceMd),
     )
 }
 
@@ -198,7 +186,7 @@ private fun JobList(
         verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
     ) {
         if (uiState.urgentJobs.isNotEmpty()) {
-            item { SectionLabel(text = "🚨 긴급 공고") }
+            item { SectionLabel(text = stringResource(R.string.design_urgent_jobs)) }
             items(items = uiState.urgentJobs, key = { it.id }) { job ->
                 WorkerUrgentJobCard(
                     job = job,
@@ -250,7 +238,7 @@ private fun MapView(
 @Composable
 private fun LoadingBox() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = AppTheme.role.accent)
+        CircularProgressIndicator(color = AppTheme.role.accentPressed)
     }
 }
 

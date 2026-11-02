@@ -133,7 +133,7 @@ private fun ProfileSection(detail: ApplicantDetail) {
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = applicant.trustScore?.toString() ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided),
-                    color = AppTheme.role.accent,
+                    color = AppTheme.role.accentPressed,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                 )

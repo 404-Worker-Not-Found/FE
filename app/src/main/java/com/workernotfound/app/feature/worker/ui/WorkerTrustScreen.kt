@@ -238,7 +238,7 @@ private fun ReviewCard(averageRating: Double, reviews: List<Review>) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = review.storeName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
                 Spacer(Modifier.weight(1f))
-                Text(text = stars(review.rating), fontSize = 12.sp, color = AppColors.Worker)
+                Text(text = stars(review.rating), fontSize = 12.sp, color = AppColors.WorkerEmphasis)
             }
             Spacer(Modifier.height(2.dp))
             Text(text = review.comment, fontSize = 13.sp, color = AppColors.TextSub)
@@ -280,7 +280,7 @@ private fun stars(rating: Int): String = "★".repeat(rating.coerceIn(0, 5)) + "
 @Composable
 private fun LoadingBox() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = AppTheme.role.accent)
+        CircularProgressIndicator(color = AppTheme.role.accentPressed)
     }
 }
 
@@ -290,7 +290,7 @@ private fun TrustScheduleCard(uiState: WorkerTrustUiState, onRetry: () -> Unit, 
     AppCard(modifier = Modifier.fillMaxWidth()) {
         SectionLabel(text = stringResource(R.string.worker_trust_schedule))
         when {
-            uiState.isScheduleLoading -> CircularProgressIndicator(color = AppTheme.role.accent)
+            uiState.isScheduleLoading -> CircularProgressIndicator(color = AppTheme.role.accentPressed)
             uiState.hasScheduleError -> {
                 Text(stringResource(R.string.worker_schedule_load_error), color = AppColors.TextSub)
                 TextButton(onClick = onRetry) { Text(stringResource(R.string.worker_retry)) }

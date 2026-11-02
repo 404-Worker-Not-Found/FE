@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -50,6 +53,7 @@ fun JobFilterSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = AppDimens.screenPadding)
                 .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -131,9 +135,10 @@ private fun SelectChip(label: String, selected: Boolean, onClick: () -> Unit) {
         selected = selected,
         onClick = onClick,
         label = { Text(label) },
+        modifier = Modifier.heightIn(min = AppDimens.touchTarget),
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = AppTheme.role.accent,
-            selectedLabelColor = androidx.compose.ui.graphics.Color.White,
+            selectedContainerColor = AppTheme.role.accentTint,
+            selectedLabelColor = AppTheme.role.accentPressed,
         ),
     )
 }

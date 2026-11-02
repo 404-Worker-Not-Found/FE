@@ -239,7 +239,7 @@ private fun formatMinSec(totalSeconds: Long): String {
 @Composable
 private fun LoadingBox() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = AppTheme.role.accent)
+        CircularProgressIndicator(color = AppTheme.role.accentPressed)
     }
 }
 

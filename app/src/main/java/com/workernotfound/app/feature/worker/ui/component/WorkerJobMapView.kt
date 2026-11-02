@@ -89,7 +89,7 @@ private fun WageBubblePin(
     val bg = if (selected) AppColors.WorkerEmphasis else AppColors.Worker
     Text(
         text = (if (job.isUrgent) "⚡ " else "") + "₩${"%,d".format(job.hourlyWage)}",
-        color = Color.White,
+        color = if (selected) AppColors.CardSurface else com.workernotfound.app.core.designsystem.AppTheme.role.onAccent,
         fontSize = 12.sp,
         fontWeight = FontWeight.Bold,
         modifier = modifier

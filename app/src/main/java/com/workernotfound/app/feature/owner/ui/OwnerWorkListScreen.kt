@@ -136,7 +136,7 @@ private fun WorkCard(timing: WorkTiming, onClick: () -> Unit) {
             if (timing.isActive && timing.hasStarted) {
                 Text(
                     text = OwnerFormat.elapsed(timing.elapsedMillis),
-                    color = AppTheme.role.accent,
+                    color = AppTheme.role.accentPressed,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                 )

@@ -18,6 +18,7 @@ import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.*
 import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import com.workernotfound.app.feature.auth.domain.AuthSession
+import androidx.compose.ui.Alignment
 import com.workernotfound.app.feature.auth.viewmodel.*
 import java.time.DayOfWeek
 
@@ -41,8 +42,19 @@ private fun AuthContent(
     send: (Boolean) -> Unit, verify: (Boolean) -> Unit, submit: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().background(AppTheme.role.screenBackground).safeDrawingPadding()
-        .imePadding().verticalScroll(rememberScrollState()).padding(AppDimens.screenPadding),
+        .imePadding().verticalScroll(rememberScrollState())
+        .wrapContentWidth(Alignment.CenterHorizontally).widthIn(max = AppDimens.readingMaxWidth)
+        .padding(AppDimens.screenPadding),
         verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
+        if (state.page == AuthPage.LOGIN && !state.checkingSession) {
+            Text(stringResource(R.string.app_name), color = AppTheme.role.accentPressed,
+                style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.height(AppDimens.spaceLg))
+            Text(stringResource(R.string.design_login_intro), style = MaterialTheme.typography.headlineLarge)
+            Text(stringResource(R.string.design_login_description), color = AppColors.TextSub,
+                style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(AppDimens.spaceLg))
+        }
         Text(stringResource(when (state.page) {
             AuthPage.LOGIN -> R.string.auth_login
             AuthPage.SIGNUP -> R.string.auth_signup

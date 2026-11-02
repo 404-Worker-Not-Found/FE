@@ -2,11 +2,11 @@ package com.workernotfound.app.feature.owner.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Scaffold
+import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
+import com.workernotfound.app.core.designsystem.component.AppAdaptiveScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -14,16 +14,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import com.workernotfound.app.core.designsystem.AppColors
-import com.workernotfound.app.core.designsystem.component.AppBottomBar
 import com.workernotfound.app.core.designsystem.component.BottomNavItem
 import com.workernotfound.app.core.navigation.AppRoute
 
 private val OWNER_TABS = listOf(
-    BottomNavItem("홈", Icons.Filled.Home),
-    BottomNavItem("공고관리", Icons.Filled.Description),
-    BottomNavItem("근무관리", Icons.Filled.AccessTime),
-    BottomNavItem("마이페이지", Icons.Filled.Person),
+    BottomNavItem("홈", Icons.Outlined.Home),
+    BottomNavItem("공고관리", Icons.Outlined.Description),
+    BottomNavItem("근무관리", Icons.Outlined.AccessTime),
+    BottomNavItem("마이페이지", Icons.Outlined.Person),
 )
 
 /**
@@ -35,15 +33,10 @@ private val OWNER_TABS = listOf(
 fun OwnerRootScreen(navController: NavHostController) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-    Scaffold(
-        containerColor = AppColors.Surface,
-        bottomBar = {
-            AppBottomBar(
-                items = OWNER_TABS,
-                selectedIndex = selectedTab,
-                onSelect = { selectedTab = it },
-            )
-        },
+    AppAdaptiveScaffold(
+        items = OWNER_TABS,
+        selectedIndex = selectedTab,
+        onSelect = { selectedTab = it },
     ) { innerPadding ->
         val contentModifier = Modifier.padding(innerPadding)
         when (selectedTab) {

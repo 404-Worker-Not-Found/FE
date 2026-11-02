@@ -36,7 +36,7 @@ import com.workernotfound.app.feature.owner.domain.model.NoShowRiskLevel
 @Composable
 internal fun OwnerLoadingBox(modifier: Modifier = Modifier) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = AppTheme.role.accent)
+        CircularProgressIndicator(color = AppTheme.role.accentPressed)
     }
 }
 
@@ -104,7 +104,7 @@ internal fun ProfileAvatar(
         ) {
             Text(
                 text = name.take(1),
-                color = AppTheme.role.accent,
+                color = AppTheme.role.accentPressed,
                 fontSize = (size.value * 0.4f).sp,
                 fontWeight = FontWeight.Bold,
             )

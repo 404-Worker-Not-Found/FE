@@ -49,7 +49,7 @@ internal fun OwnerLiveLocationMap(
         val ratio = (distanceMeters / MAP_RANGE_METERS).coerceIn(0f, 1f)
         val workerX = (maxWidth / 2 - 24.dp) * ratio
         val workerY = (maxHeight / 2 - 24.dp) * ratio
-        Pin(color = AppTheme.role.accent, size = 22.dp, modifier = Modifier.align(Alignment.Center))
+        Pin(color = AppTheme.role.accentPressed, size = 22.dp, modifier = Modifier.align(Alignment.Center))
         Pin(
             color = AppColors.WorkerLocationDot,
             size = 14.dp,

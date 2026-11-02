@@ -1,102 +1,76 @@
 package com.workernotfound.app.feature.worker.ui.component
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.workernotfound.app.core.designsystem.AppColors
-import com.workernotfound.app.core.designsystem.AppTheme
-import com.workernotfound.app.core.designsystem.component.AppCard
-import com.workernotfound.app.core.designsystem.component.UrgentBadge
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
+import com.workernotfound.app.core.designsystem.*
+import com.workernotfound.app.core.designsystem.component.*
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
 
-/** Wage text in the worker accent-emphasis color (style guide: 금액 강조 #CC8F00). */
 @Composable
-private fun WageText(wage: Int, modifier: Modifier = Modifier) {
-    Text(
-        text = "₩${"%,d".format(wage)}",
-        color = AppTheme.role.accentPressed,
-        fontSize = 18.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = modifier,
-    )
+private fun JobIdentity(job: WorkerJobPosting) {
+    Text(job.storeName, style = MaterialTheme.typography.titleMedium, color = AppColors.TextMain)
+    Text(stringResource(R.string.design_job_metadata, job.category, job.distanceText),
+        style = MaterialTheme.typography.bodySmall, color = AppColors.TextSub)
+    Text(job.workTime, style = MaterialTheme.typography.bodyMedium, color = AppColors.TextSub)
 }
 
-/**
- * Urgent opening card (UI spec 3-1: 긴급 공고). Shown in a horizontal row, so it
- * has a fixed width. Highlights the urgency badge and remaining time.
- */
 @Composable
-fun WorkerUrgentJobCard(
-    job: WorkerJobPosting,
-    onClick: () -> Unit,
-    onApply: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    AppCard(modifier = modifier.width(240.dp).clickable(onClick = onClick)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            UrgentBadge()
-            Spacer(Modifier.weight(1f))
-            job.deadlineText?.let {
-                Text(text = it, color = AppColors.Danger, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            }
+private fun JobActionRow(job: WorkerJobPosting, onApply: () -> Unit) {
+    // A column keeps long wage values and scaled text clear of the apply target.
+    FlowJobAction(job, onApply)
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FlowJobAction(job: WorkerJobPosting, onApply: () -> Unit) {
+    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(AppDimens.spaceSm)) {
+        Column(Modifier.padding(end = AppDimens.spaceLg)) {
+            Text(stringResource(R.string.design_per_hour), style = MaterialTheme.typography.labelSmall,
+                color = AppColors.TextSub)
+            Text(stringResource(R.string.design_wage, job.hourlyWage),
+                style = MaterialTheme.typography.titleLarge, color = AppColors.TextMain)
         }
-        Spacer(Modifier.height(10.dp))
-        Text(text = job.storeName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "${job.category} · ${job.workTime}",
-            color = AppColors.TextSub,
-            fontSize = 12.sp,
-        )
-        Spacer(Modifier.height(12.dp))
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Column {
-                WageText(job.hourlyWage)
-                Text(text = job.distanceText, color = AppColors.TextSub, fontSize = 11.sp)
-            }
-            Spacer(Modifier.weight(1f))
-            WorkerApplyButton(status = job.applyStatus, onClick = onApply)
-        }
+        WorkerApplyButton(job.applyStatus, onApply)
     }
 }
 
-/**
- * Recommended opening card (UI spec 3-1: 추천 공고). Shown in a vertical list, so
- * it fills width and lays out in a single row.
- */
+/** Only time-sensitive jobs receive contained emphasis. Width comes from the caller. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun WorkerRecommendedJobCard(
-    job: WorkerJobPosting,
-    onClick: () -> Unit,
-    onApply: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    AppCard(modifier = modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = job.storeName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = "${job.category} · ${job.workTime} · ${job.distanceText}",
-                    color = AppColors.TextSub,
-                    fontSize = 12.sp,
-                )
-                Spacer(Modifier.height(8.dp))
-                WageText(job.hourlyWage)
-            }
-            Spacer(Modifier.width(12.dp))
-            WorkerApplyButton(status = job.applyStatus, onClick = onApply)
+fun WorkerUrgentJobCard(job: WorkerJobPosting, onClick: () -> Unit, onApply: () -> Unit,
+    modifier: Modifier = Modifier) {
+    AppCard(modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
+        containerColor = AppTheme.role.accentTint, borderColor = AppTheme.role.accentTint) {
+        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppDimens.spaceSm),
+            verticalArrangement = Arrangement.spacedBy(AppDimens.spaceXs)) {
+            UrgentBadge()
+            job.deadlineText?.let { Text(it, color = AppColors.Danger,
+                style = MaterialTheme.typography.labelMedium) }
         }
+        Spacer(Modifier.height(AppDimens.spaceMd))
+        JobIdentity(job)
+        Spacer(Modifier.height(AppDimens.spaceLg))
+        JobActionRow(job, onApply)
+    }
+}
+
+/** A continuous list row, with typography and a divider instead of another card. */
+@Composable
+fun WorkerRecommendedJobCard(job: WorkerJobPosting, onClick: () -> Unit, onApply: () -> Unit,
+    modifier: Modifier = Modifier) {
+    Column(modifier.fillMaxWidth().clickable(onClick = onClick)) {
+        Column(Modifier.padding(vertical = AppDimens.spaceMd)) {
+            JobIdentity(job)
+            Spacer(Modifier.height(AppDimens.spaceMd))
+            JobActionRow(job, onApply)
+        }
+        HorizontalDivider(color = AppColors.Border)
     }
 }

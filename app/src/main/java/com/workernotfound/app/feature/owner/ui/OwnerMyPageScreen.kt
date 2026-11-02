@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -159,7 +160,7 @@ private fun ProfileCard(profile: OwnerProfile, onPhotoSelected: (String) -> Unit
             text = "🏪 ${profile.storeName}",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = AppTheme.role.accent,
+            color = AppTheme.role.accentPressed,
         )
     }
 }
@@ -188,7 +189,7 @@ private fun NotificationCard(settings: NotificationSettings, onToggle: (Notifica
 
 @Composable
 private fun ToggleRow(label: String, isChecked: Boolean, enabled: Boolean, onChange: (Boolean) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier = Modifier.fillMaxWidth().heightIn(min = AppDimens.touchTarget), verticalAlignment = Alignment.CenterVertically) {
         Text(text = label, fontSize = 14.sp, color = AppColors.TextMain)
         Spacer(Modifier.weight(1f))
         Switch(
