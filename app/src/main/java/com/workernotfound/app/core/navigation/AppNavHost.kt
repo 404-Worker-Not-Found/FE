@@ -267,12 +267,21 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 WorkerChatRoomScreen(onBack = { navController.popBackStack() })
             }
         }
+        composable(AppRoute.WORKER_HISTORY) {
+            WorkerNotFoundTheme(role = AppRole.WORKER) {
+                com.workernotfound.app.feature.history.ui.WorkHistoryScreen(
+                    onBack = { navController.popBackStack() },
+                    onJob = { navController.navigate(AppRoute.workerJobDetail(it)) },
+                    onReviews = { navController.navigate(AppRoute.WORKER_REVIEWS) })
+            }
+        }
         composable(AppRoute.WORKER_TRUST) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
                 WorkerTrustScreen(
                     onBack = { navController.popBackStack() },
                     onJobClick = { id -> navController.navigate(AppRoute.workerJobDetail(id)) },
                     onReviews = { navController.navigate(AppRoute.WORKER_REVIEWS) },
+                    onHistory = { navController.navigate(AppRoute.WORKER_HISTORY) },
                 )
             }
         }

@@ -170,3 +170,9 @@
 
 - Live entry now shows a two-second logo/slogan splash and three first-run introduction pages with start/previous/next. Completion is a non-sensitive preference written on IO; write/read failures expose retry. Existing stored sessions skip first-run slides and continue to existing real-token validation. Demo role entry is preserved.
 - Full verify.sh passed: 95 tests, zero failures/errors. First compile found an absent spacing token; corrected to existing cardGap and reran successfully. No secrets added. Next: worker history/settlement and native/demo regression.
+
+### Completed unit 9: worker work and settlement history
+
+- Worker attendance/trust entry now links to terminal work history (COMPLETED/CANCELED/FAILED/NO_SHOW), real job context, next-day schedule, server completedAt and participant settlement records. Reuses existing participant settlement source/card; preserves exact BigDecimal/status/hold/paidAt and never computes a payout from wages.
+- Exact work/job settlement matching rejects ambiguous records; unknown work states are not presented as completed. New contract tests cover terminal status boundaries and mismatched/duplicate payout records.
+- Full verify.sh passed: 97 tests, zero failures/errors. Existing shared AppTopBar positional argument caused the first compile failure, corrected to named onBack and verified again. Actual historical business data is absent, so populated E2E is pending. No secrets added. Next: publication date/time/location UX, live/demo regression and latest handoff/audit.
