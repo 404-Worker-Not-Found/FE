@@ -127,3 +127,13 @@ These questions are not yet settled in code:
 - Creation returns a real job ID; payment-order and payment order queries keep order creation, deposit status, and server-confirmed publication separate. The app preserves the created ID for recovery and does not automatically retry a non-idempotent creation request.
 - No public category-list endpoint was found. A confirmed category selection contract is needed before creation can be enabled. Toss checkout and callback/approval execution await confirmed test client configuration; no payment is executed by the new UI.
 - This is implementation status, not evidence of successful live signup, owner creation, or payment. See `docs/agent/friend-progress.md` for verification and remaining dependencies. GPS, settlements, and past postings belong to the #19 branch.
+
+## 2026-11-02 UI Redesign Checkpoint
+
+- Branch `design/android-ui-redesign` is an isolated worktree from `8f8f2d5`; it does not replace the integration checkout.
+- The visual system now separates orange/yellow brand fills from readable foregrounds, defines all Material type roles, and reduces repeated card containment. The updated visual source of truth is `docs/agent/style_guide.md`.
+- Owner/worker homes, exploration, job detail, authentication presentation and shared components were refined. Root navigation adapts from bottom bar to rail at 600dp; home feeds adapt to multiple columns.
+- UI callbacks, routes, ViewModels, data/domain contracts and dependencies were preserved. This checkpoint does not implement pending GPS, payment, map or backend features.
+- Compile, lint and APK tasks succeeded; the full verification remains non-green because one existing camera test cannot create a symbolic link on this Windows host. The same failure was reproduced at the unchanged base commit.
+- No Android device or usable emulator/system image is available. Screenshots, TalkBack, text scaling, rotation and actual user flows remain unverified. Eight home Preview configurations were added for later visual review.
+- Full analysis, skill selection, limitations and verification are in `docs/ui-redesign-report.md`. No push or PR was requested or performed.
