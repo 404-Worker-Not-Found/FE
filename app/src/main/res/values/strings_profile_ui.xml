@@ -14,4 +14,9 @@
     <string name="profile_cancel">취소</string>
     <string name="profile_select_photo">프로필 사진 선택</string>
     <string name="profile_photo_error">5MB 이하의 JPG 또는 PNG 사진을 선택해 주세요.</string>
+    <string name="profile_take_photo">카메라로 촬영</string>
+    <string name="profile_camera_unavailable">사진을 촬영할 카메라 앱이 없어요. 갤러리에서 선택해 주세요.</string>
+    <string name="profile_camera_failed">사진을 촬영하지 못했어요. 다시 시도해 주세요.</string>
+    <string name="profile_camera_cancelled">촬영을 취소했어요. 기존 프로필 사진을 유지해요.</string>
+    <string name="profile_gallery_unavailable">사진 선택기를 열지 못했어요. 다시 시도해 주세요.</string>
 </resources>
