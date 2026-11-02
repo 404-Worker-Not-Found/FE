@@ -41,6 +41,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                     onSelectWorker = { navController.navigate(AppRoute.WORKER_ROOT) },
                 )
             } else {
+                com.workernotfound.app.feature.onboarding.StartupGate {
                 com.workernotfound.app.feature.auth.ui.AuthScreen(onAuthenticated = { session ->
                     val route = if (session.role == "OWNER") AppRoute.OWNER_ROOT else AppRoute.WORKER_ROOT
                     navController.navigate(route) {
@@ -48,6 +49,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                         launchSingleTop = true
                     }
                 })
+                }
             }
         }
 
