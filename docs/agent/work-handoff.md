@@ -165,3 +165,8 @@
 - GPS permission/failure/retry sends actual workerLat/workerLng and optional maxDistanceKm. Invalid coordinate pairs and radius queries without location are rejected. Location survives filter edits; old search jobs are cancelled.
 - Live search uses address-derived pins, detail uses an address map, owner attendance shows the server workplace coordinate. Missing locations are explicit; no fake pins/current positions outside demo. Preview sits below the map to preserve Naver attribution. Continuous worker tracking remains unsupported by the confirmed public contract.
 - Full verify.sh passed: 95 tests, zero failures/errors. Map key is still absent: actual auth/tiles and device geocoding require QA after issuance. No secrets added. Next: first-run onboarding/splash, worker history.
+
+### Completed unit 8: startup and onboarding
+
+- Live entry now shows a two-second logo/slogan splash and three first-run introduction pages with start/previous/next. Completion is a non-sensitive preference written on IO; write/read failures expose retry. Existing stored sessions skip first-run slides and continue to existing real-token validation. Demo role entry is preserved.
+- Full verify.sh passed: 95 tests, zero failures/errors. First compile found an absent spacing token; corrected to existing cardGap and reran successfully. No secrets added. Next: worker history/settlement and native/demo regression.
