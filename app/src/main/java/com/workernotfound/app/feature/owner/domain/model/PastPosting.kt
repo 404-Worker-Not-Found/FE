@@ -12,8 +12,10 @@ data class PastPosting(
     val settlement: SettlementRecord?,
     val workId: String? = null,
     val serverSettlement: ServerSettlement? = null,
+    val completedAtMillis: Long? = null,
 ) {
     val entryId: String get() = workId?.let { "work-$it" } ?: postingId
+    val reviewStartMillis: Long get() = completedAtMillis ?: workEndMillis
 }
 
 /** UI spec 2-6: 완료 / 노쇼 / 분쟁. */

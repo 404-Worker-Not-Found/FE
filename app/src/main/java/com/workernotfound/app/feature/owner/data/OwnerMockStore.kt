@@ -35,6 +35,7 @@ class OwnerMockStore @Inject constructor() {
     private val postings: MutableList<MockPosting> = OwnerMockSeed.postings(zone).toMutableList()
     private val works: MutableList<OwnerWork> = OwnerMockSeed.works(postings).toMutableList()
     private val settlements: MutableMap<String, Settlement> = mutableMapOf()
+    private val completedAtMillis: MutableMap<String, Long> = mutableMapOf()
     private val pastPostings: MutableList<PastPosting> =
         OwnerMockSeed.pastPostings(postings, workers).toMutableList()
 
@@ -116,6 +117,7 @@ class OwnerMockStore @Inject constructor() {
         )
         val settlement = SettlementCalculator.calculate(minutes, work.hourlyWage, work.bonusPerHour)
         settlements[workId] = settlement
+        completedAtMillis[workId] = nowMillis
         replaceWork(work.copy(status = WorkProgressStatus.AWAITING_SETTLEMENT))
         return settlement
     }
@@ -262,6 +264,7 @@ class OwnerMockStore @Inject constructor() {
                 hourlyWage = work.hourlyWage,
                 status = status,
                 settlement = settlement,
+                completedAtMillis = completedAtMillis[work.id],
             ),
         )
     }
