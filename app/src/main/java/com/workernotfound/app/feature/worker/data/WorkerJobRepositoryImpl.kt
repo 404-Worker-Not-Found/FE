@@ -32,19 +32,11 @@ class WorkerJobRepositoryImpl @Inject constructor(
     override suspend fun searchJobs(filter: JobFilter): JobSearchResult {
         if (!BuildConfig.USE_DEMO_DATA) {
             // No location is fabricated. Distance filtering needs a real location first.
-            check(filter.maxDistanceKm == JobFilter.MAX_DISTANCE_KM) { context.getString(R.string.backend_location_required) }
+            check(filter.maxDistanceKm == JobFilter.MAX_DISTANCE_KM || filter.hasCoordinates()) { context.getString(R.string.backend_location_required) }
             val all = mutableListOf<JobCardResponseDto>()
             var page = 0
             do {
-                val query = mutableMapOf("page" to page.toString(), "size" to "100")
-                if (filter.minWage > 0) query["minWage"] = filter.minWage.coerceAtLeast(10320).toString()
-                if (filter.urgentOnly) query["type"] = "URGENT"
-                when (filter.timeSlot) {
-                    TimeSlot.MORNING -> { query["startTimeFrom"] = "00:00"; query["startTimeTo"] = "11:59:59" }
-                    TimeSlot.AFTERNOON -> { query["startTimeFrom"] = "12:00"; query["startTimeTo"] = "16:59:59" }
-                    TimeSlot.EVENING -> { query["startTimeFrom"] = "17:00"; query["startTimeTo"] = "23:59:59" }
-                    TimeSlot.ANY -> Unit
-                }
+                val query = filter.searchQuery(page)
                 val response = api.search(query).requireData()
                 all += response.jobs
                 page++

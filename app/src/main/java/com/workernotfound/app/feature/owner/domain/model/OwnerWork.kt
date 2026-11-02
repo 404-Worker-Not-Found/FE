@@ -21,6 +21,8 @@ data class OwnerWork(
     val canStart: Boolean = false,
     val completionAllowed: Boolean = true,
     val allowEarlyCompletion: Boolean = true,
+    val targetLatitude: Double? = null,
+    val targetLongitude: Double? = null,
 
 )
 
