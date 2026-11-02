@@ -51,6 +51,7 @@ Current state:
 - Map views and real-time updates remain placeholders/simulations; do not treat them as connected map SDK, push, or WebSocket infrastructure. Live GPS check-in now uses device location and the server attendance policy, but its full real-server success flow needs assigned test work.
 - API integration status and confirmed backend differences are tracked in `docs/backend-integration.md`. UI-only changes maintain a separate screen inventory in their branch.
 - A repository-wide verification script exists at `docs/scripts/verify.sh`.
+- External registrations, backend inputs, and remaining frontend work are inventoried in `docs/integration-readiness-audit.md`. Passing integration tests does not imply maps, push, social login, payments, or all specified screens are complete.
 - The package structure is defined in `docs/architecture/package-structure.md`.
 - Agent work instructions exist in `AGENTS.md`.
 - Agent failure memory, decision memory, and checklist memory exist under `docs/agent/`.
