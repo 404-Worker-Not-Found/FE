@@ -220,4 +220,10 @@
 ### Isolated native QA checkpoint
 
 - Emulator-5554 unexpectedly switched to a fullscreen map. Its installed APK matched neither the saved initial nor the latest verified live APK by SHA-256, confirming another installer/chat changed the shared app during QA. Do not diagnose that screen as our Compose layout or claim its later address lookup outcome. Earlier worker/owner screens were observed, but avoid changing another tester's active app.
-- Started a separate read-only instance of test_avd on port 5556 with no snapshot/window; log /private/tmp/fe-isolated-emulator.log. Our temporary helper /private/tmp/fe-native-ui.py now targets emulator-5556. Continue install/QA there with the verified current live APK, leaving 5554 alone. No account data changes were performed.
+- The first read-only duplicate test_avd failed because the existing instance was writable. Created an independent temporary AVD fe_agent_qa (ANDROID_AVD_HOME=/private/tmp/fe-qa-avds) on port 5556, no snapshot/window. Boot succeeded; log /private/tmp/fe-isolated-emulator.log. Our temporary helper /private/tmp/fe-native-ui.py now targets emulator-5556. Continue install/QA there with the verified current live APK, leaving 5554 alone. No account data changes were performed.
+
+### User-directed token efficiency checkpoint
+
+- User asked why token usage was high. Stop expanding QA environments and repeating broad builds for unchanged code. Batch necessary reads; run verification again only for a new code change, a failure, or a specific unresolved concern. Existing latest code already passed live/demo 98 tests, lint and APK.
+- Independent fe_agent_qa on emulator-5556 booted and verified live APK was installed; first-run onboarding→login and owner login were checked. Address lookup was started but its final result has not been independently inspected. Do not claim geocoding success or spend repeated tokens polling this unchanged check. Shared emulator-5554 was modified by another installer; leave it alone.
+- No source changes remain pending. Current durable work is on feature/#19-api-integration, PR22 stays draft. At 00:45, inspect current git/status, this handoff and any newly provided external inputs before choosing useful work; avoid redoing implemented features or issuing duplicate key/account requests.
