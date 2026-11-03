@@ -164,3 +164,10 @@ Windows 심볼릭 링크 생성이 가능한 개발 환경에서 기존 테스�
 - `verification-live.log`, `verification-demo.log`, `lint-results.txt`, `camera-test-before.xml`, `camera-test-after.xml`, `contrast-check.json`에 근거를 보존했다.
 - 로컬 커밋: `0de3cee` 디자인 시스템·접근성·스킬·가이드, `5a5cf1c` 핵심 화면·적응형 UI. 이 보고서와 프로젝트 상태 문서는 별도 docs 커밋이다. 최종 3개 커밋과 APK SHA-256은 함께 제공한 `delivery-manifest.json` 참조.
 - 후속 작업 폴더는 이 보고서 첫 절의 `work/android-redesign`이다. 원본 FE 체크아웃은 기존 브랜치로 유지된다.
+
+
+### 2026-11-03 최신 시급 우선 적용
+
+사용자가 새 가상 시안에서 선택한 “시급 우선” 방향으로 양쪽 실제 Compose 홈을 다시 구현했다.
+초기 보고서의 홈·팔레트 설명은 `docs/wage-focus-implementation.md`와 최신 style_guide가 대체한다.
+구현 커밋은 `7b1ad93`이다. Live lint/APK와 demo APK 빌드를 완료했으며, 카메라 권한 테스트 1개와 실제 화면 QA의 한계는 유지된다.
