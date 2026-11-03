@@ -4,6 +4,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,7 +65,7 @@ fun ChoiceChipRow(
     val accent = AppTheme.role.accent
     val accentTint = AppTheme.role.accentTint
     FlowRow(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -74,15 +78,16 @@ fun ChoiceChipRow(
                         shape = RoundedCornerShape(AppRadius.pill),
                     )
                     .border(
-                        BorderStroke(1.dp, if (selected) accent else AppColors.Border),
+                        BorderStroke(1.dp, if (selected) AppTheme.role.accentPressed else AppColors.Border),
                         RoundedCornerShape(AppRadius.pill),
                     )
-                    .clickable { onSelect(index) }
+                    .heightIn(min = com.workernotfound.app.core.designsystem.AppDimens.touchTarget)
+                    .selectable(selected = selected, role = Role.RadioButton, onClick = { onSelect(index) })
                     .padding(horizontal = 16.dp, vertical = 10.dp),
             ) {
                 Text(
                     text = label,
-                    color = if (selected) accent else AppColors.TextSub,
+                    color = if (selected) AppTheme.role.accentPressed else AppColors.TextSub,
                     fontSize = 13.sp,
                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                 )
@@ -119,11 +124,11 @@ private fun StepperButton(symbol: String, enabled: Boolean, onClick: () -> Unit)
     val accent = AppTheme.role.accent
     Box(
         modifier = Modifier
-            .size(36.dp)
+            .size(com.workernotfound.app.core.designsystem.AppDimens.touchTarget)
             .background(if (enabled) accent else AppColors.Border, CircleShape)
-            .clickable(enabled = enabled, onClick = onClick),
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = symbol, color = if (enabled) Color.White else AppColors.TextPlaceholder, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text(text = symbol, color = if (enabled) AppTheme.role.onAccent else AppColors.TextPlaceholder, fontWeight = FontWeight.Bold, fontSize = 18.sp)
     }
 }

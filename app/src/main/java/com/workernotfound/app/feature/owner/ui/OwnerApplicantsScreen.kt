@@ -135,7 +135,7 @@ private fun PostingHeader(board: ApplicantBoard) {
             )
             Text(
                 text = "시급 ${OwnerFormat.won(posting.hourlyWage)}",
-                color = AppTheme.role.accent,
+                color = AppTheme.role.accentPressed,
                 fontSize = 14.sp,
                 style = MaterialTheme.typography.titleMedium,
             )

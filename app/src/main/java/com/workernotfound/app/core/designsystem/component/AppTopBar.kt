@@ -1,56 +1,30 @@
 package com.workernotfound.app.core.designsystem.component
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.unit.dp
-import androidx.compose.material3.MaterialTheme
-import com.workernotfound.app.core.designsystem.AppColors
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import com.workernotfound.app.R
+import com.workernotfound.app.core.designsystem.*
 
-/** Screen header with optional back action (style guide: 타이틀 18sp Bold). */
+/** A leading title gives content and navigation a stable shared alignment. */
 @Composable
-fun AppTopBar(
-    title: String,
-    modifier: Modifier = Modifier,
-    onBack: (() -> Unit)? = null,
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .drawBehind {
-                drawLine(
-                    color = AppColors.Border,
-                    start = androidx.compose.ui.geometry.Offset(0f, size.height),
-                    end = androidx.compose.ui.geometry.Offset(size.width, size.height),
-                    strokeWidth = 1f,
-                )
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        if (onBack != null) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "뒤로",
-                tint = AppColors.TextMain,
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(start = 12.dp)
-                    .size(24.dp)
-                    .clickable(onClick = onBack),
-            )
+fun AppTopBar(title: String, modifier: Modifier = Modifier, onBack: (() -> Unit)? = null) {
+    Surface(color = AppColors.CardSurface) {
+        Row(modifier.fillMaxWidth().heightIn(min = AppDimens.buttonHeight)
+            .padding(horizontal = AppDimens.spaceXs, vertical = AppDimens.spaceXs),
+            verticalAlignment = Alignment.CenterVertically) {
+            if (onBack != null) IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.design_back))
+            } else Spacer(Modifier.width(AppDimens.spaceLg))
+            Text(title, Modifier.weight(1f).padding(end = AppDimens.screenPadding)
+                .semantics { heading() }, style = MaterialTheme.typography.titleLarge)
         }
-        Text(text = title, style = MaterialTheme.typography.titleLarge, color = AppColors.TextMain)
     }
 }

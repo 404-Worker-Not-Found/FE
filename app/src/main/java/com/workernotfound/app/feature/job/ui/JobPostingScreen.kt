@@ -81,7 +81,7 @@ fun JobPostingScreen(
         AlertDialog(
             onDismissRequest = {},
             confirmButton = {
-                TextButton(onClick = onSuccess) { Text("홈으로", color = AppTheme.role.accent, fontWeight = FontWeight.Bold) }
+                TextButton(onClick = onSuccess) { Text("홈으로", color = AppTheme.role.accentPressed, fontWeight = FontWeight.Bold) }
             },
             title = { Text("등록 완료") },
             text = { Text("긴급 공고가 등록되었습니다. 주변 알바생에게 노출됩니다.") },
@@ -92,7 +92,7 @@ fun JobPostingScreen(
         AlertDialog(
             onDismissRequest = viewModel::dismissError,
             confirmButton = {
-                TextButton(onClick = viewModel::dismissError) { Text("확인", color = AppTheme.role.accent) }
+                TextButton(onClick = viewModel::dismissError) { Text("확인", color = AppTheme.role.accentPressed) }
             },
             title = { Text("등록 실패") },
             text = { Text(message) },
@@ -263,7 +263,7 @@ private fun WageBreakdownCard(wage: WageBreakdown) {
             Text(
                 text = "${"%,d".format(wage.total)}원",
                 fontWeight = FontWeight.Bold,
-                color = AppTheme.role.accent,
+                color = AppTheme.role.accentPressed,
                 fontSize = 18.sp,
             )
         }
@@ -285,7 +285,7 @@ private fun WageRow(label: String, amount: Int) {
 private fun SubmitButton(uiState: JobPostingUiState, onSubmit: () -> Unit) {
     if (uiState.isSubmitting) {
         Row(modifier = Modifier.fillMaxWidth().height(52.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-            CircularProgressIndicator(color = AppTheme.role.accent)
+            CircularProgressIndicator(color = AppTheme.role.accentPressed)
         }
     } else {
         AppPrimaryButton(text = "긴급 공고 등록", onClick = onSubmit, enabled = uiState.canSubmit)

@@ -6,54 +6,29 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-/**
- * Typography from docs/agent/style_guide.md.
- *
- * The style guide specifies Pretendard (Korean) / Inter (numbers, latin). Those font
- * files are not bundled yet, so the system default family is used until the font
- * resources are added under res/font and wired here.
- */
-private val AppFontFamily = FontFamily.Default
+// Use the device's Korean fallback. No unbundled font is claimed or downloaded.
+private fun type(size: Int, line: Int, weight: FontWeight = FontWeight.Normal) = TextStyle(
+    fontFamily = FontFamily.Default,
+    fontSize = size.sp,
+    lineHeight = line.sp,
+    fontWeight = weight,
+    letterSpacing = 0.sp,
+)
 
 val AppTypography = Typography(
-    // 타이틀 (화면 헤더): 18sp Bold
-    titleLarge = TextStyle(
-        fontFamily = AppFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 18.sp,
-    ),
-    // 카드 타이틀: 14~15sp Bold
-    titleMedium = TextStyle(
-        fontFamily = AppFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 15.sp,
-    ),
-    // 앱 기본: 14sp Regular
-    bodyLarge = TextStyle(
-        fontFamily = AppFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-    ),
-    // 보조 텍스트: 12~13sp Regular
-    bodyMedium = TextStyle(
-        fontFamily = AppFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 13.sp,
-    ),
-    bodySmall = TextStyle(
-        fontFamily = AppFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
-    ),
-    // 섹션 레이블: 11~12sp Bold
-    labelMedium = TextStyle(
-        fontFamily = AppFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 12.sp,
-    ),
-    labelSmall = TextStyle(
-        fontFamily = AppFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 11.sp,
-    ),
+    displayLarge = type(48, 56, FontWeight.Bold),
+    displayMedium = type(40, 48, FontWeight.Bold),
+    displaySmall = type(36, 44, FontWeight.Bold),
+    headlineLarge = type(32, 40, FontWeight.Bold),
+    headlineMedium = type(28, 36, FontWeight.Bold),
+    headlineSmall = type(24, 32, FontWeight.Bold),
+    titleLarge = type(20, 28, FontWeight.Bold),
+    titleMedium = type(16, 24, FontWeight.SemiBold),
+    titleSmall = type(14, 20, FontWeight.SemiBold),
+    bodyLarge = type(16, 24),
+    bodyMedium = type(14, 22),
+    bodySmall = type(12, 18),
+    labelLarge = type(14, 20, FontWeight.SemiBold),
+    labelMedium = type(12, 18, FontWeight.SemiBold),
+    labelSmall = type(11, 16, FontWeight.Medium),
 )

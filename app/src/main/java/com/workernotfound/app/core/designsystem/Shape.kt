@@ -9,10 +9,10 @@ import androidx.compose.ui.unit.dp
  * 둥글고 따뜻한 느낌. 직각 없음.
  */
 object AppRadius {
-    val card = 16.dp        // 일반 카드
-    val inner = 12.dp       // 카드 내부 요소
+    val card = 12.dp        // grouped jobs and form regions
+    val inner = 8.dp       // 카드 내부 요소
     val bottomSheet = 24.dp // 바텀시트
-    val button = 16.dp      // 일반 버튼
+    val button = 12.dp      // 일반 버튼
     val pill = 999.dp       // pill / chip
 }
 

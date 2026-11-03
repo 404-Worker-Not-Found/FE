@@ -172,6 +172,6 @@ private fun ChatInputBar(draft: String, onDraftChange: (String) -> Unit, onSend:
 @Composable
 private fun LoadingBox() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = AppTheme.role.accent)
+        CircularProgressIndicator(color = AppTheme.role.accentPressed)
     }
 }

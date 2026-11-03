@@ -4,10 +4,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
+import com.workernotfound.app.core.designsystem.AppDimens
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,14 +32,15 @@ import com.workernotfound.app.core.designsystem.component.UrgentBadge
 import com.workernotfound.app.feature.owner.domain.model.OwnerJobPosting
 import com.workernotfound.app.feature.owner.domain.model.PostingStatus
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun OwnerJobCard(
     posting: OwnerJobPosting,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    AppCard(modifier = modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+    Column(modifier = modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = AppDimens.spaceLg)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(com.workernotfound.app.core.designsystem.AppDimens.spaceSm)) {
             if (posting.isUrgent) {
                 UrgentBadge()
                 Spacer(Modifier.width(6.dp))
@@ -46,7 +52,6 @@ fun OwnerJobCard(
                 )
                 else -> StatusBadge(status = posting.status.toBadge())
             }
-            Spacer(Modifier.weight(1f))
             Text(
                 text = posting.applicantCount?.let { androidx.compose.ui.res.stringResource(R.string.backend_applicant_count, it) } ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided),
                 color = AppColors.TextSub,
@@ -71,15 +76,17 @@ fun OwnerJobCard(
         Spacer(Modifier.height(8.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
+            horizontalArrangement = Arrangement.Start,
         ) {
             Text(
                 text = "시급 ${"%,d".format(posting.hourlyWage)}원",
-                color = AppTheme.role.accent,
+                color = AppColors.TextMain,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
             )
         }
+        Spacer(Modifier.height(AppDimens.spaceLg))
+        HorizontalDivider(color = AppColors.Border)
     }
 }
 

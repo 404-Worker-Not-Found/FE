@@ -1,6 +1,6 @@
 package com.workernotfound.app.feature.worker.ui.component
 
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -31,18 +31,18 @@ fun WorkerApplyButton(
     Button(
         onClick = onClick,
         enabled = !applied,
-        modifier = modifier.height(34.dp),
-        shape = RoundedCornerShape(AppRadius.pill),
+        modifier = modifier.heightIn(min = com.workernotfound.app.core.designsystem.AppDimens.touchTarget),
+        shape = RoundedCornerShape(AppRadius.inner),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = AppTheme.role.accent,
-            contentColor = Color.White,
+            contentColor = AppTheme.role.onAccent,
             disabledContainerColor = AppColors.SuccessBg,
             disabledContentColor = AppColors.Success,
         ),
     ) {
         Text(
-            text = if (applied) "지원완료" else "즉시지원",
+            text = androidx.compose.ui.res.stringResource(if (applied) com.workernotfound.app.R.string.design_applied else com.workernotfound.app.R.string.design_apply),
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
         )

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="design_back">뒤로</string>
+    <string name="design_urgent">긴급</string>
+    <string name="design_apply">즉시 지원</string>
+    <string name="design_applied">지원 완료</string>
+    <string name="design_worker_eyebrow">가까운 일, 빠른 시작</string>
+    <string name="design_worker_title">내 주변 알바</string>
+    <string name="design_owner_eyebrow">긴급알바 · 점주</string>
+    <string name="design_owner_title">우리 가게 구인 현황</string>
+    <string name="design_active_postings">모집 중 공고</string>
+    <string name="design_total_applicants">총 지원자</string>
+    <string name="design_create_posting">긴급 공고 등록</string>
+    <string name="design_my_postings">내 공고</string>
+    <string name="design_no_postings">아직 등록한 공고가 없어요.</string>
+    <string name="design_urgent_jobs">곧 마감하는 공고</string>
+    <string name="design_recommended_jobs">추천 공고</string>
+    <string name="design_urgent_filter">즉시 지원 가능</string>
+    <string name="design_urgent_filter_description">즉시 지원 가능한 공고만 모아봐요</string>
+    <string name="design_applications">지원 현황</string>
+    <string name="design_retry">다시 시도</string>
+    <string name="design_hourly_wage">시급 %,d원</string>
+    <string name="design_wage">%,d원</string>
+    <string name="design_per_hour">시급</string>
+    <string name="design_job_metadata">%1$s · %2$s</string>
+    <string name="design_job_count">총 %d개 공고</string>
+    <string name="design_filter">필터</string>
+    <string name="design_browse">주변 공고 둘러보기</string>
+    <string name="design_list">리스트</string>
+    <string name="design_map">지도</string>
+    <string name="design_login_intro">필요한 순간,
+가까운 연결.</string>
+    <string name="design_login_description">긴급알바에서 오늘의 일을 시작하세요.</string>
+    <string name="design_focus_worker_title">오늘의 알바</string>
+    <string name="design_focus_worker_subtitle">시급과 시간을 먼저 확인하세요.</string>
+    <string name="design_focus_owner_title">오늘의 구인</string>
+    <string name="design_focus_owner_subtitle">모집 현황을 한눈에 확인하세요.</string>
+    <string name="design_focus_urgent">지금 필요한 일손</string>
+    <string name="design_focus_featured">지금 살펴볼 공고</string>
+    <string name="design_focus_hour_unit">/ 시간</string>
+    <string name="design_focus_work_time">근무 시간</string>
+    <string name="design_focus_distance">근무지 거리</string>
+    <string name="design_focus_other_jobs">다른 일자리</string>
+</resources>

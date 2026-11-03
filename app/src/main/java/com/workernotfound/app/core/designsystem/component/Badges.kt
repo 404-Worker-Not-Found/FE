@@ -24,10 +24,9 @@ fun AppBadge(
     Text(
         text = text,
         color = contentColor,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
+        style = androidx.compose.material3.MaterialTheme.typography.labelMedium,
         modifier = modifier
-            .background(background, RoundedCornerShape(AppRadius.pill))
+            .background(background, RoundedCornerShape(AppRadius.inner))
             .padding(horizontal = 8.dp, vertical = 3.dp),
     )
 }
@@ -36,7 +35,7 @@ fun AppBadge(
 @Composable
 fun UrgentBadge(modifier: Modifier = Modifier) {
     AppBadge(
-        text = "⚡ 긴급",
+        text = androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.design_urgent),
         background = AppColors.DangerBg,
         contentColor = AppColors.Danger,
         modifier = modifier,

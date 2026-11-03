@@ -153,7 +153,7 @@ private fun WorkHeader(timing: WorkTiming) {
             Spacer(Modifier.weight(1f))
             Text(
                 text = "시급 ${OwnerFormat.won(work.hourlyWage)}",
-                color = AppTheme.role.accent,
+                color = AppTheme.role.accentPressed,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
             )

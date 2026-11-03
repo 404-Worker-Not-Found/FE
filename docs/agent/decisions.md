@@ -482,3 +482,52 @@ Related files:
 - `docs/UI_Specification.md`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/backend-integration.md`
+
+## 2026-11-02 - UI Redesign With Existing Brand Roles
+
+Decision:
+- User-authorized redesign supersedes the earlier requirement to preserve exact visual styling during integration. Keep orange/yellow role identity and light-only support, but use readable foreground colors, a full type scale, restrained containment, and adaptive presentation in the updated style guide.
+- Keep API contracts, ViewModels, repositories, domain policies, routes and navigation callbacks unchanged. No runtime dependencies are added.
+- Use project-local `material-design-3-ui` 1.1.1 guidance, with current Android official accessibility guidance. Dynamic color and dark mode remain off to preserve established product constraints.
+- Per user request, branch `design/android-ui-redesign` starts from the current feature checkpoint rather than develop. Work in an isolated Git worktree; do not push, create issues/PRs, or alter the original checkout.
+
+Reason:
+- The user explicitly requested a complete visual redesign, a named branch, preservation of existing functionality, and local-only work. Existing integration commits are not all present on develop.
+- Brand fills need separate text roles for contrast. Dense reading areas benefit from lists, while urgent jobs benefit from contained emphasis.
+
+Related files:
+- `docs/agent/style_guide.md`
+- `docs/ui-redesign-report.md`
+- `.agents/skills/material-design-3-ui/SKILL.md`
+
+## 2026-11-02 - User Selected Wage-First Home Direction
+
+Decision:
+- Apply the user's selected “시급 우선” design from the interactive review, including the later stronger role colors.
+- Worker home: inverse green wage feature, yellow apply action, compact remaining job rows on white. Owner home: orange summary with an inverse create-posting action and plain posting rows.
+- Keep all existing jobs, availability switch, direct apply, app navigation and live/demo boundaries. This is a reading hierarchy change; do not sort by wage or alter repository selection rules.
+- Use the first supplied urgent job, or the first supplied ordinary job if no urgent job is available. Do not fabricate urgency, deadlines, dates, distances or applicant counts.
+- Prototype-only choices and sample data are not shipped as runtime business state. Preserve 48dp targets and native Material behavior even where the visual mockup used smaller controls.
+- Keep working on design/android-ui-redesign; no push, PR or native screen automation is authorized by this change.
+
+Reason:
+- The user rejected the initial card treatment and the next overly muted palette, then explicitly selected the wage-first variant.
+
+Related files:
+- `docs/agent/style_guide.md`
+- `feature/worker/ui/WorkerHomeScreen.kt`
+- `feature/worker/ui/component/WorkerFocusJobCard.kt`
+- `feature/owner/ui/OwnerHomeScreen.kt`
+
+## 2026-11-03 - Review Upload Authorized, Merge Deferred
+
+Decision:
+- The user explicitly requested uploading the committed UI work so another person can review before merging. This supersedes the earlier local-only/no-push restriction for this branch.
+- Push only design/android-ui-redesign; do not force-push, merge, or alter other branches.
+- Open a draft review PR against feature/#21-auth-job-integration while upstream PR #23 remains unmerged. This isolates the UI diff from the unmerged API/auth work. The long-term integration target remains develop.
+- After PR #23 is merged, retarget the UI PR to develop and re-check the diff before review approval and merge. Do not merge the UI PR into the auth branch as a shortcut.
+- Request a named teammate only when the user supplies the GitHub identity. Do not choose or message teammates on the user's behalf.
+
+Reason:
+- The current develop comparison includes unrelated unmerged integration work, while the source feature branch is exactly the redesign base commit.
+- The user wants other developers' work preserved and a human review before integration.

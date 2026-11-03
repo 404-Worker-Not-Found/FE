@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +24,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -77,7 +79,7 @@ private fun WorkerJobDetailContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(AppColors.WorkerSurface)
+            .background(AppColors.CardSurface)
             .statusBarsPadding(),
     ) {
         DetailTopBar(onBack = onBack)
@@ -112,14 +114,16 @@ private fun LoadedDetail(
     remainingSeconds: Long,
     onApply: () -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
         Column(
             modifier = Modifier
                 .weight(1f)
+                .widthIn(max = AppDimens.readingMaxWidth)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = AppDimens.screenPadding)
                 .padding(bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
+            verticalArrangement = Arrangement.spacedBy(AppDimens.spaceLg),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             StoreInfoCard(detail)
             WageBreakdownCard(detail)
@@ -133,7 +137,7 @@ private fun LoadedDetail(
 
 @Composable
 private fun StoreInfoCard(detail: WorkerJobDetail) {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
+    DetailSection {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (detail.isUrgent) {
                 UrgentBadge()
@@ -166,7 +170,7 @@ private fun MiniMap() {
 
 @Composable
 private fun WageBreakdownCard(detail: WorkerJobDetail) {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
+    DetailSection {
         SectionLabel(text = "시급 정보")
         Spacer(Modifier.height(10.dp))
         WageRow("기본 시급", detail.baseWage, isBonus = false)
@@ -183,7 +187,7 @@ private fun WageBreakdownCard(detail: WorkerJobDetail) {
             WageRow(stringResource(R.string.backend_extra_wage), detail.extraWage, isBonus = true)
         }
         Spacer(Modifier.height(10.dp))
-        Divider(color = AppColors.Border)
+        HorizontalDivider(color = AppColors.Border)
         Spacer(Modifier.height(10.dp))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(text = "최종 시급", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
@@ -214,7 +218,7 @@ private fun WageRow(label: String, amount: Int, isBonus: Boolean) {
 
 @Composable
 private fun WorkInfoCard(detail: WorkerJobDetail, remainingSeconds: Long) {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
+    DetailSection {
         SectionLabel(text = "근무 정보")
         Spacer(Modifier.height(10.dp))
         InfoRow("근무 날짜", detail.workDate)
@@ -255,7 +259,7 @@ private fun InfoRow(label: String, value: String) {
 
 @Composable
 private fun DescriptionCard(detail: WorkerJobDetail) {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
+    DetailSection {
         SectionLabel(text = "업무 내용")
         Spacer(Modifier.height(10.dp))
         Text(text = detail.description, color = AppColors.TextMain, fontSize = 14.sp)
@@ -264,7 +268,7 @@ private fun DescriptionCard(detail: WorkerJobDetail) {
 
 @Composable
 private fun ApplicantStatusCard(detail: WorkerJobDetail) {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
+    DetailSection {
         SectionLabel(text = "해당 가게 지원 현황")
         Spacer(Modifier.height(10.dp))
         Row(modifier = Modifier.fillMaxWidth()) {
@@ -339,7 +343,7 @@ private fun formatCountdown(totalSeconds: Long): String {
 @Composable
 private fun LoadingBox() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = AppTheme.role.accent)
+        CircularProgressIndicator(color = AppTheme.role.accentPressed)
     }
 }
 
@@ -353,5 +357,14 @@ private fun ErrorBox(message: String, onRetry: () -> Unit) {
         Text(text = message, color = AppColors.TextSub)
         Spacer(Modifier.height(12.dp))
         AppPrimaryButton(text = "다시 시도", onClick = onRetry)
+    }
+}
+
+@Composable
+private fun DetailSection(content: @Composable ColumnScope.() -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(vertical = AppDimens.spaceSm)) {
+        content()
+        Spacer(Modifier.height(AppDimens.spaceXl))
+        HorizontalDivider(color = AppColors.Border)
     }
 }

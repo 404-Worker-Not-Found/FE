@@ -63,7 +63,7 @@ fun TimePickerField(
             onDismissRequest = { showDialog = false },
             confirmButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("닫기", color = AppTheme.role.accent)
+                    Text("닫기", color = AppTheme.role.accentPressed)
                 }
             },
             title = { Text("시간 선택", fontSize = 16.sp) },

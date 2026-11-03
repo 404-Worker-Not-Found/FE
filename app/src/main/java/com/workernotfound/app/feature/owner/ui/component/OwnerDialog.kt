@@ -28,7 +28,7 @@ internal fun OwnerDialog(
             TextButton(onClick = onConfirm) {
                 Text(
                     text = confirmText,
-                    color = if (isDestructive) AppColors.Danger else AppTheme.role.accent,
+                    color = if (isDestructive) AppColors.Danger else AppTheme.role.accentPressed,
                     fontWeight = FontWeight.Bold,
                 )
             }
