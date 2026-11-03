@@ -518,3 +518,16 @@ Related files:
 - `feature/worker/ui/WorkerHomeScreen.kt`
 - `feature/worker/ui/component/WorkerFocusJobCard.kt`
 - `feature/owner/ui/OwnerHomeScreen.kt`
+
+## 2026-11-03 - Review Upload Authorized, Merge Deferred
+
+Decision:
+- The user explicitly requested uploading the committed UI work so another person can review before merging. This supersedes the earlier local-only/no-push restriction for this branch.
+- Push only design/android-ui-redesign; do not force-push, merge, or alter other branches.
+- Open a draft review PR against feature/#21-auth-job-integration while upstream PR #23 remains unmerged. This isolates the UI diff from the unmerged API/auth work. The long-term integration target remains develop.
+- After PR #23 is merged, retarget the UI PR to develop and re-check the diff before review approval and merge. Do not merge the UI PR into the auth branch as a shortcut.
+- Request a named teammate only when the user supplies the GitHub identity. Do not choose or message teammates on the user's behalf.
+
+Reason:
+- The current develop comparison includes unrelated unmerged integration work, while the source feature branch is exactly the redesign base commit.
+- The user wants other developers' work preserved and a human review before integration.
