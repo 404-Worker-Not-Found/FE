@@ -57,3 +57,12 @@ ViewModel·domain·repository·API·세션·라우트·Gradle 의존성과 기�
 - 단위 테스트 전체 성공으로 표시하지 않는다. 필수 verify.sh는 앞서 설명한 기존 카메라 테스트 1개 때문에 종료 코드 1이었다. 이후 lint/APK만 별도로 완료했다.
 - 구현 커밋: `7b1ad93` (`feat: 선택한 시급 우선 홈 디자인 적용`). 이후 결과 문서만 별도 커밋으로 기록한다.
 - `delivery-manifest-wage-focus.json`에 최종 Git 상태, 커밋과 두 APK의 SHA-256을 기록한다.
+
+
+## 2026-11-03 실제 Android 화면 캡처 후속
+
+초기 APK 검증 이후, 캡처 전용 AOSP Android 15(API 35) 이미지를 작업 공간 SDK에 설치하고 사용자 기존 AVD와 분리된 창 없는 테스트 에뮬레이터에서 데모 APK를 실행했다.
+역할 선택 → 알바생 홈 → 뒤로 → 점주 홈 이동을 확인했으며 두 홈을 1080×2400/420dpi 원본 PNG로 캡처했다.
+이번 두 캡처에서는 주요 글자·버튼의 잘림이 보이지 않았다. 전체 화면 크기·큰 글자·TalkBack·실서비스 API/업무 플로우 검증까지 완료한 것으로 해석하지 않는다.
+앱 소스 및 APK는 변경하지 않았다. 사용자 데스크톱 UI를 조작하지 않았다.
+파일: outputs/screenshots/worker-home.png, owner-home.png, capture-info.json; ZIP: outputs/시급우선-실제앱-캡처.zip.
