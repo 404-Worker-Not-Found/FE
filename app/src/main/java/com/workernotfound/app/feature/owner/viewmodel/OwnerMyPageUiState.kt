@@ -7,6 +7,13 @@ data class OwnerMyPageUiState(
     val isLoading: Boolean = true,
     val profile: OwnerProfile? = null,
     val errorMessage: String? = null,
+    val nameDraft: String? = null,
+    val isNameValid: Boolean = true,
+    val isSavingName: Boolean = false,
+    val hasNameSaveError: Boolean = false,
+    val hasPhotoSaveError: Boolean = false,
+    val isSavingNotification: Boolean = false,
+    val hasNotificationSaveError: Boolean = false,
     val isWithdrawDialogVisible: Boolean = false,
 )
 

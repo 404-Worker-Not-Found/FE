@@ -13,9 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
+import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -37,15 +41,26 @@ import com.workernotfound.app.feature.worker.viewmodel.WorkerWorkViewModel
 
 @Composable
 fun WorkerWorkScreen(
+    onTrustClick: () -> Unit,
+    onApplicationsClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkerWorkViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    WorkerWorkContent(uiState = uiState, modifier = modifier)
+    WorkerWorkContent(
+        uiState = uiState, onRetry = viewModel::load, onTrustClick = onTrustClick,
+        onApplicationsClick = onApplicationsClick, modifier = modifier,
+    )
 }
 
 @Composable
-private fun WorkerWorkContent(uiState: WorkerWorkUiState, modifier: Modifier = Modifier) {
+private fun WorkerWorkContent(
+    uiState: WorkerWorkUiState,
+    onRetry: () -> Unit,
+    onTrustClick: () -> Unit,
+    onApplicationsClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier.fillMaxSize()) {
         Text(
             text = "근무 관리",
@@ -59,7 +74,22 @@ private fun WorkerWorkContent(uiState: WorkerWorkUiState, modifier: Modifier = M
                 bottom = 8.dp,
             ),
         )
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = AppDimens.screenPadding)) {
+            TextButton(onClick = onApplicationsClick, modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.worker_applications))
+            }
+            TextButton(onClick = onTrustClick, modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.worker_trust_history))
+            }
+        }
         when {
+            uiState.errorMessage != null && !uiState.isLoading -> Column(
+                modifier = Modifier.fillMaxSize().padding(AppDimens.screenPadding),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(stringResource(R.string.worker_schedule_load_error), color = AppColors.TextSub)
+                AppPrimaryButton(text = stringResource(R.string.worker_retry), onClick = onRetry)
+            }
             uiState.isLoading -> LoadingBox()
             uiState.scheduled.isEmpty() && uiState.inProgress.isEmpty() -> EmptyBox()
             else -> LazyColumn(

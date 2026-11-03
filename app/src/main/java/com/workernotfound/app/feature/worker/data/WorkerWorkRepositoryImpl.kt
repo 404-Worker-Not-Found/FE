@@ -18,6 +18,8 @@ class WorkerWorkRepositoryImpl @Inject constructor() : WorkerWorkRepository {
         val WORKS = listOf(
             WorkSchedule(
                 id = "w1",
+                jobId = "r1",
+                address = "서울 마포구 신촌로 100",
                 storeName = "1번 편의점",
                 category = "편의점",
                 workDate = "2026.06.18 (목)",
@@ -27,6 +29,7 @@ class WorkerWorkRepositoryImpl @Inject constructor() : WorkerWorkRepository {
             ),
             WorkSchedule(
                 id = "w2",
+                address = "서울 마포구 어울마당로 12",
                 storeName = "다정있는 비치",
                 category = "음식점",
                 workDate = "2026.06.19 (금)",
@@ -36,6 +39,8 @@ class WorkerWorkRepositoryImpl @Inject constructor() : WorkerWorkRepository {
             ),
             WorkSchedule(
                 id = "w3",
+                jobId = "u2",
+                address = "서울 마포구 와우산로 29",
                 storeName = "홀대 카페 123",
                 category = "카페",
                 workDate = "2026.06.17 (수)",
