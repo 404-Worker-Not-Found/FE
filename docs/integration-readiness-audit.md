@@ -1,6 +1,6 @@
 # 외부 설정·잔여 구현 점검
 
-확인일: 2026-11-02 (Asia/Seoul). FE 통합 기준 `61ee749`, BE 확인 기준 `212b81d`.
+확인일: 2026-11-02 (Asia/Seoul). FE 통합 기준 `61ee749`, BE 확인 기준 `69df5d1`.
 
 화면 명세, Gradle/catalog, AndroidManifest, 실제 UI/DTO/repository와 BE 공개 controller/서비스를 대조했다. 클라우드 콘솔·운영 서버 비밀 설정은 열람하지 않았으므로 발급/설정 여부가 불명인 항목은 미확인으로 적는다. live/demo 각각 98개 테스트 통과는 지도·푸시·결제까지 전체 앱이 완성됐다는 뜻이 아니다.
 
@@ -68,3 +68,5 @@
 GPS distance query, address-derived search pins/detail map and server workplace coordinate map are connected. Demo diagrams remain demo only. Ignored local key and actual emulator map tiles were confirmed; populated pins/device geocoding QA remain pending. Continuous worker location sharing still needs a backend contract. Full verification: 95 tests passed.
 
 2026-11-03 후속: Toss 테스트 공개 키는 전달받아 ignored 로컬 설정/BuildConfig에 주입했다. 실제 결제창·복귀/서버 confirm 실행은 아직 미구현이며, 서버와 키 짝 및 성공/실패 복귀 URL 확인을 요청했다. 키 값은 기록하지 않는다.
+
+2026-11-03 10:52 KST: BE 신뢰 점수/매칭 가중치 내부 연동과 Firebase 서버 인증 파일 배포 준비가 추가됐다. 신뢰 점수 공개 조회 DTO/API 및 기기 토큰 등록·실제 푸시 계약은 아직 추가되지 않았다. 앱에서 점수를 임의 계산하거나 서버 키 배포를 푸시 완료로 간주하지 않는다. 카테고리 배포 응답은 여전히 400이며 새 앱 빌드는 실행하지 않았다.

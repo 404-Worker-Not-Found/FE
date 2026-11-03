@@ -241,3 +241,10 @@
 
 - User requested continued backend checks when no independent frontend work remains. Updated existing heartbeat fe-22-10 to ACTIVE, FREQ=HOURLY;INTERVAL=2, same chat. It fetches/compares BE and relevant deployed APIs, implements newly unblocked frontend work, verifies changed code and pushes checkpoints. No repeated unchanged builds or duplicate input requests. Quiet when unchanged; notify only meaningful completion/failure/new required input.
 - Last FE implementation: 96764d7; BE source: 212b81d; deployed categories: 400. New frontend code passed 100 tests, lint and debug APK. Local Toss test key configured, checkout/callback/confirm execution remains incomplete. Caffeinate idle-sleep inhibition was started at user request; actual system sleep/power-off/lid closure cannot run local work.
+
+### 2026-11-03 10:52 KST backend monitor checkpoint
+
+- FE integration/friend branches remain afeb144 / 8f8f2d5; working tree was clean. New design/android-ui-redesign branch exists (66440df) and was left untouched/unmerged.
+- BE advanced from 212b81d to 69df5d1: 7ad6893 adds internal received-review trust-score projection and matching weighting; 69df5d1 adds Firebase server credential mount/deployment preparation. Inspected changed files and confirmed no new public trust-score DTO/controller or device-token/push registration contract. Existing frontend continues to display server matching scores; do not calculate a trust score locally from the documented policy, which has server-configurable inputs.
+- Firebase credential deployment is preparatory: backend documentation explicitly says SDK initialization, device token management and actual send are still separate work. Do not report working push or ask again for a server private key.
+- Deployed categories still HTTP 400 / GLOBAL-400-001. Existing Toss return-URL/server pairing and business-test-data dependencies remain unchanged. No frontend code change or repeated build warranted; previous 100-test live verification remains the latest. New comparison baseline: BE 69df5d1. Continue two-hour quiet checks.
