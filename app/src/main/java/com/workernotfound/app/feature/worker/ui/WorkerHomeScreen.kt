@@ -1,8 +1,6 @@
 package com.workernotfound.app.feature.worker.ui
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
@@ -44,7 +42,10 @@ private fun WorkerHomeContent(
         contentPadding = PaddingValues(AppDimens.screenPadding),
         horizontalArrangement = Arrangement.spacedBy(AppDimens.spaceXl),
         verticalArrangement = Arrangement.spacedBy(AppDimens.spaceLg)) {
-        item(span = { GridItemSpan(maxLineSpan) }) { HomeHeader(onNotificationsClick) }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            HomeBrandHeader(stringResource(R.string.design_focus_worker_title),
+                stringResource(R.string.design_focus_worker_subtitle), onNotificationsClick = onNotificationsClick)
+        }
         item(span = { GridItemSpan(maxLineSpan) }) {
             AvailabilityToggle(uiState.isAvailableOnly, onToggleAvailable)
         }
@@ -61,29 +62,20 @@ private fun WorkerHomeContent(
                 }
             }
             else -> {
-                if (uiState.urgentJobs.isNotEmpty()) {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        Column(verticalArrangement = Arrangement.spacedBy(AppDimens.spaceMd)) {
-                            SectionLabel(stringResource(R.string.design_urgent_jobs))
-                            BoxWithConstraints {
-                                val cardWidth = minOf(AppDimens.urgentCardWidth, maxWidth)
-                                LazyRow(horizontalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
-                                    items(uiState.urgentJobs, key = { it.id }) { job ->
-                                        WorkerUrgentJobCard(job, { onJobClick(job.id) },
-                                            { onApply(job.id) }, Modifier.width(cardWidth))
-                                    }
-                                }
-                            }
-                        }
+                val jobs = uiState.urgentJobs + if (uiState.isAvailableOnly) emptyList()
+                    else uiState.recommendedJobs
+                val featured = jobs.firstOrNull()
+                if (featured != null) {
+                    item(key = "focus-header", span = { GridItemSpan(maxLineSpan) }) {
+                        WorkerFocusJobCard(featured, { onJobClick(featured.id) }, { onApply(featured.id) })
                     }
                 }
-                if (!uiState.isAvailableOnly && uiState.recommendedJobs.isNotEmpty()) {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        SectionLabel(stringResource(if (BuildConfig.USE_DEMO_DATA)
-                            R.string.design_recommended_jobs else R.string.backend_other_jobs))
+                if (jobs.size > 1) {
+                    item(key = "other-jobs-heading", span = { GridItemSpan(maxLineSpan) }) {
+                        SectionLabel(stringResource(R.string.design_focus_other_jobs))
                     }
-                    items(uiState.recommendedJobs, key = { it.id }) { job ->
-                        WorkerRecommendedJobCard(job, { onJobClick(job.id) }, { onApply(job.id) })
+                    items(jobs.drop(1), key = { it.id }) { job ->
+                        WorkerFocusJobRow(job, { onJobClick(job.id) }, { onApply(job.id) })
                     }
                 }
                 if (uiState.urgentJobs.isEmpty() && (uiState.isAvailableOnly || uiState.recommendedJobs.isEmpty())) {
@@ -97,25 +89,10 @@ private fun WorkerHomeContent(
 }
 
 @Composable
-private fun HomeHeader(onNotificationsClick: () -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(AppDimens.spaceXs)) {
-            Text(stringResource(R.string.design_worker_eyebrow), style = MaterialTheme.typography.labelMedium,
-                color = AppTheme.role.accentPressed)
-            Text(stringResource(R.string.design_worker_title), style = MaterialTheme.typography.headlineMedium,
-                color = AppColors.TextMain)
-        }
-        IconButton(onClick = onNotificationsClick) {
-            Icon(Icons.Outlined.Notifications, stringResource(R.string.design_applications), tint = AppColors.TextMain)
-        }
-    }
-}
-
-@Composable
 private fun AvailabilityToggle(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Surface(shape = MaterialTheme.shapes.medium, color = AppTheme.role.accentTint) {
+    Surface(color = AppColors.CardSurface) {
         Row(Modifier.fillMaxWidth().toggleable(checked, role = Role.Switch,
-            onValueChange = onCheckedChange).padding(AppDimens.cardPadding),
+            onValueChange = onCheckedChange).padding(vertical = AppDimens.spaceXs),
             verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(if (BuildConfig.USE_DEMO_DATA) R.string.design_urgent_filter
@@ -144,7 +121,9 @@ private fun WorkerHomeDesignPreview() {
     WorkerNotFoundTheme(AppRole.WORKER) {
         Surface(color = AppTheme.role.screenBackground) {
             WorkerHomeContent(WorkerHomeUiState(isLoading = false, urgentJobs = listOf(job),
-                recommendedJobs = listOf(job.copy(id = "recommended", isUrgent = false))),
+                recommendedJobs = listOf(
+                    job.copy(id = "recommended", isUrgent = false),
+                    job.copy(id = "long-title", storeName = "긴 이름의 동네 베이커리 매장", isUrgent = false))),
                 {}, {}, {}, {}, {})
         }
     }

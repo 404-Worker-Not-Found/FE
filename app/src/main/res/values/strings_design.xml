@@ -31,4 +31,14 @@
     <string name="design_login_intro">필요한 순간,
 가까운 연결.</string>
     <string name="design_login_description">긴급알바에서 오늘의 일을 시작하세요.</string>
+    <string name="design_focus_worker_title">오늘의 알바</string>
+    <string name="design_focus_worker_subtitle">시급과 시간을 먼저 확인하세요.</string>
+    <string name="design_focus_owner_title">오늘의 구인</string>
+    <string name="design_focus_owner_subtitle">모집 현황을 한눈에 확인하세요.</string>
+    <string name="design_focus_urgent">지금 필요한 일손</string>
+    <string name="design_focus_featured">지금 살펴볼 공고</string>
+    <string name="design_focus_hour_unit">/ 시간</string>
+    <string name="design_focus_work_time">근무 시간</string>
+    <string name="design_focus_distance">근무지 거리</string>
+    <string name="design_focus_other_jobs">다른 일자리</string>
 </resources>

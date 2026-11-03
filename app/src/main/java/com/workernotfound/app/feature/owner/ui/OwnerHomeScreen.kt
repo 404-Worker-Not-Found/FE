@@ -3,6 +3,8 @@ package com.workernotfound.app.feature.owner.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,16 +35,10 @@ private fun OwnerHomeContent(uiState: OwnerHomeUiState, onCreatePosting: () -> U
         horizontalArrangement = Arrangement.spacedBy(AppDimens.spaceLg),
         verticalArrangement = Arrangement.spacedBy(AppDimens.spaceLg)) {
         item(span = { GridItemSpan(maxLineSpan) }) {
-            Column(verticalArrangement = Arrangement.spacedBy(AppDimens.spaceXs)) {
-                Text(stringResource(R.string.design_owner_eyebrow), color = AppTheme.role.accentPressed,
-                    style = MaterialTheme.typography.labelMedium)
-                Text(stringResource(R.string.design_owner_title), style = MaterialTheme.typography.headlineMedium)
-            }
+            HomeBrandHeader(stringResource(R.string.design_focus_owner_title),
+                stringResource(R.string.design_focus_owner_subtitle))
         }
-        item(span = { GridItemSpan(maxLineSpan) }) { SummaryStrip(uiState.summary) }
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            AppPrimaryButton(stringResource(R.string.design_create_posting), onCreatePosting)
-        }
+        item(span = { GridItemSpan(maxLineSpan) }) { SummaryStrip(uiState.summary, onCreatePosting) }
         item(span = { GridItemSpan(maxLineSpan) }) { SectionLabel(stringResource(R.string.design_my_postings)) }
         when {
             uiState.isLoading -> item(span = { GridItemSpan(maxLineSpan) }) {
@@ -67,22 +63,35 @@ private fun OwnerHomeContent(uiState: OwnerHomeUiState, onCreatePosting: () -> U
 }
 
 @Composable
-private fun SummaryStrip(summary: OwnerHomeSummary) {
-    Surface(color = AppTheme.role.accentTint, shape = MaterialTheme.shapes.medium) {
-        Row(Modifier.fillMaxWidth().padding(AppDimens.spaceXl),
-            horizontalArrangement = Arrangement.spacedBy(AppDimens.spaceLg)) {
-            SummaryItem(summary.activePostingCount.toString(), stringResource(R.string.design_active_postings), Modifier.weight(1f))
-            SummaryItem(summary.totalApplicantCount?.toString() ?: stringResource(R.string.backend_not_provided),
-                stringResource(R.string.design_total_applicants), Modifier.weight(1f))
+private fun SummaryStrip(summary: OwnerHomeSummary, onCreatePosting: () -> Unit) {
+    Surface(color = AppTheme.role.accent, shape = MaterialTheme.shapes.medium,
+        contentColor = AppTheme.role.onAccent) {
+        Column(Modifier.fillMaxWidth().padding(AppDimens.spaceXl)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppDimens.spaceLg)) {
+                SummaryItem(summary.activePostingCount, stringResource(R.string.design_active_postings), Modifier.weight(1f))
+                SummaryItem(summary.totalApplicantCount, stringResource(R.string.design_total_applicants), Modifier.weight(1f))
+            }
+            Spacer(Modifier.height(AppDimens.spaceLg))
+            HorizontalDivider(color = AppColors.OnOwnerAccentSub.copy(alpha = 0.25f))
+            Spacer(Modifier.height(AppDimens.spaceLg))
+            Button(onClick = onCreatePosting, modifier = Modifier.fillMaxWidth().heightIn(min = AppDimens.touchTarget),
+                shape = MaterialTheme.shapes.small, colors = ButtonDefaults.buttonColors(
+                    containerColor = AppColors.FocusSurface, contentColor = AppColors.FocusContent)) {
+                Text(stringResource(R.string.design_create_posting), style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.weight(1f))
+                Icon(Icons.Outlined.Add, null, Modifier.size(AppDimens.iconSize), tint = AppTheme.role.accent)
+            }
         }
     }
 }
 
 @Composable
-private fun SummaryItem(value: String, label: String, modifier: Modifier = Modifier) {
+private fun SummaryItem(value: Int?, label: String, modifier: Modifier = Modifier) {
     Column(modifier) {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = AppColors.TextSub)
-        Text(value, style = MaterialTheme.typography.headlineLarge, color = AppColors.TextMain)
+        Text(label, style = MaterialTheme.typography.labelMedium, color = AppColors.OnOwnerAccentSub)
+        Text(value?.toString() ?: stringResource(R.string.backend_not_provided),
+            style = if (value == null) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.headlineLarge,
+            color = AppTheme.role.onAccent)
     }
 }
 

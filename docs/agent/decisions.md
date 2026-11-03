@@ -499,3 +499,22 @@ Related files:
 - `docs/agent/style_guide.md`
 - `docs/ui-redesign-report.md`
 - `.agents/skills/material-design-3-ui/SKILL.md`
+
+## 2026-11-02 - User Selected Wage-First Home Direction
+
+Decision:
+- Apply the user's selected “시급 우선” design from the interactive review, including the later stronger role colors.
+- Worker home: inverse green wage feature, yellow apply action, compact remaining job rows on white. Owner home: orange summary with an inverse create-posting action and plain posting rows.
+- Keep all existing jobs, availability switch, direct apply, app navigation and live/demo boundaries. This is a reading hierarchy change; do not sort by wage or alter repository selection rules.
+- Use the first supplied urgent job, or the first supplied ordinary job if no urgent job is available. Do not fabricate urgency, deadlines, dates, distances or applicant counts.
+- Prototype-only choices and sample data are not shipped as runtime business state. Preserve 48dp targets and native Material behavior even where the visual mockup used smaller controls.
+- Keep working on design/android-ui-redesign; no push, PR or native screen automation is authorized by this change.
+
+Reason:
+- The user rejected the initial card treatment and the next overly muted palette, then explicitly selected the wage-first variant.
+
+Related files:
+- `docs/agent/style_guide.md`
+- `feature/worker/ui/WorkerHomeScreen.kt`
+- `feature/worker/ui/component/WorkerFocusJobCard.kt`
+- `feature/owner/ui/OwnerHomeScreen.kt`

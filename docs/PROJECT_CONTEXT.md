@@ -137,3 +137,11 @@ These questions are not yet settled in code:
 - Compile, lint and APK tasks succeeded; the full verification remains non-green because one existing camera test cannot create a symbolic link on this Windows host. The same failure was reproduced at the unchanged base commit.
 - No Android device or usable emulator/system image is available. Screenshots, TalkBack, text scaling, rotation and actual user flows remain unverified. Eight home Preview configurations were added for later visual review.
 - Full analysis, skill selection, limitations and verification are in `docs/ui-redesign-report.md`. No push or PR was requested or performed.
+
+
+## 2026-11-02 Selected Wage-First Revision
+
+- The user explicitly selected “시급 우선” after reviewing two mockups and requesting stronger role colors.
+- The selected Compose home implementation replaces the initial redesign: a dark green wage feature and yellow apply action for workers, orange summary and dark create action for owners, white reading surfaces and compact remaining job rows.
+- Existing repository ordering, all postings, direct apply, availability switch and navigation callbacks remain. New presentation components are stateless and UI-only.
+- See the latest revision section in `docs/ui-redesign-report.md` for validation. The in-chat mockup is design evidence, not an Android screenshot. No native UI automation was performed for this revision.

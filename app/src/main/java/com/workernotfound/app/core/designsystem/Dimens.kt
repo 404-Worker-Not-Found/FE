@@ -21,4 +21,7 @@ object AppDimens {
     val readingMaxWidth = 640.dp
     val jobCardMinWidth = 280.dp
     val urgentCardWidth = 288.dp
+    val categoryIconSize = 40.dp
+    val iconSize = 20.dp
+    val focusMetadataMinWidth = 112.dp
 }
