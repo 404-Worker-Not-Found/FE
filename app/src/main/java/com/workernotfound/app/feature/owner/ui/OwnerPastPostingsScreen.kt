@@ -16,6 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import com.workernotfound.app.R
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.core.designsystem.component.AppBadge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -102,8 +105,8 @@ private fun OwnerPastPostingsContent(
                 contentPadding = PaddingValues(AppDimens.screenPadding),
                 verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
             ) {
-                items(items = uiState.postings, key = { it.postingId }) { posting ->
-                    PastPostingCard(posting = posting, onClick = { onPostingClick(posting.postingId) })
+                items(items = uiState.postings, key = { it.entryId }) { posting ->
+                    PastPostingCard(posting = posting, onClick = { onPostingClick(posting.entryId) })
                 }
             }
         }
@@ -121,7 +124,7 @@ private fun PastPostingCard(posting: PastPosting, onClick: () -> Unit) {
                 fontSize = 12.sp,
                 modifier = Modifier.weight(1f),
             )
-            StatusBadge(status = posting.status.toBadge())
+            PastPostingBadge(posting.status)
         }
         Spacer(Modifier.height(8.dp))
         Text(text = posting.workSummary, style = MaterialTheme.typography.titleMedium, color = AppColors.TextMain)
@@ -134,4 +137,17 @@ internal fun PastPostingStatus.toBadge(): AppStatus = when (this) {
     PastPostingStatus.COMPLETED -> AppStatus.DONE
     PastPostingStatus.NO_SHOW -> AppStatus.NO_SHOW
     PastPostingStatus.DISPUTE -> AppStatus.DISPUTE
+    PastPostingStatus.CANCELED -> AppStatus.CANCELED
+    PastPostingStatus.FAILED -> AppStatus.DISPUTE
+    PastPostingStatus.CLOSED -> AppStatus.DONE
+}
+
+
+@Composable
+internal fun PastPostingBadge(status: PastPostingStatus) {
+    when (status) {
+        PastPostingStatus.CLOSED -> AppBadge(stringResource(R.string.past_status_closed), AppColors.Border, AppColors.TextSub)
+        PastPostingStatus.FAILED -> AppBadge(stringResource(R.string.past_status_failed), AppColors.DangerBg, AppColors.Danger)
+        else -> StatusBadge(status = status.toBadge())
+    }
 }

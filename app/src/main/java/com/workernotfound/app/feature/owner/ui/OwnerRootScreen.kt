@@ -50,6 +50,7 @@ fun OwnerRootScreen(navController: NavHostController) {
             0 -> OwnerHomeScreen(
                 onCreatePosting = { navController.navigate(AppRoute.OWNER_JOB_POSTING) },
                 onPostingClick = { postingId -> navController.navigate(AppRoute.ownerApplicants(postingId)) },
+                onNotificationsClick = { navController.navigate(AppRoute.OWNER_NOTIFICATIONS) },
                 modifier = contentModifier,
             )
             1 -> OwnerPastPostingsScreen(
@@ -62,6 +63,9 @@ fun OwnerRootScreen(navController: NavHostController) {
             )
             else -> OwnerMyPageScreen(
                 onLogout = { navController.popBackStack(AppRoute.ROLE_SWITCHER, inclusive = false) },
+                onAccountSettings = { navController.navigate(AppRoute.OWNER_ACCOUNT) },
+                onReviews = { navController.navigate(AppRoute.OWNER_REVIEWS) },
+                onChat = { navController.navigate(AppRoute.OWNER_CHATS) },
                 modifier = contentModifier,
             )
         }

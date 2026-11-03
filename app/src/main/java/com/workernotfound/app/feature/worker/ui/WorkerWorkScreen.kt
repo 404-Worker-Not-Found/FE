@@ -13,9 +13,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
+import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -37,15 +45,35 @@ import com.workernotfound.app.feature.worker.viewmodel.WorkerWorkViewModel
 
 @Composable
 fun WorkerWorkScreen(
+    onTrustClick: () -> Unit,
+    onApplicationsClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkerWorkViewModel = hiltViewModel(),
+    onCancellation: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    WorkerWorkContent(uiState = uiState, modifier = modifier)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) viewModel.load() }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    WorkerWorkContent(
+        uiState = uiState, onRetry = viewModel::load, onTrustClick = onTrustClick,
+        onApplicationsClick = onApplicationsClick, modifier = modifier,
+        onCancellation = onCancellation,
+    )
 }
 
 @Composable
-private fun WorkerWorkContent(uiState: WorkerWorkUiState, modifier: Modifier = Modifier) {
+private fun WorkerWorkContent(
+    uiState: WorkerWorkUiState,
+    onRetry: () -> Unit,
+    onTrustClick: () -> Unit,
+    onApplicationsClick: () -> Unit,
+    onCancellation: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier.fillMaxSize()) {
         Text(
             text = "근무 관리",
@@ -59,7 +87,22 @@ private fun WorkerWorkContent(uiState: WorkerWorkUiState, modifier: Modifier = M
                 bottom = 8.dp,
             ),
         )
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = AppDimens.screenPadding)) {
+            TextButton(onClick = onApplicationsClick, modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.worker_applications))
+            }
+            TextButton(onClick = onTrustClick, modifier = Modifier.weight(1f)) {
+                Text(stringResource(if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) R.string.worker_trust_history else R.string.attendance_title))
+            }
+        }
         when {
+            uiState.errorMessage != null && !uiState.isLoading -> Column(
+                modifier = Modifier.fillMaxSize().padding(AppDimens.screenPadding),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(uiState.errorMessage ?: stringResource(R.string.worker_schedule_load_error), color = AppColors.TextSub)
+                AppPrimaryButton(text = stringResource(R.string.worker_retry), onClick = onRetry)
+            }
             uiState.isLoading -> LoadingBox()
             uiState.scheduled.isEmpty() && uiState.inProgress.isEmpty() -> EmptyBox()
             else -> LazyColumn(
@@ -69,11 +112,11 @@ private fun WorkerWorkContent(uiState: WorkerWorkUiState, modifier: Modifier = M
             ) {
                 if (uiState.inProgress.isNotEmpty()) {
                     item { SectionLabel(text = "진행 중 근무") }
-                    items(items = uiState.inProgress, key = { it.id }) { WorkCard(it) }
+                    items(items = uiState.inProgress, key = { it.id }) { WorkCard(it, onCancellation) }
                 }
                 if (uiState.scheduled.isNotEmpty()) {
                     item { SectionLabel(text = "예정 근무") }
-                    items(items = uiState.scheduled, key = { it.id }) { WorkCard(it) }
+                    items(items = uiState.scheduled, key = { it.id }) { WorkCard(it, onCancellation) }
                 }
             }
         }
@@ -81,15 +124,18 @@ private fun WorkerWorkContent(uiState: WorkerWorkUiState, modifier: Modifier = M
 }
 
 @Composable
-private fun WorkCard(work: WorkSchedule) {
+private fun WorkCard(work: WorkSchedule, onCancellation: (String) -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
+        if (!com.workernotfound.app.BuildConfig.USE_DEMO_DATA) TextButton({ onCancellation(work.id) }) { Text(stringResource(R.string.cancellation_title)) }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = work.storeName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
                 Spacer(Modifier.height(2.dp))
                 Text(text = "${work.category} · ${work.workDate}", color = AppColors.TextSub, fontSize = 12.sp)
             }
-            WorkStatusBadge(work)
+            if (work.attendance?.checkedIn == true && work.attendance.status != "IN_PROGRESS")
+                Text(stringResource(R.string.attendance_complete), color = AppColors.Success)
+            else WorkStatusBadge(work)
         }
         Spacer(Modifier.height(10.dp))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -107,6 +153,10 @@ private fun WorkCard(work: WorkSchedule) {
 
 @Composable
 private fun WorkStatusBadge(work: WorkSchedule) {
+    if (work.attendance?.status == "SCHEDULED") {
+        AppBadge(text = stringResource(R.string.attendance_before_work), background = AppColors.WorkerLight, contentColor = AppColors.WorkerEmphasis)
+        return
+    }
     when (work.status) {
         com.workernotfound.app.feature.worker.domain.model.WorkStatus.IN_PROGRESS ->
             StatusBadge(status = AppStatus.WORKING)

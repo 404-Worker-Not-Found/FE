@@ -14,6 +14,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import com.workernotfound.app.BuildConfig
+import com.workernotfound.app.R
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.feature.owner.ui.component.ServerSettlementCard
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -89,12 +93,12 @@ private fun OwnerPastPostingDetailContent(
             ) {
                 SummaryCard(posting)
                 SettlementSection(posting)
-                ReviewSection(
+                if (BuildConfig.USE_DEMO_DATA) ReviewSection(
                     posting = posting,
                     canWriteReview = uiState.canWriteReview,
                     nowMillis = uiState.nowMillis,
                     onWriteReview = { onWriteReview(posting.postingId) },
-                )
+                ) else AppPrimaryButton(text = stringResource(R.string.reviews_title), onClick = { onWriteReview(posting.postingId) })
             }
         }
     }
@@ -110,7 +114,7 @@ private fun SummaryCard(posting: PastPosting) {
                 fontSize = 12.sp,
                 modifier = Modifier.weight(1f),
             )
-            StatusBadge(status = posting.status.toBadge())
+            PastPostingBadge(posting.status)
         }
         Spacer(Modifier.height(8.dp))
         Text(text = posting.workSummary, style = MaterialTheme.typography.titleMedium, color = AppColors.TextMain)
@@ -129,6 +133,10 @@ private fun SummaryCard(posting: PastPosting) {
 /** 정산 내역 확인: 최종 정산 금액 및 지급 일시. */
 @Composable
 private fun SettlementSection(posting: PastPosting) {
+    if (!BuildConfig.USE_DEMO_DATA) {
+        ServerSettlementCard(posting.serverSettlement)
+        return
+    }
     val settlement = posting.settlement
     Column {
         SectionLabel(text = "정산 내역")
@@ -180,7 +188,7 @@ private fun ReviewSection(
 
 private fun reviewHint(posting: PastPosting, canWriteReview: Boolean, nowMillis: Long): String =
     if (canWriteReview) {
-        "리뷰 작성 기간이 ${ReviewPolicy.remainingDays(posting.workEndMillis, nowMillis)}일 남았어요."
+        "리뷰 작성 기간이 ${ReviewPolicy.remainingDays(posting.reviewStartMillis, nowMillis)}일 남았어요."
     } else {
         "리뷰는 근무 종료 후 ${ReviewPolicy.REVIEW_WINDOW_DAYS}일 이내에만 작성할 수 있어요."
     }

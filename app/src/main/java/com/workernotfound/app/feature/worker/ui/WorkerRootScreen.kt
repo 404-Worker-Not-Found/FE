@@ -51,21 +51,27 @@ fun WorkerRootScreen(navController: NavHostController) {
         when (selectedTab) {
             0 -> WorkerHomeScreen(
                 onJobClick = { jobId -> navController.navigate(AppRoute.workerJobDetail(jobId)) },
-                onNotificationsClick = { navController.navigate(AppRoute.WORKER_APPLICATIONS) },
+                onNotificationsClick = { navController.navigate(AppRoute.WORKER_NOTIFICATIONS) },
                 modifier = contentModifier,
             )
             1 -> WorkerJobSearchScreen(
                 onJobClick = { jobId -> navController.navigate(AppRoute.workerJobDetail(jobId)) },
                 modifier = contentModifier,
             )
-            2 -> WorkerWorkScreen(modifier = contentModifier)
+            2 -> WorkerWorkScreen(
+                onCancellation = { navController.navigate(AppRoute.workerCancellation(it)) },
+                modifier = contentModifier,
+                onTrustClick = { navController.navigate(AppRoute.WORKER_TRUST) },
+                onApplicationsClick = { navController.navigate(AppRoute.WORKER_APPLICATIONS) },
+            )
             3 -> WorkerChatListScreen(
                 onRoomClick = { roomId -> navController.navigate(AppRoute.workerChatRoom(roomId)) },
                 modifier = contentModifier,
             )
             else -> WorkerMyPageScreen(
                 onTrustClick = { navController.navigate(AppRoute.WORKER_TRUST) },
-                onLogout = { navController.navigate(AppRoute.ROLE_SWITCHER) },
+                onLogout = { navController.popBackStack(AppRoute.ROLE_SWITCHER, inclusive = false) },
+                onAccountSettings = { navController.navigate(AppRoute.WORKER_ACCOUNT) },
                 modifier = contentModifier,
             )
         }

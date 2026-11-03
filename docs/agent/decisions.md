@@ -460,3 +460,25 @@ Related files:
 - `docs/UI_Specification.md`
 - `docs/architecture/package-structure.md`
 - `docs/PROJECT_CONTEXT.md`
+
+## 2026-11-01 - Backend Contract Priority During Integration
+
+Decision:
+- Integrate the existing Android screens with the deployed backend before implementing APIs for screens that do not exist yet.
+- When screen behavior or API fields conflict with the confirmed backend contract, adapt the frontend to the backend and record the difference. This supersedes the earlier UI-specification priority for backend integration conflicts.
+- The backend reference repository is `https://github.com/404-Worker-Not-Found/BE.git`; confirm contracts against the deployed OpenAPI documents and backend implementation. Report disagreements between those sources rather than inventing behavior.
+- Keep UI-only implementation work on its own branch, separate from API integration.
+
+Reason:
+- The user explicitly chose backend compatibility as the integration priority and requested separate API and UI work.
+
+Implication for agents:
+- Inspect existing screens first and distinguish implemented APIs, missing frontend screens, missing backend support, and unverified integration flows.
+- Do not fabricate server fields, successful mutations, account credentials, or unsupported endpoint paths to preserve mock behavior.
+- Request backend-provided test accounts and required business/payment setup for authenticated end-to-end verification; mock identities do not authenticate with the server.
+- Record any screen-specification differences in the integration status documentation. Preserve the existing visual design system.
+
+Related files:
+- `docs/UI_Specification.md`
+- `docs/PROJECT_CONTEXT.md`
+- `docs/backend-integration.md`

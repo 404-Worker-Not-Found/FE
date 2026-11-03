@@ -1,0 +1,16 @@
+<resources>
+    <string name="map_not_configured">지도 서비스를 준비 중입니다. 주소 검색으로 위치를 선택할 수 있습니다.</string>
+    <string name="map_auth_failed">지도를 불러올 수 없습니다. 지도 서비스 설정을 확인해 주세요.</string>
+    <string name="map_address">주소</string>
+    <string name="map_search_address">주소 위치 찾기</string>
+    <string name="map_use_current">현재 위치 사용</string>
+    <string name="map_address_failed">주소나 현재 위치를 확인하지 못했습니다. 주소·위치 권한·기기의 위치 설정을 확인해 주세요.</string>
+    <string name="map_location_selected">위치가 선택되었습니다. 주소와 지도 위치를 확인해 주세요.</string>
+    <string name="map_locations_loading">공고 위치를 확인하고 있습니다.</string>
+    <string name="map_locations_missing">위치를 확인할 수 없는 공고는 지도에 표시하지 않습니다.</string>
+    <string name="map_locating">현재 위치를 확인하고 있습니다.</string>
+    <string name="map_current_used">현재 위치 기준으로 거리를 조회합니다. 이동했다면 위치를 다시 확인해 주세요.</string>
+    <string name="map_address_approximate">주소를 변환한 대략적인 근무지 위치입니다.</string>
+    <string name="map_workplace">근무지</string>
+    <string name="map_my_location">조회한 내 위치</string>
+</resources>

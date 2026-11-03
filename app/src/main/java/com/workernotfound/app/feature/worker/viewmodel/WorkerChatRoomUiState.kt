@@ -10,4 +10,5 @@ data class WorkerChatRoomUiState(
     val messages: List<ChatMessage> = emptyList(),
     val draft: String = "",
     val errorMessage: String? = null,
+    val reconnecting: Boolean = false,
 )

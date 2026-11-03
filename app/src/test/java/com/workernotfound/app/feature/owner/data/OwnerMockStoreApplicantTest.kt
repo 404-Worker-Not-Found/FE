@@ -20,15 +20,15 @@ class OwnerMockStoreApplicantTest {
 
     @Test
     fun `applicants are sorted by match score descending`() {
-        val scores = store.applicantBoard("1", now).applicants.map { it.matchScore }
+        val scores = store.applicantBoard("1", now).applicants.map { requireNotNull(it.matchScore) }
         assertEquals(scores.sortedDescending(), scores)
     }
 
     @Test
     fun `category experience reflects the posting category`() {
         val applicants = store.applicantBoard("1", now).applicants.associateBy { it.id }
-        assertTrue(applicants.getValue("a1").hasCategoryExperience)
-        assertFalse(applicants.getValue("a2").hasCategoryExperience)
+        assertTrue(requireNotNull(applicants.getValue("a1").hasCategoryExperience))
+        assertFalse(requireNotNull(applicants.getValue("a2").hasCategoryExperience))
     }
 
     @Test
@@ -51,6 +51,6 @@ class OwnerMockStoreApplicantTest {
     @Test
     fun `recent work history is limited to five entries`() {
         val detail = store.applicantDetail("3", "a4")
-        assertTrue(detail.recentWorks.size <= 5)
+        assertTrue(requireNotNull(detail.recentWorks).size <= 5)
     }
 }

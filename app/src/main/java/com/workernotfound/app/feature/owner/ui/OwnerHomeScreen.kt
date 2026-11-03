@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
 import com.workernotfound.app.core.designsystem.AppTheme
@@ -42,6 +43,7 @@ fun OwnerHomeScreen(
     onPostingClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OwnerHomeViewModel = hiltViewModel(),
+    onNotificationsClick: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LifecycleResumeEffect(Unit) {
@@ -53,6 +55,7 @@ fun OwnerHomeScreen(
         onCreatePosting = onCreatePosting,
         onPostingClick = onPostingClick,
         onRetry = viewModel::loadPostings,
+        onNotificationsClick = onNotificationsClick,
         modifier = modifier,
     )
 }
@@ -63,6 +66,7 @@ private fun OwnerHomeContent(
     onCreatePosting: () -> Unit,
     onPostingClick: (String) -> Unit,
     onRetry: () -> Unit,
+    onNotificationsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -81,6 +85,9 @@ private fun OwnerHomeContent(
                 color = AppColors.TextMain,
             )
             Spacer(Modifier.height(12.dp))
+            androidx.compose.material3.TextButton(onClick = onNotificationsClick) {
+                Text(androidx.compose.ui.res.stringResource(R.string.notifications_title))
+            }
             SummaryStrip(uiState.summary)
             Spacer(Modifier.height(12.dp))
             AppPrimaryButton(text = "⚡ 긴급 공고 등록", onClick = onCreatePosting)
@@ -107,7 +114,7 @@ private fun SummaryStrip(summary: OwnerHomeSummary) {
                 modifier = Modifier.weight(1f),
             )
             SummaryItem(
-                value = "${summary.totalApplicantCount}",
+                value = summary.totalApplicantCount?.toString() ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided),
                 label = "총 지원자",
                 modifier = Modifier.weight(1f),
             )

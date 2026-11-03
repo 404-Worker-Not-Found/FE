@@ -1,0 +1,12 @@
+<resources>
+    <string name="history_title">근무·정산 이력</string>
+    <string name="history_empty">종료된 근무 이력이 없습니다.</string>
+    <string name="history_work_ref">근무 #%1$d</string>
+    <string name="history_next_day">종료 시간은 다음 날 기준입니다.</string>
+    <string name="history_completed">근무 완료</string>
+    <string name="history_canceled">근무 취소</string>
+    <string name="history_no_show">미출근 처리</string>
+    <string name="history_failed">근무 실패</string>
+    <string name="history_completed_at">완료 처리: %1$s</string>
+    <string name="history_open_job">공고 보기</string>
+</resources>

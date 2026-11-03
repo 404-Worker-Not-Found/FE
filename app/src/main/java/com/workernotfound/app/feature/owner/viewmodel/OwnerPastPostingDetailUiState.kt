@@ -12,5 +12,5 @@ data class OwnerPastPostingDetailUiState(
 ) {
     /** 리뷰 작성 버튼: 근무 종료 후 7일 이내만 활성화. */
     val canWriteReview: Boolean
-        get() = posting?.let { ReviewPolicy.canWriteReview(it.workEndMillis, nowMillis) } ?: false
+        get() = posting?.let { ReviewPolicy.canWriteReview(it.reviewStartMillis, nowMillis) } ?: false
 }

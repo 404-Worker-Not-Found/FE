@@ -1,14 +1,21 @@
 package com.workernotfound.app.feature.worker.data
 
+import android.content.Context
+import com.workernotfound.app.BuildConfig
+import com.workernotfound.app.R
+import com.workernotfound.app.feature.worker.data.remote.JobCardResponseDto
+import com.workernotfound.app.feature.worker.data.remote.WorkerJobApiService
+import com.workernotfound.app.feature.worker.data.remote.WorkerJobMapper
 import com.workernotfound.app.feature.worker.domain.model.JobFilter
 import com.workernotfound.app.feature.worker.domain.model.TimeSlot
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobDetail
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
 import com.workernotfound.app.feature.worker.domain.repository.JobSearchResult
 import com.workernotfound.app.feature.worker.domain.repository.WorkerJobRepository
-import kotlinx.coroutines.delay
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.NoSuchElementException
 import javax.inject.Inject
+import kotlinx.coroutines.delay
 
 /**
  * Mock-backed job search/detail repository. A single in-memory list of
@@ -16,9 +23,28 @@ import javax.inject.Inject
  * applies the [JobFilter]. The ids include the ones the home screen links to
  * (u1, u2, r1...) so navigation from home resolves to a detail here.
  */
-class WorkerJobRepositoryImpl @Inject constructor() : WorkerJobRepository {
+class WorkerJobRepositoryImpl @Inject constructor(
+    private val api: WorkerJobApiService,
+    private val mapper: WorkerJobMapper,
+    @ApplicationContext private val context: Context,
+) : WorkerJobRepository {
 
     override suspend fun searchJobs(filter: JobFilter): JobSearchResult {
+        if (!BuildConfig.USE_DEMO_DATA) {
+            // No location is fabricated. Distance filtering needs a real location first.
+            check(filter.maxDistanceKm == JobFilter.MAX_DISTANCE_KM || filter.hasCoordinates()) { context.getString(R.string.backend_location_required) }
+            val all = mutableListOf<JobCardResponseDto>()
+            var page = 0
+            do {
+                val query = filter.searchQuery(page)
+                val response = api.search(query).requireData()
+                all += response.jobs
+                page++
+            } while (page < response.totalPages)
+            val matched = all.filter { filter.categories.isEmpty() || it.categoryName in filter.categories }
+            val (urgent, recommended) = matched.partition { it.isUrgent }
+            return JobSearchResult(urgent.map(mapper::card), recommended.map(mapper::card))
+        }
         delay(300)
         val matched = JOBS.filter { it.matches(filter) }
         val (urgent, recommended) = matched.partition { it.isUrgent }
@@ -29,6 +55,7 @@ class WorkerJobRepositoryImpl @Inject constructor() : WorkerJobRepository {
     }
 
     override suspend fun getJobDetail(id: String): WorkerJobDetail {
+        if (!BuildConfig.USE_DEMO_DATA) return mapper.detail(api.detail(id.toLong()).requireData())
         delay(200)
         return JOBS.firstOrNull { it.id == id }
             ?: throw NoSuchElementException("공고를 찾을 수 없습니다: $id")
@@ -36,7 +63,7 @@ class WorkerJobRepositoryImpl @Inject constructor() : WorkerJobRepository {
 
     private fun WorkerJobDetail.matches(filter: JobFilter): Boolean {
         if (filter.urgentOnly && !isUrgent) return false
-        if (distanceKm > filter.maxDistanceKm) return false
+        if (distanceKm != null && distanceKm > filter.maxDistanceKm) return false
         if (finalWage < filter.minWage) return false
         if (filter.timeSlot != TimeSlot.ANY && timeSlotOf() != filter.timeSlot) return false
         if (filter.categories.isNotEmpty() && category !in filter.categories) return false
@@ -59,16 +86,16 @@ class WorkerJobRepositoryImpl @Inject constructor() : WorkerJobRepository {
         category = category,
         workTime = workTimeRange,
         hourlyWage = finalWage,
-        distanceText = formatDistance(distanceKm),
+        distanceText = formatDistance(requireNotNull(distanceKm)),
         isUrgent = isUrgent,
         deadlineText = applyDeadlineText,
     )
 
-    private companion object {
-        fun formatDistance(km: Double): String =
+    companion object {
+        private fun formatDistance(km: Double): String =
             if (km < 1.0) "${(km * 1000).toInt()}m" else "%.1fkm".format(km)
 
-        val JOBS = listOf(
+        internal val JOBS = listOf(
             WorkerJobDetail(
                 id = "u1",
                 storeName = "다정있는 비치",
