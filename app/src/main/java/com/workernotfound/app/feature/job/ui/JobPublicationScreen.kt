@@ -33,7 +33,9 @@ fun JobPublicationScreen(onBack: () -> Unit, viewModel: JobPublicationViewModel 
                     payment.amount?.let { Text(stringResource(R.string.publication_amount, it.toPlainString(), payment.currency.orEmpty())) }
                     if (payment.changePending) Text(stringResource(R.string.publication_change_pending))
                 }
-                Text(stringResource(R.string.publication_toss_pending))
+                com.workernotfound.app.feature.payment.ui.PublicationCheckout(
+                    jobId = requireNotNull(state.jobId), payment = state.payment, enabled = !state.busy,
+                    onUpdated = viewModel::refresh)
                 AppPrimaryButton(stringResource(R.string.publication_refresh), viewModel::refresh, enabled = !state.busy)
             } else {
                 if (state.business == null) {
