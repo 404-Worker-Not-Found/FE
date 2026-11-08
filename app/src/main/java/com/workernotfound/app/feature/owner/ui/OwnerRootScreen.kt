@@ -3,6 +3,7 @@ package com.workernotfound.app.feature.owner.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -13,6 +14,9 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
+import com.workernotfound.app.feature.worker.ui.WorkerChatListScreen
 import androidx.navigation.NavHostController
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.component.AppBottomBar
@@ -28,18 +32,21 @@ private val OWNER_TABS = listOf(
 
 /**
  * Owner section shell with bottom navigation (UI spec 2-1:
- * 홈 / 공고관리 / 근무관리 / 마이페이지). Tab content switches in place;
+ * 홈 / 공고관리 / 근무관리 / 채팅 / 마이페이지). Tab content switches in place;
  * detail screens are pushed on the app [navController].
  */
 @Composable
 fun OwnerRootScreen(navController: NavHostController) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    val tabs = OWNER_TABS.toMutableList().apply {
+        add(3, BottomNavItem(stringResource(R.string.chat_title), Icons.Filled.ChatBubbleOutline))
+    }
 
     Scaffold(
         containerColor = AppColors.Surface,
         bottomBar = {
             AppBottomBar(
-                items = OWNER_TABS,
+                items = tabs,
                 selectedIndex = selectedTab,
                 onSelect = { selectedTab = it },
             )
@@ -59,6 +66,10 @@ fun OwnerRootScreen(navController: NavHostController) {
             )
             2 -> OwnerWorkListScreen(
                 onWorkClick = { workId -> navController.navigate(AppRoute.ownerWorkDetail(workId)) },
+                modifier = contentModifier,
+            )
+            3 -> WorkerChatListScreen(
+                onRoomClick = { roomId -> navController.navigate(AppRoute.ownerChatRoom(roomId)) },
                 modifier = contentModifier,
             )
             else -> OwnerMyPageScreen(
