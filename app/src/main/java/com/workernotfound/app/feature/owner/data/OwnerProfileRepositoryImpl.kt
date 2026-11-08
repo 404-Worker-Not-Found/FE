@@ -21,7 +21,7 @@ class OwnerProfileRepositoryImpl @Inject constructor(
 
     private var profile = OwnerProfile(
         name = "김사장",
-        storeName = "역삼 한식당 소반",
+        storeName = OwnerMockSeed.business().name,
         email = "owner@example.com",
         phone = "010-9876-5432",
         profileImageUrl = null,

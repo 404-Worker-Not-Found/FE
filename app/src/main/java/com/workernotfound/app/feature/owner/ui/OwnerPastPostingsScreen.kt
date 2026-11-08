@@ -51,6 +51,7 @@ fun OwnerPastPostingsScreen(
     onPostingClick: (postingId: String) -> Unit,
     modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
+    showHeader: Boolean = true,
     viewModel: OwnerPastPostingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -63,6 +64,7 @@ fun OwnerPastPostingsScreen(
         onPostingClick = onPostingClick,
         onRetry = viewModel::refresh,
         onBack = onBack,
+        showHeader = showHeader,
         modifier = modifier,
     )
 }
@@ -73,12 +75,13 @@ private fun OwnerPastPostingsContent(
     onPostingClick: (String) -> Unit,
     onRetry: () -> Unit,
     onBack: (() -> Unit)?,
+    showHeader: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize().background(AppColors.Surface)) {
         if (onBack != null) {
             AppTopBar(title = "지난 공고", onBack = onBack, modifier = Modifier.statusBarsPadding())
-        } else {
+        } else if (showHeader) {
             Text(
                 text = "지난 공고 관리",
                 fontSize = 20.sp,

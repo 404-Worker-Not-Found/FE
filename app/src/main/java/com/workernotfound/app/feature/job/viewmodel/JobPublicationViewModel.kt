@@ -13,9 +13,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-enum class PublicationField { TITLE, DESCRIPTION, DATE, START, END, BASE_WAGE, EXTRA_WAGE, COUNT, DEADLINE, RESUME_ID }
+enum class PublicationField { TITLE, DESCRIPTION, DATE, START, END, BASE_WAGE, EXTRA_WAGE, COUNT, DEADLINE }
+enum class PublicationValidationIssue { WAGE, EXTRA_WAGE, COUNT, SCHEDULE, DEADLINE }
 data class JobPublicationUiState(
-    val fields: Map<PublicationField, String> = emptyMap(), val business: PostingBusiness? = null,
+    val fields: Map<PublicationField, String> = mapOf(PublicationField.COUNT to "1"), val business: PostingBusiness? = null,
     val locationSelected: Boolean = true,
     val nextDay: Boolean = false, val urgency: String = "MEDIUM",
     val categories: List<PostingCategory> = emptyList(), val selectedCategory: PostingCategory? = null,
@@ -30,6 +31,22 @@ data class JobPublicationUiState(
             this[PublicationField.EXTRA_WAGE].takeIf { it.isNotBlank() }?.toInt(), this[PublicationField.COUNT].toInt(),
             urgency, LocalDateTime.parse(this[PublicationField.DEADLINE])) }
     } catch (_: IllegalArgumentException) { null } catch (_: java.time.format.DateTimeParseException) { null }
+    val validationIssue: PublicationValidationIssue? get() {
+        if (this[PublicationField.BASE_WAGE].isNotBlank() && (this[PublicationField.BASE_WAGE].toIntOrNull() ?: 0) < MIN_HOURLY_WAGE) return PublicationValidationIssue.WAGE
+        if (this[PublicationField.EXTRA_WAGE].isNotBlank() && (this[PublicationField.EXTRA_WAGE].toIntOrNull() ?: 0) <= 0) return PublicationValidationIssue.EXTRA_WAGE
+        if (this[PublicationField.COUNT].isNotBlank() && this[PublicationField.COUNT].toIntOrNull() !in 1..10) return PublicationValidationIssue.COUNT
+        val start = runCatching { LocalTime.parse(this[PublicationField.START]) }.getOrNull()
+        val end = runCatching { LocalTime.parse(this[PublicationField.END]) }.getOrNull()
+        if (start != null && end != null) {
+            val minutes = Duration.between(start, end).toMinutes() + if (nextDay) 1440 else 0
+            if (minutes !in 1..1440) return PublicationValidationIssue.SCHEDULE
+        }
+        val date = runCatching { LocalDate.parse(this[PublicationField.DATE]) }.getOrNull()
+        val deadline = runCatching { LocalDateTime.parse(this[PublicationField.DEADLINE]) }.getOrNull()
+        if (deadline != null && (deadline <= LocalDateTime.now(ZoneId.of("Asia/Seoul")) ||
+            (date != null && start != null && deadline >= date.atTime(start)))) return PublicationValidationIssue.DEADLINE
+        return null
+    }
     val canCreate get() = !busy && !creationAttempted && selectedCategory != null && selectedCategory in categories &&
         draft()?.isValid(LocalDateTime.now(ZoneId.of("Asia/Seoul"))) == true
 }
@@ -58,7 +75,7 @@ class JobPublicationViewModel @Inject constructor(
         state.update { it.copy(categories = categories) }
     }
     fun edit(field: PublicationField, value: String) {
-        if (!state.value.busy && (!state.value.creationAttempted || field == PublicationField.RESUME_ID)) state.update { it.copy(fields = it.fields + (field to value), error = null) }
+        if (!state.value.busy && !state.value.creationAttempted) state.update { it.copy(fields = it.fields + (field to value), error = null) }
     }
     fun nextDay(value: Boolean) { if (!state.value.busy && !state.value.creationAttempted) state.update { it.copy(nextDay = value) } }
     fun urgency(value: String) { if (!state.value.busy && !state.value.creationAttempted) state.update { it.copy(urgency = value) } }
@@ -86,14 +103,6 @@ class JobPublicationViewModel @Inject constructor(
             state.update { it.copy(jobId = id) }
             val payment = repository.payment(id)
             state.update { it.copy(payment = payment) }
-        }
-    }
-    fun resume() {
-        val id = state.value[PublicationField.RESUME_ID].toLongOrNull()?.takeIf { it > 0 } ?: return
-        action {
-            val payment = repository.payment(id)
-            saved["publicationJobId"] = id
-            state.update { it.copy(jobId = id, payment = payment) }
         }
     }
     fun refresh() {

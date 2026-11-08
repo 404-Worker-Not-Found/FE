@@ -57,11 +57,15 @@ fun OwnerRootScreen(navController: NavHostController) {
             0 -> OwnerHomeScreen(
                 onCreatePosting = { navController.navigate(AppRoute.OWNER_JOB_POSTING) },
                 onPostingClick = { postingId -> navController.navigate(AppRoute.ownerApplicants(postingId)) },
+                onPaymentClick = { postingId -> navController.navigate(AppRoute.ownerPublication(postingId)) },
                 onNotificationsClick = { navController.navigate(AppRoute.OWNER_NOTIFICATIONS) },
                 modifier = contentModifier,
             )
-            1 -> OwnerPastPostingsScreen(
-                onPostingClick = { postingId -> navController.navigate(AppRoute.ownerPastPostingDetail(postingId)) },
+            1 -> OwnerPostingManagementScreen(
+                onCreatePosting = { navController.navigate(AppRoute.OWNER_JOB_POSTING) },
+                onPostingClick = { postingId -> navController.navigate(AppRoute.ownerApplicants(postingId)) },
+                onPaymentClick = { postingId -> navController.navigate(AppRoute.ownerPublication(postingId)) },
+                onPastPostingClick = { postingId -> navController.navigate(AppRoute.ownerPastPostingDetail(postingId)) },
                 modifier = contentModifier,
             )
             2 -> OwnerWorkListScreen(
@@ -76,7 +80,6 @@ fun OwnerRootScreen(navController: NavHostController) {
                 onLogout = { navController.popBackStack(AppRoute.ROLE_SWITCHER, inclusive = false) },
                 onAccountSettings = { navController.navigate(AppRoute.OWNER_ACCOUNT) },
                 onReviews = { navController.navigate(AppRoute.OWNER_REVIEWS) },
-                onChat = { navController.navigate(AppRoute.OWNER_CHATS) },
                 modifier = contentModifier,
             )
         }

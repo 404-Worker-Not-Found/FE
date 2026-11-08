@@ -51,6 +51,7 @@ class OwnerHomeViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
+                            errorMessage = null,
                             postings = postings,
                             summary = OwnerHomeSummary(activeCount, totalApplicants),
                         )

@@ -482,3 +482,22 @@ Related files:
 - `docs/UI_Specification.md`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/backend-integration.md`
+
+## 2026-11-09 - Owner Posting and Navigation UX
+
+Decision:
+- 공고관리 opens current postings by default and provides a separate 지난 공고 tab. Payment-pending/funding-blocked cards open their own publication/payment state without asking the owner to enter an ID.
+- New postings reuse the registered business address and coordinates. The form groups store, schedule, work, and wage information; date/time fields use pickers rather than duplicate text inputs.
+- Keep one back affordance in the top bar. Chat is accessed from the bottom navigation; remove the duplicate owner my-page chat action.
+
+Reason:
+- The user identified missing current listings, repeated entry of stored information, internal ID inputs, and duplicated navigation as inconsistent owner UX.
+
+Implication for agents:
+- Preserve required backend fields behind understandable labels. Do not expose internal IDs or raw status codes as ordinary user inputs or primary progress messages.
+- Verify creation → list → detail and pending-payment recovery, not just individual screen rendering. Demo mutations must feed the same repository-backed lists as other demo owner screens.
+
+Related files:
+- `docs/UI_Specification.md`
+- `app/src/main/java/com/workernotfound/app/feature/owner/ui/OwnerPostingManagementScreen.kt`
+- `app/src/main/java/com/workernotfound/app/feature/job/ui/JobPublicationScreen.kt`

@@ -141,3 +141,9 @@ These questions are not yet settled in code:
 ## 2026-11-03 follow-up
 
 Backend 212b81d adds the hierarchical public category catalog. Owner publication now fetches/selects real IDs with retry and malformed-ID checks; the deployed route still returns 400, so catalog/publication E2E awaits deployment confirmation. A provided Toss test public key is configured locally via toss.clientKey/BuildConfig with a test-only guard. Checkout/callback/confirm execution still awaits agreed return URLs and paired backend test settings. No keys are recorded in tracked files.
+
+## 2026-11-09 owner UX checkpoint
+
+- Owner 공고관리 now defaults to current postings and separates past history. Pending payment cards on home/management open publication state by selected job ID; manual ID entry was removed.
+- The shared posting form reuses the registered business address/coordinates, groups inputs, uses calendar/30-minute time selection, and explains invalid wage/count/schedule/deadline values. Owner my-page no longer duplicates the chat tab.
+- Demo publication now adds the created posting to the shared owner store, including its empty applicant board. Production publication/payment success still requires authenticated server verification.

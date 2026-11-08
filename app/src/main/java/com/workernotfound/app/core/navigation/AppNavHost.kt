@@ -119,11 +119,18 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 )
             }
         }
+        composable(
+            route = AppRoute.OWNER_PUBLICATION,
+            arguments = listOf(navArgument("publicationJobId") { type = NavType.LongType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                com.workernotfound.app.feature.job.ui.JobPublicationScreen(onBack = { navController.popBackStack() })
+            }
+        }
         composable(AppRoute.OWNER_JOB_POSTING) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
                 JobPostingScreen(
                     onBack = { navController.popBackStack() },
-                    onSuccess = { navController.popBackStack(AppRoute.OWNER_ROOT, inclusive = false) },
                 )
             }
         }

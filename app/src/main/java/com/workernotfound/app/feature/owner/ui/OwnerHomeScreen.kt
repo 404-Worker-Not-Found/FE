@@ -44,6 +44,7 @@ fun OwnerHomeScreen(
     modifier: Modifier = Modifier,
     viewModel: OwnerHomeViewModel = hiltViewModel(),
     onNotificationsClick: () -> Unit = {},
+    onPaymentClick: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LifecycleResumeEffect(Unit) {
@@ -56,6 +57,7 @@ fun OwnerHomeScreen(
         onPostingClick = onPostingClick,
         onRetry = viewModel::loadPostings,
         onNotificationsClick = onNotificationsClick,
+        onPaymentClick = onPaymentClick,
         modifier = modifier,
     )
 }
@@ -67,6 +69,7 @@ private fun OwnerHomeContent(
     onPostingClick: (String) -> Unit,
     onRetry: () -> Unit,
     onNotificationsClick: () -> Unit,
+    onPaymentClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -99,6 +102,7 @@ private fun OwnerHomeContent(
             else -> PostingList(
                 uiState = uiState,
                 onPostingClick = onPostingClick,
+                onPaymentClick = onPaymentClick,
             )
         }
     }
@@ -140,6 +144,7 @@ private fun SummaryItem(value: String, label: String, modifier: Modifier = Modif
 private fun PostingList(
     uiState: OwnerHomeUiState,
     onPostingClick: (String) -> Unit,
+    onPaymentClick: (String) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -155,8 +160,11 @@ private fun PostingList(
             SectionLabel(text = "내 공고")
             Spacer(Modifier.height(8.dp))
         }
+        if (uiState.postings.isEmpty()) item {
+            Text(androidx.compose.ui.res.stringResource(R.string.owner_postings_empty), color = AppColors.TextSub)
+        }
         items(items = uiState.postings, key = { it.id }) { posting ->
-            OwnerJobCard(posting = posting, onClick = { onPostingClick(posting.id) })
+            OwnerJobCard(posting = posting, onClick = { if (posting.status.needsPayment) onPaymentClick(posting.id) else onPostingClick(posting.id) })
         }
     }
 }

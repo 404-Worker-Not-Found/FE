@@ -49,6 +49,29 @@ class PublicationContractTest {
         assertFalse(state.copy(selectedCategory = null).canCreate)
         assertFalse(state.copy(selectedCategory = PostingCategory(99, "미확인 업종")).canCreate)
     }
+    @Test fun publicationAppearsInManagementAndApplicantBoardWithUniqueIds() {
+        val store = com.workernotfound.app.feature.owner.data.OwnerMockStore()
+        val first = store.publish(draft())
+        val second = store.publish(draft().copy(title = "다음 공고"))
+        assertNotEquals(first, second)
+        val posting = store.postings(System.currentTimeMillis()).first { it.id == first.toString() }
+        assertEquals("공고", posting.workSummary)
+        assertEquals(com.workernotfound.app.feature.owner.domain.model.PostingStatus.RECRUITING, posting.status)
+        assertTrue(store.applicantBoard(first.toString(), System.currentTimeMillis()).applicants.isEmpty())
+    }
+
+    @Test fun invalidInputsExplainWhyPublicationCannotContinue() {
+        val base = JobPublicationUiState(fields = mapOf(PublicationField.BASE_WAGE to "100"))
+        assertEquals(PublicationValidationIssue.WAGE, base.validationIssue)
+        assertEquals(PublicationValidationIssue.COUNT, base.copy(fields = mapOf(PublicationField.COUNT to "11")).validationIssue)
+        val overnight = base.copy(fields = mapOf(PublicationField.START to "23:00", PublicationField.END to "01:00"))
+        assertEquals(PublicationValidationIssue.SCHEDULE, overnight.validationIssue)
+        assertNull(overnight.copy(nextDay = true).validationIssue)
+        assertEquals(PublicationValidationIssue.DEADLINE, base.copy(fields = mapOf(
+            PublicationField.DEADLINE to LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusMinutes(1).toString()
+        )).validationIssue)
+    }
+
     @Test fun paymentAndPublicationRemainSeparateStates() {
         val pending = PublicationPayment(5, "PAYMENT_PENDING", "CREATED", "order", 50000.toBigDecimal(), "KRW", "DEPOSITED", false)
         assertFalse(pending.isPublished)

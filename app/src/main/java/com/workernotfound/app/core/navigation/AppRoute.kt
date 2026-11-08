@@ -22,6 +22,8 @@ object AppRoute {
     // Owner section
     const val OWNER_ROOT = "owner_root"
     const val OWNER_JOB_POSTING = "owner_job_posting"        // 2-2 공고 등록
+    const val OWNER_PUBLICATION = "owner_publication/{publicationJobId}"
+    fun ownerPublication(jobId: String) = "owner_publication/$jobId"
     const val OWNER_APPLICANTS = "owner_applicants/{postingId}"  // 2-3 지원자 관리
     fun ownerApplicants(postingId: String) = "owner_applicants/$postingId"
 

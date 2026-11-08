@@ -1,5 +1,6 @@
 package com.workernotfound.app.feature.job.data
 
+import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.core.network.ApiException
 import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.job.data.remote.*
@@ -11,10 +12,21 @@ import javax.inject.Inject
 
 class JobPublicationRepositoryImpl @Inject constructor(
     private val api: JobPublicationApiService, private val backend: BackendAccess,
+    private val store: com.workernotfound.app.feature.owner.data.OwnerMockStore,
 ) : JobPublicationRepository {
-    override suspend fun categories(): List<PostingCategory> = api.categories().requireData().toPostingCategories()
+
+    override suspend fun categories(): List<PostingCategory> = if (BuildConfig.USE_DEMO_DATA) {
+        listOf(
+            PostingCategory(1, "음식점"),
+            PostingCategory(2, "카페"),
+            PostingCategory(3, "편의점"),
+            PostingCategory(4, "마트"),
+            PostingCategory(5, "기타"),
+        )
+    } else api.categories().requireData().toPostingCategories()
 
     override suspend fun business(): PostingBusiness {
+        if (BuildConfig.USE_DEMO_DATA) return com.workernotfound.app.feature.owner.data.OwnerMockSeed.business()
         backend.requireSession()
         val member = api.me().requireData()
         if (member.role != "OWNER") throw ApiException("OWNER_REQUIRED")
@@ -25,6 +37,10 @@ class JobPublicationRepositoryImpl @Inject constructor(
         return PostingBusiness(profile.ownerProfileId, profile.storeName, location.address, location.latitude, location.longitude)
     }
     override suspend fun create(draft: PublicationDraft): Long {
+        if (BuildConfig.USE_DEMO_DATA) {
+            require(draft.isValid(LocalDateTime.now(ZoneId.of("Asia/Seoul"))))
+            return store.publish(draft)
+        }
         backend.requireSession()
         require(draft.isValid(LocalDateTime.now(ZoneId.of("Asia/Seoul"))))
         val id = api.create(draft.toDto()).requireData()
@@ -32,6 +48,16 @@ class JobPublicationRepositoryImpl @Inject constructor(
         return id
     }
     override suspend fun payment(jobId: Long): PublicationPayment {
+        if (BuildConfig.USE_DEMO_DATA) return PublicationPayment(
+            jobId = jobId,
+            jobStatus = "OPEN",
+            creationStatus = "CREATED",
+            orderId = "DEMO-$jobId",
+            amount = java.math.BigDecimal.ZERO,
+            currency = "KRW",
+            orderStatus = "PAID",
+            changePending = false,
+        )
         backend.requireSession()
         val job = api.payment(jobId).requireData()
         if (job.jobPostId != jobId) throw ApiException("ORDER_MISMATCH")
