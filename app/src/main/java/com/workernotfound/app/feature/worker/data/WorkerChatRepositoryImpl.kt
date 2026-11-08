@@ -24,8 +24,10 @@ class WorkerChatRepositoryImpl @Inject constructor(private val backend: BackendA
     private val api: WorkerChatApiService,
     private val jobs: WorkerJobApiService,
     private val sessions: SessionStore,
+    private val applicants: com.workernotfound.app.feature.owner.data.remote.OwnerApplicantApiService,
     private val realtime: com.workernotfound.app.feature.worker.data.remote.ChatRealtime,
 ) : WorkerChatRepository {
+    private val names = mutableMapOf<Pair<Long, Long>, String>()
     override fun changes(roomId: String): kotlinx.coroutines.flow.Flow<Unit> =
         if (BuildConfig.USE_DEMO_DATA) kotlinx.coroutines.flow.emptyFlow() else realtime.changes(roomId.toLong())
 
@@ -104,8 +106,29 @@ class WorkerChatRepositoryImpl @Inject constructor(private val backend: BackendA
         val job = jobs.detail(room.jobPostId).requireData()
         val latest = api.messages(room.chatRoomId, size = 1).requireData().content.firstOrNull()
         val self = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { sessions.read()?.memberId }
+        val counterpart = room.counterpart(self)
+        val name = if (self == room.ownerMemberId && counterpart != null) workerName(room.jobPostId, counterpart) else null
         return ChatRoom(room.chatRoomId.toString(), job.storeName, job.categoryName, latest?.content.orEmpty(), latest?.createdAt.orEmpty(),
-            room.otherReadPosition?.lastReadMessageId, room.unreadCount, room.jobPostId.toString(), room.counterpart(self))
+            room.otherReadPosition?.lastReadMessageId, room.unreadCount, room.jobPostId.toString(), counterpart, name)
+    }
+
+    private suspend fun workerName(jobId: Long, workerId: Long): String? {
+        val key = jobId to workerId
+        names[key]?.let { return it }
+        return try {
+            var page = 0
+            var batch: Long? = null
+            do {
+                val result = applicants.list(jobId, page, batch).requireData()
+                if (page == 0) batch = result.scoreBatchId
+                result.applicants.firstOrNull { it.workerMemberId == workerId }?.workerName
+                    ?.takeIf { it.isNotBlank() }?.let { names[key] = it; return it }
+                page++
+            } while (page < result.totalPages)
+            null
+        } catch (_: retrofit2.HttpException) { null }
+        catch (_: java.io.IOException) { null }
+        catch (_: com.workernotfound.app.core.network.ApiException) { null }
     }
 
     private suspend fun ChatMessageResponseDto.toDomain() = ChatMessage(

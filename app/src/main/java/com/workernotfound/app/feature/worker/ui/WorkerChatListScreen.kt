@@ -104,7 +104,7 @@ private fun ChatRoomRow(room: ChatRoom, onClick: () -> Unit) {
                 contentDescription = null, tint = AppColors.TextSub, modifier = Modifier.size(ChatLayout.avatarIcon))
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(ChatLayout.smallGap)) {
-            Text(text = room.counterpartId?.let { androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_member_number, it) }
+            Text(text = room.counterpartName ?: room.counterpartId?.let { androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_member_number, it) }
                 ?: androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_counterpart),
                 style = androidx.compose.material3.MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
                 maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, color = AppColors.TextMain)

@@ -9,3 +9,9 @@ ChatRoomDetailResponse의 실제 ownerMemberId/workerMemberId에서 본인이 �
 검증: live verify.sh와 demo lint/unit/APK 모두 통과(각 101 tests, 실패·오류 0). 상대 ID 매핑 경계 테스트 추가. 에뮬레이터에서 점주 실제 목록의 오른쪽 가게명/최근 메시지, 방 진입, 가게명 클릭 후 연결된 공고 상세 이동을 확인했다. 메시지를 새로 보내지 않았다. build/presentation의 server.apk/demo.apk 갱신.
 
 기존 다른 작업자의 미커밋 변경은 보존했다. AppNavHost는 이 작업의 채팅 공고 경로/콜백 추가만 선택적으로 커밋한다. 화면 명세 갱신 외 에이전트 정책 문서 변경은 필요 없다.
+
+## 대화 상대 이름 후속
+
+- 점주에게 공개된 GET /api/jobs/{jobId}/applications 목록의 workerMemberId와 채팅 상대 ID를 대조해 workerName을 표시한다. 이름은 프로세스 메모리에 캐시하며 로컬 파일에 저장하지 않는다. 목록의 대화명과 방 상단 제목에 동일하게 사용하고 가게 이름은 공고 링크로 유지한다.
+- 이름이 없거나 조회가 실패하면 기존 회원 번호/대화 상대 안내로 대체한다. 알바생에게 점주 전용 지원자 API를 호출하지 않는다.
+- live verify.sh/demo lint·unit·assemble 통과, 각 101 tests. APK 갱신 완료. 재설치 후 사용자가 가입 화면을 사용 중이라 입력을 보존하고 추가 UI 조작을 중단했다. 이번 이름 표시의 실제 화면 검증은 미완이다.

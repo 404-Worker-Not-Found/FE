@@ -102,7 +102,8 @@ private fun WorkerChatRoomContent(
             .background(AppTheme.role.screenBackground)
             .statusBarsPadding(),
     ) {
-        AppTopBar(title = stringResource(R.string.chat_title), onBack = onBack)
+        AppTopBar(title = uiState.room?.let { room -> room.counterpartName ?: room.counterpartId?.let {
+            stringResource(R.string.chat_member_number, it) } } ?: stringResource(R.string.chat_counterpart), onBack = onBack)
         uiState.room?.let { room ->
             TextButton(onClick = { room.jobId?.let(onJobClick) }, enabled = room.jobId != null,
                 modifier = Modifier.fillMaxWidth()) {
