@@ -9,6 +9,8 @@ data class ChatRoom(
     val lastTimeText: String,
     val otherLastReadId: Long? = null,
     val unreadCount: Long = 0,
+    val jobId: String? = null,
+    val counterpartId: Long? = null,
 )
 
 /** One message inside a chat room. [fromMe] = 알바생 본인이 보낸 메시지. */

@@ -9,6 +9,8 @@ object AppRoute {
     const val WORKER_ACCOUNT = "worker_account"
     const val OWNER_REVIEWS = "owner_reviews"
     const val WORKER_REVIEWS = "worker_reviews"
+    const val CHAT_JOB_DETAIL = "chat_job_detail/{jobId}"
+    fun chatJobDetail(jobId: String) = "chat_job_detail/$jobId"
     const val OWNER_CHATS = "owner_chats"
     const val OWNER_CHAT_ROOM = "owner_chat_room/{roomId}"
     fun ownerChatRoom(roomId: String) = "owner_chat_room/$roomId"

@@ -103,7 +103,9 @@ class WorkerChatRepositoryImpl @Inject constructor(private val backend: BackendA
     private suspend fun roomToDomain(room: ChatRoomResponseDto): ChatRoom {
         val job = jobs.detail(room.jobPostId).requireData()
         val latest = api.messages(room.chatRoomId, size = 1).requireData().content.firstOrNull()
-        return ChatRoom(room.chatRoomId.toString(), job.storeName, job.categoryName, latest?.content.orEmpty(), latest?.createdAt.orEmpty(), room.otherReadPosition?.lastReadMessageId, room.unreadCount)
+        val self = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { sessions.read()?.memberId }
+        return ChatRoom(room.chatRoomId.toString(), job.storeName, job.categoryName, latest?.content.orEmpty(), latest?.createdAt.orEmpty(),
+            room.otherReadPosition?.lastReadMessageId, room.unreadCount, room.jobPostId.toString(), room.counterpart(self))
     }
 
     private suspend fun ChatMessageResponseDto.toDomain() = ChatMessage(
@@ -112,9 +114,9 @@ class WorkerChatRepositoryImpl @Inject constructor(private val backend: BackendA
 
     private companion object {
         val ROOMS = listOf(
-            ChatRoom("r1", "1번 편의점", "편의점", "네, 내일 9시까지 와주세요!", "오후 2:10"),
-            ChatRoom("r2", "패스트 식당", "음식점", "매칭됐습니다. 잘 부탁드려요!", "오후 1:32"),
-            ChatRoom("u1", "다정있는 비치", "음식점", "혹시 오늘 저녁 가능하세요?", "오전 11:05"),
+            ChatRoom("r1", "1번 편의점", "편의점", "네, 내일 9시까지 와주세요!", "오후 2:10", jobId = "r1"),
+            ChatRoom("r2", "패스트 식당", "음식점", "매칭됐습니다. 잘 부탁드려요!", "오후 1:32", jobId = "r2"),
+            ChatRoom("u1", "다정있는 비치", "음식점", "혹시 오늘 저녁 가능하세요?", "오전 11:05", jobId = "u1"),
         )
 
         val MESSAGES = mapOf(
@@ -138,4 +140,11 @@ class WorkerChatRepositoryImpl @Inject constructor(private val backend: BackendA
             ChatMessage("m1", "안녕하세요! 매칭됐습니다 :)", fromMe = false, "방금"),
         )
     }
+}
+
+internal fun ChatRoomResponseDto.counterpart(self: Long?): Long? = when (self) {
+    null -> null
+    ownerMemberId -> workerMemberId?.takeIf { it > 0 && it != self }
+    workerMemberId -> ownerMemberId?.takeIf { it > 0 && it != self }
+    else -> null
 }

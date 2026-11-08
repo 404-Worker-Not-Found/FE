@@ -58,6 +58,9 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 OwnerRootScreen(navController = navController)
             }
         }
+        composable(AppRoute.CHAT_JOB_DETAIL, arguments = listOf(navArgument("jobId") { type = NavType.StringType })) {
+            com.workernotfound.app.feature.worker.ui.ChatPostingScreen(onBack = { navController.popBackStack() })
+        }
         composable(AppRoute.OWNER_CHATS) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
                 com.workernotfound.app.feature.worker.ui.WorkerChatListScreen(
@@ -68,7 +71,8 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         }
         composable(AppRoute.OWNER_CHAT_ROOM, arguments = listOf(navArgument("roomId") { type = NavType.StringType })) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
-                com.workernotfound.app.feature.worker.ui.WorkerChatRoomScreen(onBack = { navController.popBackStack() })
+                com.workernotfound.app.feature.worker.ui.WorkerChatRoomScreen(onBack = { navController.popBackStack() },
+                    onJobClick = { navController.navigate(AppRoute.chatJobDetail(it)) })
             }
         }
         listOf(AppRoute.OWNER_CANCELLATION to AppRole.OWNER, AppRoute.WORKER_CANCELLATION to AppRole.WORKER).forEach { (route, role) ->
@@ -264,7 +268,8 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             arguments = listOf(navArgument("roomId") { type = NavType.StringType }),
         ) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
-                WorkerChatRoomScreen(onBack = { navController.popBackStack() })
+                WorkerChatRoomScreen(onBack = { navController.popBackStack() },
+                    onJobClick = { navController.navigate(AppRoute.chatJobDetail(it)) })
             }
         }
         composable(AppRoute.WORKER_HISTORY) {

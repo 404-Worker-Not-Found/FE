@@ -24,7 +24,8 @@ interface WorkerChatApiService {
 }
 data class ChatRoomPageResponseDto(val content: List<ChatRoomResponseDto>, val totalPages: Int)
 data class ChatRoomResponseDto(val chatRoomId: Long, val jobPostId: Long, val matchingId: Long,
-    val otherReadPosition: ChatParticipantReadDto? = null, val unreadCount: Long = 0)
+    val otherReadPosition: ChatParticipantReadDto? = null, val unreadCount: Long = 0,
+    val ownerMemberId: Long? = null, val workerMemberId: Long? = null)
 data class ChatParticipantReadDto(val lastReadMessageId: Long?)
 data class ChatSyncDto(val content: List<ChatMessageResponseDto>, val nextAfterId: Long?, val hasNext: Boolean)
 data class ChatReadBody(val lastReadMessageId: Long)

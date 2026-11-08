@@ -66,6 +66,7 @@ fun WorkerChatRoomScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkerChatRoomViewModel = hiltViewModel(),
+    onJobClick: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LifecycleResumeEffect(viewModel) {
@@ -75,6 +76,7 @@ fun WorkerChatRoomScreen(
     WorkerChatRoomContent(
         uiState = uiState,
         onBack = onBack,
+        onJobClick = onJobClick,
         onDraftChange = viewModel::onDraftChange,
         onSend = viewModel::send,
         onRetry = viewModel::load,
@@ -87,6 +89,7 @@ fun WorkerChatRoomScreen(
 private fun WorkerChatRoomContent(
     uiState: WorkerChatRoomUiState,
     onBack: () -> Unit,
+    onJobClick: (String) -> Unit,
     onDraftChange: (String) -> Unit,
     onSend: () -> Unit,
     onRetry: () -> Unit,
@@ -99,7 +102,14 @@ private fun WorkerChatRoomContent(
             .background(AppTheme.role.screenBackground)
             .statusBarsPadding(),
     ) {
-        AppTopBar(title = uiState.room?.storeName ?: "채팅", onBack = onBack)
+        AppTopBar(title = stringResource(R.string.chat_title), onBack = onBack)
+        uiState.room?.let { room ->
+            TextButton(onClick = { room.jobId?.let(onJobClick) }, enabled = room.jobId != null,
+                modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.chat_open_posting, room.storeName), maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            }
+        }
         if (uiState.reconnecting) Text(stringResource(R.string.chat_reconnecting), color = AppColors.TextSub)
         uiState.errorMessage?.let {
             Text(it, color = AppColors.Danger)
