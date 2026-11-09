@@ -1,5 +1,7 @@
 package com.workernotfound.app.feature.owner.domain.model
 
+
+
 /**
  * An applicant card on the owner applicant list (UI spec 2-3: 지원자 카드).
  * [profileImageUrl] is null in mock data; the UI falls back to an initial avatar.
@@ -7,15 +9,16 @@ package com.workernotfound.app.feature.owner.domain.model
 data class Applicant(
     val id: String,
     val name: String,
-    val age: Int,
+    val age: Int?,
     val profileImageUrl: String?,
-    val rating: Double,
-    val etaMinutes: Int,
-    val matchScore: Int,
-    val noShowRisk: NoShowRiskLevel,
-    val hasCategoryExperience: Boolean,
-    val trustScore: Int,
+    val rating: Double?,
+    val etaMinutes: Int?,
+    val matchScore: Int?,
+    val noShowRisk: NoShowRiskLevel?,
+    val hasCategoryExperience: Boolean?,
+    val trustScore: Int?,
     val isMatched: Boolean,
+    val noShowProbability: Double? = null,
 )
 
 /** AI no-show prediction (UI spec 2-3: 노쇼 예측 뱃지 낮음/주의/높음). */
@@ -32,8 +35,8 @@ data class ApplicantWorkRecord(
 data class ApplicantDetail(
     val applicant: Applicant,
     val categoryName: String,
-    val recentWorks: List<ApplicantWorkRecord>,
-    val noShowCount: Int,
+    val recentWorks: List<ApplicantWorkRecord>?,
+    val noShowCount: Int?,
     val lastNoShowDate: String?,
     val canConfirmMatch: Boolean,
 )

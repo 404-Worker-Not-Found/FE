@@ -10,6 +10,7 @@ data class OwnerApplicantDetailUiState(
     val isConfirmDialogVisible: Boolean = false,
     val isConfirming: Boolean = false,
     /** Set once the match is confirmed; drives the success dialog. */
+    val isProposalSent: Boolean = false,
     val matchedWorkId: String? = null,
     val actionErrorMessage: String? = null,
 )

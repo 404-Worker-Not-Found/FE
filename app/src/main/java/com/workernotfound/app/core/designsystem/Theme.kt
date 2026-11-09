@@ -66,7 +66,17 @@ fun WorkerNotFoundTheme(
     }
     CompositionLocalProvider(LocalRoleColors provides roleColors) {
         MaterialTheme(
-            colorScheme = AppColorScheme,
+            colorScheme = AppColorScheme.copy(
+                primary = roleColors.accentPressed,
+                primaryContainer = roleColors.accentTint,
+                onPrimaryContainer = AppColors.TextMain,
+                secondary = roleColors.accentPressed,
+                secondaryContainer = roleColors.accentTint,
+                onSecondaryContainer = AppColors.TextMain,
+                background = roleColors.screenBackground,
+                surfaceVariant = roleColors.accentTint,
+                onSurfaceVariant = AppColors.TextSub,
+            ),
             typography = AppTypography,
             shapes = AppShapes,
             content = content,

@@ -1,6 +1,10 @@
 package com.workernotfound.app.feature.worker.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,19 +42,30 @@ fun WorkerChatListScreen(
     onRoomClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkerChatListViewModel = hiltViewModel(),
+    onBack: (() -> Unit)? = null,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    WorkerChatListContent(uiState = uiState, onRoomClick = onRoomClick, modifier = modifier)
+    androidx.lifecycle.compose.LifecycleResumeEffect(viewModel) { viewModel.load(); onPauseOrDispose { } }
+    Column(if (onBack != null) modifier.statusBarsPadding() else modifier) {
+        if (onBack != null) com.workernotfound.app.core.designsystem.component.AppTopBar(
+            androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_title), onBack = onBack)
+        uiState.errorMessage?.let {
+            Text(it, color = AppColors.Danger)
+            androidx.compose.material3.TextButton(viewModel::load) { Text(androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_retry)) }
+        }
+        WorkerChatListContent(uiState = uiState, onRoomClick = onRoomClick, showTitle = onBack == null, modifier = Modifier.weight(1f))
+    }
 }
 
 @Composable
 private fun WorkerChatListContent(
     uiState: WorkerChatListUiState,
     onRoomClick: (String) -> Unit,
+    showTitle: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        Text(
+        if (showTitle) Text(
             text = "채팅",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
@@ -79,19 +95,32 @@ private fun WorkerChatListContent(
 
 @Composable
 private fun ChatRoomRow(room: ChatRoom, onClick: () -> Unit) {
-    AppCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = room.storeName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = room.lastMessage,
-                    fontSize = 13.sp,
-                    color = AppColors.TextSub,
-                    maxLines = 1,
-                )
+    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+        .padding(vertical = AppDimens.cardGap), verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
+        Box(Modifier.size(ChatLayout.avatarSize).background(AppTheme.role.accentTint,
+            androidx.compose.foundation.shape.RoundedCornerShape(ChatLayout.avatarRadius)), contentAlignment = Alignment.Center) {
+            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.Person,
+                contentDescription = null, tint = AppColors.TextSub, modifier = Modifier.size(ChatLayout.avatarIcon))
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(ChatLayout.smallGap)) {
+            Text(text = room.counterpartName ?: room.counterpartId?.let { androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_member_number, it) }
+                ?: androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_counterpart),
+                style = androidx.compose.material3.MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
+                maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, color = AppColors.TextMain)
+            Text(room.lastMessage.ifBlank { androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_no_messages) },
+                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium, color = AppColors.TextSub,
+                maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        }
+        Column(Modifier.widthIn(max = ChatLayout.storeWidth), horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(ChatLayout.smallGap)) {
+            Text(room.storeName, style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                color = AppColors.TextSub, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            if (room.unreadCount > 0) androidx.compose.material3.Badge(containerColor = AppColors.Danger,
+                contentColor = androidx.compose.ui.graphics.Color.White) {
+                Text(if (room.unreadCount > 999) androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_unread_overflow)
+                    else room.unreadCount.toString())
             }
-            Text(text = room.lastTimeText, fontSize = 11.sp, color = AppColors.TextPlaceholder)
         }
     }
 }

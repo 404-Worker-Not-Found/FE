@@ -15,6 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.workernotfound.app.BuildConfig
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppRole
 import com.workernotfound.app.core.designsystem.WorkerNotFoundTheme
@@ -50,7 +52,7 @@ fun RoleSwitcherScreen(
         )
         Spacer(Modifier.height(6.dp))
         Text(
-            text = "데모를 시작할 역할을 선택하세요",
+            text = if (BuildConfig.USE_DEMO_DATA) "데모를 시작할 역할을 선택하세요" else androidx.compose.ui.res.stringResource(R.string.backend_mode_description),
             fontSize = 14.sp,
             color = AppColors.TextSub,
             textAlign = TextAlign.Center,

@@ -27,7 +27,7 @@ import com.workernotfound.app.feature.worker.ui.WorkerRootScreen
 import com.workernotfound.app.feature.worker.ui.WorkerTrustScreen
 
 /**
- * Top-level navigation. Starts on the demo role switcher, then enters the
+ * Top-level navigation. Live mode starts with authentication; demo retains role selection. Enters the
  * owner or worker section. Each section re-applies its role theme so the
  * accent color follows the role (style guide: 오렌지=점주, 노랑=알바생).
  */
@@ -35,10 +35,22 @@ import com.workernotfound.app.feature.worker.ui.WorkerTrustScreen
 fun AppNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = AppRoute.ROLE_SWITCHER) {
         composable(AppRoute.ROLE_SWITCHER) {
-            RoleSwitcherScreen(
-                onSelectOwner = { navController.navigate(AppRoute.OWNER_ROOT) },
-                onSelectWorker = { navController.navigate(AppRoute.WORKER_ROOT) },
-            )
+            if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) {
+                RoleSwitcherScreen(
+                    onSelectOwner = { navController.navigate(AppRoute.OWNER_ROOT) },
+                    onSelectWorker = { navController.navigate(AppRoute.WORKER_ROOT) },
+                )
+            } else {
+                com.workernotfound.app.feature.onboarding.StartupGate {
+                com.workernotfound.app.feature.auth.ui.AuthScreen(onAuthenticated = { session ->
+                    val route = if (session.role == "OWNER") AppRoute.OWNER_ROOT else AppRoute.WORKER_ROOT
+                    navController.navigate(route) {
+                        popUpTo(AppRoute.ROLE_SWITCHER)
+                        launchSingleTop = true
+                    }
+                })
+                }
+            }
         }
 
         composable(AppRoute.OWNER_ROOT) {
@@ -46,11 +58,79 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 OwnerRootScreen(navController = navController)
             }
         }
+        composable(AppRoute.CHAT_JOB_DETAIL, arguments = listOf(navArgument("jobId") { type = NavType.StringType })) {
+            com.workernotfound.app.feature.worker.ui.ChatPostingScreen(onBack = { navController.popBackStack() })
+        }
+        composable(AppRoute.OWNER_CHATS) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                com.workernotfound.app.feature.worker.ui.WorkerChatListScreen(
+                    onRoomClick = { navController.navigate(AppRoute.ownerChatRoom(it)) },
+                    onBack = { navController.popBackStack() },
+                )
+            }
+        }
+        composable(AppRoute.OWNER_CHAT_ROOM, arguments = listOf(navArgument("roomId") { type = NavType.StringType })) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                com.workernotfound.app.feature.worker.ui.WorkerChatRoomScreen(onBack = { navController.popBackStack() },
+                    onJobClick = { navController.navigate(AppRoute.chatJobDetail(it)) })
+            }
+        }
+        listOf(AppRoute.OWNER_CANCELLATION to AppRole.OWNER, AppRoute.WORKER_CANCELLATION to AppRole.WORKER).forEach { (route, role) ->
+            composable(route, arguments = listOf(navArgument("workId") { type = NavType.StringType })) {
+                WorkerNotFoundTheme(role = role) {
+                    com.workernotfound.app.feature.cancellation.ui.CancellationScreen(onBack = { navController.popBackStack() })
+                }
+            }
+        }
+        listOf(AppRoute.OWNER_REVIEWS to AppRole.OWNER, AppRoute.WORKER_REVIEWS to AppRole.WORKER).forEach { (route, role) ->
+            composable(route) {
+                WorkerNotFoundTheme(role = role) {
+                    com.workernotfound.app.feature.review.ui.ReviewScreen(onBack = { navController.popBackStack() })
+                }
+            }
+        }
+        listOf(AppRoute.OWNER_ACCOUNT to AppRole.OWNER, AppRoute.WORKER_ACCOUNT to AppRole.WORKER).forEach { (route, role) ->
+            composable(route) {
+                WorkerNotFoundTheme(role = role) {
+                    com.workernotfound.app.feature.account.ui.AccountScreen(
+                        onBack = { navController.popBackStack() },
+                        onLogin = { navController.navigate(AppRoute.ROLE_SWITCHER) {
+                            popUpTo(AppRoute.ROLE_SWITCHER) { inclusive = true }; launchSingleTop = true
+                        } },
+                    )
+                }
+            }
+        }
+        composable(AppRoute.WORKER_NOTIFICATIONS) {
+            WorkerNotFoundTheme(role = AppRole.WORKER) {
+                com.workernotfound.app.feature.notification.ui.NotificationScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpen = { item -> navController.navigate(if (item.applicationId != null)
+                        AppRoute.workerMatchResult(item.applicationId.toString()) else AppRoute.workerJobDetail(item.jobId.toString())) },
+                )
+            }
+        }
+        composable(AppRoute.OWNER_NOTIFICATIONS) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                com.workernotfound.app.feature.notification.ui.NotificationScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpen = { item -> navController.navigate(if (item.workId != null)
+                        AppRoute.ownerWorkDetail(item.workId.toString()) else AppRoute.ownerApplicants(item.jobId.toString())) },
+                )
+            }
+        }
+        composable(
+            route = AppRoute.OWNER_PUBLICATION,
+            arguments = listOf(navArgument("publicationJobId") { type = NavType.LongType }),
+        ) {
+            WorkerNotFoundTheme(role = AppRole.OWNER) {
+                com.workernotfound.app.feature.job.ui.JobPublicationScreen(onBack = { navController.popBackStack() })
+            }
+        }
         composable(AppRoute.OWNER_JOB_POSTING) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
                 JobPostingScreen(
                     onBack = { navController.popBackStack() },
-                    onSuccess = { navController.popBackStack(AppRoute.OWNER_ROOT, inclusive = false) },
                 )
             }
         }
@@ -91,6 +171,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         ) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
                 OwnerWorkDetailScreen(
+                    onCancellation = { id -> navController.navigate(AppRoute.ownerCancellation(id)) },
                     onBack = { navController.popBackStack() },
                     onOpenSettlement = { workId -> navController.navigate(AppRoute.ownerSettlement(workId)) },
                     onNoShowConfirmed = { workId ->
@@ -142,7 +223,8 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
                 OwnerPastPostingDetailScreen(
                     onBack = { navController.popBackStack() },
-                    onWriteReview = { postingId -> navController.navigate(AppRoute.ownerReviewWrite(postingId)) },
+                    onWriteReview = { postingId -> navController.navigate(if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA)
+                        AppRoute.ownerReviewWrite(postingId) else AppRoute.OWNER_REVIEWS) },
                 )
             }
         }
@@ -184,6 +266,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 WorkerMatchResultScreen(
                     onBack = { navController.popBackStack() },
                     onGoChat = { roomId -> navController.navigate(AppRoute.workerChatRoom(roomId)) },
+                    onHome = { navController.popBackStack(AppRoute.WORKER_ROOT, inclusive = false) },
                 )
             }
         }
@@ -192,12 +275,26 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             arguments = listOf(navArgument("roomId") { type = NavType.StringType }),
         ) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
-                WorkerChatRoomScreen(onBack = { navController.popBackStack() })
+                WorkerChatRoomScreen(onBack = { navController.popBackStack() },
+                    onJobClick = { navController.navigate(AppRoute.chatJobDetail(it)) })
+            }
+        }
+        composable(AppRoute.WORKER_HISTORY) {
+            WorkerNotFoundTheme(role = AppRole.WORKER) {
+                com.workernotfound.app.feature.history.ui.WorkHistoryScreen(
+                    onBack = { navController.popBackStack() },
+                    onJob = { navController.navigate(AppRoute.workerJobDetail(it)) },
+                    onReviews = { navController.navigate(AppRoute.WORKER_REVIEWS) })
             }
         }
         composable(AppRoute.WORKER_TRUST) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
-                WorkerTrustScreen(onBack = { navController.popBackStack() })
+                WorkerTrustScreen(
+                    onBack = { navController.popBackStack() },
+                    onJobClick = { id -> navController.navigate(AppRoute.workerJobDetail(id)) },
+                    onReviews = { navController.navigate(AppRoute.WORKER_REVIEWS) },
+                    onHistory = { navController.navigate(AppRoute.WORKER_HISTORY) },
+                )
             }
         }
     }

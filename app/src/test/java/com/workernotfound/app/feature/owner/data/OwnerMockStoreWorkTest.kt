@@ -3,6 +3,7 @@ package com.workernotfound.app.feature.owner.data
 import com.workernotfound.app.feature.owner.domain.model.PastPostingStatus
 import com.workernotfound.app.feature.owner.domain.model.PostingStatus
 import com.workernotfound.app.feature.owner.domain.model.WorkProgressStatus
+import com.workernotfound.app.feature.owner.viewmodel.OwnerPastPostingDetailUiState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -39,5 +40,22 @@ class OwnerMockStoreWorkTest {
         assertEquals(PastPostingStatus.COMPLETED, past.status)
         assertEquals(settlement.totalPay, past.settlement?.totalPay)
         assertEquals(now, past.settlement?.paidAtMillis)
+    }
+
+    @Test
+    fun `early completion opens reviews from completion rather than scheduled end or payment`() {
+        val scheduledEnd = store.work("w5", now).scheduledEndMillis
+        val completion = scheduledEnd - 60 * 60 * 1000L
+        val payment = completion + 10 * 60 * 1000L
+        store.completeWork("w5", completion)
+        store.confirmSettlement("w5", payment)
+
+        val past = store.pastPosting("5")
+        assertEquals(scheduledEnd, past.workEndMillis)
+        assertEquals(completion, past.reviewStartMillis)
+        assertEquals(payment, past.settlement?.paidAtMillis)
+        assertTrue(OwnerPastPostingDetailUiState(posting = past, nowMillis = payment).canWriteReview)
+        val deadline = completion + 7 * 24 * 60 * 60 * 1000L
+        assertFalse(OwnerPastPostingDetailUiState(posting = past, nowMillis = deadline + 1).canWriteReview)
     }
 }

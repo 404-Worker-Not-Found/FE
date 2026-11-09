@@ -35,6 +35,7 @@ class OwnerMockStore @Inject constructor() {
     private val postings: MutableList<MockPosting> = OwnerMockSeed.postings(zone).toMutableList()
     private val works: MutableList<OwnerWork> = OwnerMockSeed.works(postings).toMutableList()
     private val settlements: MutableMap<String, Settlement> = mutableMapOf()
+    private val completedAtMillis: MutableMap<String, Long> = mutableMapOf()
     private val pastPostings: MutableList<PastPosting> =
         OwnerMockSeed.pastPostings(postings, workers).toMutableList()
 
@@ -49,6 +50,22 @@ class OwnerMockStore @Inject constructor() {
 
     @Synchronized
     fun postings(nowMillis: Long): List<OwnerJobPosting> = postings.map { it.toDomain(nowMillis) }
+
+    /** Publish through the same demo store read by home, management, and applicants. */
+    @Synchronized
+    fun publish(draft: com.workernotfound.app.feature.job.domain.model.PublicationDraft): Long {
+        val id = (postings.mapNotNull { it.id.toLongOrNull() }.maxOrNull() ?: 10_000L) + 1
+        val workZone = ZoneId.of("Asia/Seoul")
+        postings.add(0, MockPosting(
+            id = id.toString(), workSummary = draft.title, category = draft.categoryId.toString(),
+            startMillis = draft.workDate.atTime(draft.start).atZone(workZone).toInstant().toEpochMilli(),
+            endMillis = draft.workDate.plusDays(if (draft.nextDay) 1 else 0).atTime(draft.end).atZone(workZone).toInstant().toEpochMilli(),
+            hourlyWage = draft.baseWage, bonusPerHour = draft.extraWage ?: 0,
+            status = PostingStatus.RECRUITING, isUrgent = draft.urgency == "HIGH",
+            applicantIds = emptyList(), matchedWorkerId = null,
+        ))
+        return id
+    }
 
     // --- 2-3 지원자 관리 ------------------------------------------------------
 
@@ -116,6 +133,7 @@ class OwnerMockStore @Inject constructor() {
         )
         val settlement = SettlementCalculator.calculate(minutes, work.hourlyWage, work.bonusPerHour)
         settlements[workId] = settlement
+        completedAtMillis[workId] = nowMillis
         replaceWork(work.copy(status = WorkProgressStatus.AWAITING_SETTLEMENT))
         return settlement
     }
@@ -262,6 +280,7 @@ class OwnerMockStore @Inject constructor() {
                 hourlyWage = work.hourlyWage,
                 status = status,
                 settlement = settlement,
+                completedAtMillis = completedAtMillis[work.id],
             ),
         )
     }

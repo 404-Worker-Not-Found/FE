@@ -1,5 +1,7 @@
 package com.workernotfound.app.feature.owner.domain.model
 
+
+
 /** A matched shift the owner monitors (UI spec 2-4: 근무 현황). */
 data class OwnerWork(
     val id: String,
@@ -12,15 +14,23 @@ data class OwnerWork(
     val hourlyWage: Int,
     val bonusPerHour: Int,
     val isAttendanceVerified: Boolean,
-    val workerDistanceMeters: Int,
+    val workerDistanceMeters: Int?,
     val status: WorkProgressStatus,
+    val backendStatus: String? = null,
+    val actualStartedMillis: Long? = null,
+    val canStart: Boolean = false,
+    val completionAllowed: Boolean = true,
+    val allowEarlyCompletion: Boolean = true,
+    val targetLatitude: Double? = null,
+    val targetLongitude: Double? = null,
+
 )
 
 /**
  * ACTIVE: matched, before or during the shift. AWAITING_SETTLEMENT: 근무 완료 pressed,
  * settlement not yet approved. SETTLED / NO_SHOW: closed out.
  */
-enum class WorkProgressStatus { ACTIVE, AWAITING_SETTLEMENT, SETTLED, NO_SHOW }
+enum class WorkProgressStatus { ACTIVE, AWAITING_SETTLEMENT, SETTLED, NO_SHOW, COMPLETED, CANCELED, FAILED }
 
 /** Settlement breakdown (UI spec 2-4: 총 근무시간, 시급, 가산액, 최종 지급액). */
 data class Settlement(

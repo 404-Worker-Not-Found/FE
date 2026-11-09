@@ -1,5 +1,7 @@
 package com.workernotfound.app.feature.owner.viewmodel
 
+import com.workernotfound.app.core.network.BackendAccess
+import kotlinx.coroutines.CancellationException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.workernotfound.app.feature.owner.domain.repository.OwnerPastPostingRepository
@@ -14,6 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class OwnerPastPostingsViewModel @Inject constructor(
     private val repository: OwnerPastPostingRepository,
+    private val backend: BackendAccess,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OwnerPastPostingsUiState())
@@ -26,7 +29,8 @@ class OwnerPastPostingsViewModel @Inject constructor(
             runCatching { repository.getPastPostings() }
                 .onSuccess { postings -> _uiState.update { it.copy(isLoading = false, postings = postings) } }
                 .onFailure { t ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = t.message ?: "지난 공고를 불러오지 못했습니다.") }
+                    if (t is CancellationException) throw t
+                    _uiState.update { it.copy(isLoading = false, errorMessage = backend.message(t)) }
                 }
         }
     }

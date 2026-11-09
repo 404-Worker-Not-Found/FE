@@ -1,0 +1,7 @@
+<resources>
+    <string name="chat_title">채팅</string>
+    <string name="chat_reconnecting">실시간 연결을 다시 시도하고 있습니다.</string>
+    <string name="chat_retry">다시 불러오기</string>
+    <string name="chat_read">읽음</string>
+    <string name="chat_unread_count">읽지 않은 메시지 %1$d개</string>
+</resources>

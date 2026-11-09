@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
 import com.workernotfound.app.core.designsystem.AppTheme
@@ -42,6 +43,8 @@ fun OwnerHomeScreen(
     onPostingClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OwnerHomeViewModel = hiltViewModel(),
+    onNotificationsClick: () -> Unit = {},
+    onPaymentClick: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LifecycleResumeEffect(Unit) {
@@ -53,6 +56,8 @@ fun OwnerHomeScreen(
         onCreatePosting = onCreatePosting,
         onPostingClick = onPostingClick,
         onRetry = viewModel::loadPostings,
+        onNotificationsClick = onNotificationsClick,
+        onPaymentClick = onPaymentClick,
         modifier = modifier,
     )
 }
@@ -63,6 +68,8 @@ private fun OwnerHomeContent(
     onCreatePosting: () -> Unit,
     onPostingClick: (String) -> Unit,
     onRetry: () -> Unit,
+    onNotificationsClick: () -> Unit,
+    onPaymentClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -81,6 +88,9 @@ private fun OwnerHomeContent(
                 color = AppColors.TextMain,
             )
             Spacer(Modifier.height(12.dp))
+            androidx.compose.material3.TextButton(onClick = onNotificationsClick) {
+                Text(androidx.compose.ui.res.stringResource(R.string.notifications_title))
+            }
             SummaryStrip(uiState.summary)
             Spacer(Modifier.height(12.dp))
             AppPrimaryButton(text = "⚡ 긴급 공고 등록", onClick = onCreatePosting)
@@ -92,6 +102,7 @@ private fun OwnerHomeContent(
             else -> PostingList(
                 uiState = uiState,
                 onPostingClick = onPostingClick,
+                onPaymentClick = onPaymentClick,
             )
         }
     }
@@ -107,7 +118,7 @@ private fun SummaryStrip(summary: OwnerHomeSummary) {
                 modifier = Modifier.weight(1f),
             )
             SummaryItem(
-                value = "${summary.totalApplicantCount}",
+                value = summary.totalApplicantCount?.toString() ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided),
                 label = "총 지원자",
                 modifier = Modifier.weight(1f),
             )
@@ -133,6 +144,7 @@ private fun SummaryItem(value: String, label: String, modifier: Modifier = Modif
 private fun PostingList(
     uiState: OwnerHomeUiState,
     onPostingClick: (String) -> Unit,
+    onPaymentClick: (String) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -148,8 +160,11 @@ private fun PostingList(
             SectionLabel(text = "내 공고")
             Spacer(Modifier.height(8.dp))
         }
+        if (uiState.postings.isEmpty()) item {
+            Text(androidx.compose.ui.res.stringResource(R.string.owner_postings_empty), color = AppColors.TextSub)
+        }
         items(items = uiState.postings, key = { it.id }) { posting ->
-            OwnerJobCard(posting = posting, onClick = { onPostingClick(posting.id) })
+            OwnerJobCard(posting = posting, onClick = { if (posting.status.needsPayment) onPaymentClick(posting.id) else onPostingClick(posting.id) })
         }
     }
 }

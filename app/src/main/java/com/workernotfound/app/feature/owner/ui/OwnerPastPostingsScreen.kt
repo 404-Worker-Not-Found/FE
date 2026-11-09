@@ -16,6 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import com.workernotfound.app.R
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.core.designsystem.component.AppBadge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -48,6 +51,7 @@ fun OwnerPastPostingsScreen(
     onPostingClick: (postingId: String) -> Unit,
     modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
+    showHeader: Boolean = true,
     viewModel: OwnerPastPostingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,6 +64,7 @@ fun OwnerPastPostingsScreen(
         onPostingClick = onPostingClick,
         onRetry = viewModel::refresh,
         onBack = onBack,
+        showHeader = showHeader,
         modifier = modifier,
     )
 }
@@ -70,12 +75,13 @@ private fun OwnerPastPostingsContent(
     onPostingClick: (String) -> Unit,
     onRetry: () -> Unit,
     onBack: (() -> Unit)?,
+    showHeader: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize().background(AppColors.Surface)) {
         if (onBack != null) {
             AppTopBar(title = "지난 공고", onBack = onBack, modifier = Modifier.statusBarsPadding())
-        } else {
+        } else if (showHeader) {
             Text(
                 text = "지난 공고 관리",
                 fontSize = 20.sp,
@@ -102,8 +108,8 @@ private fun OwnerPastPostingsContent(
                 contentPadding = PaddingValues(AppDimens.screenPadding),
                 verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
             ) {
-                items(items = uiState.postings, key = { it.postingId }) { posting ->
-                    PastPostingCard(posting = posting, onClick = { onPostingClick(posting.postingId) })
+                items(items = uiState.postings, key = { it.entryId }) { posting ->
+                    PastPostingCard(posting = posting, onClick = { onPostingClick(posting.entryId) })
                 }
             }
         }
@@ -121,7 +127,7 @@ private fun PastPostingCard(posting: PastPosting, onClick: () -> Unit) {
                 fontSize = 12.sp,
                 modifier = Modifier.weight(1f),
             )
-            StatusBadge(status = posting.status.toBadge())
+            PastPostingBadge(posting.status)
         }
         Spacer(Modifier.height(8.dp))
         Text(text = posting.workSummary, style = MaterialTheme.typography.titleMedium, color = AppColors.TextMain)
@@ -134,4 +140,17 @@ internal fun PastPostingStatus.toBadge(): AppStatus = when (this) {
     PastPostingStatus.COMPLETED -> AppStatus.DONE
     PastPostingStatus.NO_SHOW -> AppStatus.NO_SHOW
     PastPostingStatus.DISPUTE -> AppStatus.DISPUTE
+    PastPostingStatus.CANCELED -> AppStatus.CANCELED
+    PastPostingStatus.FAILED -> AppStatus.DISPUTE
+    PastPostingStatus.CLOSED -> AppStatus.DONE
+}
+
+
+@Composable
+internal fun PastPostingBadge(status: PastPostingStatus) {
+    when (status) {
+        PastPostingStatus.CLOSED -> AppBadge(stringResource(R.string.past_status_closed), AppColors.Border, AppColors.TextSub)
+        PastPostingStatus.FAILED -> AppBadge(stringResource(R.string.past_status_failed), AppColors.DangerBg, AppColors.Danger)
+        else -> StatusBadge(status = status.toBadge())
+    }
 }

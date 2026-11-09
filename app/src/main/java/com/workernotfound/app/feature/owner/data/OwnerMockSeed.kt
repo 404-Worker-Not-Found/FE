@@ -50,6 +50,11 @@ internal data class MockWorker(
  * can be demoed without waiting.
  */
 internal object OwnerMockSeed {
+    fun business() = com.workernotfound.app.feature.job.domain.model.PostingBusiness(
+        id = 1, name = "다정있는 비치", address = "서울 마포구 어울마당로 12",
+        latitude = java.math.BigDecimal("37.5495"), longitude = java.math.BigDecimal("126.9228"),
+    )
+
 
     private const val MINUTE = 60_000L
     private const val CAFE = "카페"

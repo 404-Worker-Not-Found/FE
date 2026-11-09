@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
 import com.workernotfound.app.core.designsystem.AppTheme
@@ -142,7 +143,7 @@ private fun NewMatchCard(applicant: Applicant, arrivalMillis: Long?) {
                     fontSize = 12.sp,
                 )
             }
-            NoShowRiskBadge(risk = applicant.noShowRisk.toBadge())
+            applicant.noShowRisk?.let { NoShowRiskBadge(risk = it.toBadge()) }
         }
         Spacer(Modifier.height(12.dp))
         HorizontalDivider(color = AppColors.Border)
@@ -151,7 +152,7 @@ private fun NewMatchCard(applicant: Applicant, arrivalMillis: Long?) {
         Spacer(Modifier.height(8.dp))
         OwnerInfoLine(
             label = "도착 예정 시간",
-            value = arrivalText(applicant.etaMinutes, arrivalMillis),
+            value = applicant.etaMinutes?.let { arrivalText(it, arrivalMillis) } ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided),
             valueColor = AppTheme.role.accent,
             isEmphasized = true,
         )

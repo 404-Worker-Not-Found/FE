@@ -5,6 +5,43 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <queries>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="supertoss" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="ispmobile" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="kakaotalk" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="kakaobank" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="kb-acp" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="liivbank" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="newliiv" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="kbbank" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="nhappcardansimclick" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="nhallonepayansimclick" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="nonghyupcardansimclick" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="lottesmartpay" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="lotteappcard" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="mpocket.online.ansimclick" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="mpocket.ansimclick.cert" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="vguardstart" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="samsungpay" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="monimopay" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="monimopayauth" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="shinhan-sr-ansimclick" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="smshinhanansimclick" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="com.wooricard.wcard" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="newsmartpib" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="citispay" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="citicardappkr" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="citimobileapp" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="cloudpay" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="hanawalletmembers" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="hdcardappcardansimclick" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="smhyundaiansimclick" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="shinsegaeeasypayment" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="payco" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="lpayapp" /></intent>
+    </queries>
 
     <application
         android:name=".App"
@@ -16,10 +53,17 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.WorkerNotFound">
 
-        <!-- Naver Map client id is injected here once provided (decision: Map SDK: Naver Map):
-        <meta-data
-            android:name="com.naver.maps.map.NCP_KEY_ID"
-            android:value="${naverMapClientId}" /> -->
+        <!-- App initializes Naver SDK only when the local BuildConfig client ID is configured. -->
+
+        <provider
+            android:name=".feature.mypage.data.ProfilePhotoFileProvider"
+            android:authorities="${applicationId}.profile.photos"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/profile_photo_paths" />
+        </provider>
 
         <activity
             android:name=".MainActivity"

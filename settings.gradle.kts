@@ -17,8 +17,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        // Naver Map SDK is added here when the NCP client key is provided:
-        // maven { url = uri("https://repository.map.naver.com/archive/maven") }
+        maven { url = uri("https://repository.map.naver.com/archive/maven") }
     }
 }
 

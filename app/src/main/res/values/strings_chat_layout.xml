@@ -1,0 +1,9 @@
+<resources>
+    <string name="chat_member_number">회원 #%1$d</string>
+    <string name="chat_counterpart">대화 상대</string>
+    <string name="chat_no_messages">아직 메시지가 없습니다.</string>
+    <string name="chat_unread_overflow">999+</string>
+    <string name="chat_open_posting">%1$s · 공고 보기 ›</string>
+    <string name="chat_posting_title">연결된 공고</string>
+    <string name="chat_posting_wage">시급 %1$,d원</string>
+</resources>

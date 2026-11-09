@@ -460,3 +460,44 @@ Related files:
 - `docs/UI_Specification.md`
 - `docs/architecture/package-structure.md`
 - `docs/PROJECT_CONTEXT.md`
+
+## 2026-11-01 - Backend Contract Priority During Integration
+
+Decision:
+- Integrate the existing Android screens with the deployed backend before implementing APIs for screens that do not exist yet.
+- When screen behavior or API fields conflict with the confirmed backend contract, adapt the frontend to the backend and record the difference. This supersedes the earlier UI-specification priority for backend integration conflicts.
+- The backend reference repository is `https://github.com/404-Worker-Not-Found/BE.git`; confirm contracts against the deployed OpenAPI documents and backend implementation. Report disagreements between those sources rather than inventing behavior.
+- Keep UI-only implementation work on its own branch, separate from API integration.
+
+Reason:
+- The user explicitly chose backend compatibility as the integration priority and requested separate API and UI work.
+
+Implication for agents:
+- Inspect existing screens first and distinguish implemented APIs, missing frontend screens, missing backend support, and unverified integration flows.
+- Do not fabricate server fields, successful mutations, account credentials, or unsupported endpoint paths to preserve mock behavior.
+- Request backend-provided test accounts and required business/payment setup for authenticated end-to-end verification; mock identities do not authenticate with the server.
+- Record any screen-specification differences in the integration status documentation. Preserve the existing visual design system.
+
+Related files:
+- `docs/UI_Specification.md`
+- `docs/PROJECT_CONTEXT.md`
+- `docs/backend-integration.md`
+
+## 2026-11-09 - Owner Posting and Navigation UX
+
+Decision:
+- 공고관리 opens current postings by default and provides a separate 지난 공고 tab. Payment-pending/funding-blocked cards open their own publication/payment state without asking the owner to enter an ID.
+- New postings reuse the registered business address and coordinates. The form groups store, schedule, work, and wage information; date/time fields use pickers rather than duplicate text inputs.
+- Keep one back affordance in the top bar. Chat is accessed from the bottom navigation; remove the duplicate owner my-page chat action.
+
+Reason:
+- The user identified missing current listings, repeated entry of stored information, internal ID inputs, and duplicated navigation as inconsistent owner UX.
+
+Implication for agents:
+- Preserve required backend fields behind understandable labels. Do not expose internal IDs or raw status codes as ordinary user inputs or primary progress messages.
+- Verify creation → list → detail and pending-payment recovery, not just individual screen rendering. Demo mutations must feed the same repository-backed lists as other demo owner screens.
+
+Related files:
+- `docs/UI_Specification.md`
+- `app/src/main/java/com/workernotfound/app/feature/owner/ui/OwnerPostingManagementScreen.kt`
+- `app/src/main/java/com/workernotfound/app/feature/job/ui/JobPublicationScreen.kt`

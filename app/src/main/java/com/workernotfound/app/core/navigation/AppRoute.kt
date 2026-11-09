@@ -3,10 +3,27 @@ package com.workernotfound.app.core.navigation
 /** App-level navigation routes. Detail routes are added as screens are built. */
 object AppRoute {
     const val ROLE_SWITCHER = "role_switcher"
+    const val WORKER_NOTIFICATIONS = "worker_notifications"
+    const val OWNER_NOTIFICATIONS = "owner_notifications"
+    const val OWNER_ACCOUNT = "owner_account"
+    const val WORKER_ACCOUNT = "worker_account"
+    const val OWNER_REVIEWS = "owner_reviews"
+    const val WORKER_REVIEWS = "worker_reviews"
+    const val CHAT_JOB_DETAIL = "chat_job_detail/{jobId}"
+    fun chatJobDetail(jobId: String) = "chat_job_detail/$jobId"
+    const val OWNER_CHATS = "owner_chats"
+    const val OWNER_CHAT_ROOM = "owner_chat_room/{roomId}"
+    fun ownerChatRoom(roomId: String) = "owner_chat_room/$roomId"
+    const val OWNER_CANCELLATION = "owner_cancellation/{workId}"
+    const val WORKER_CANCELLATION = "worker_cancellation/{workId}"
+    fun ownerCancellation(workId: String) = "owner_cancellation/$workId"
+    fun workerCancellation(workId: String) = "worker_cancellation/$workId"
 
     // Owner section
     const val OWNER_ROOT = "owner_root"
     const val OWNER_JOB_POSTING = "owner_job_posting"        // 2-2 공고 등록
+    const val OWNER_PUBLICATION = "owner_publication/{publicationJobId}"
+    fun ownerPublication(jobId: String) = "owner_publication/$jobId"
     const val OWNER_APPLICANTS = "owner_applicants/{postingId}"  // 2-3 지원자 관리
     fun ownerApplicants(postingId: String) = "owner_applicants/$postingId"
 
@@ -42,5 +59,6 @@ object AppRoute {
     const val WORKER_CHAT_ROOM = "worker_chat_room/{roomId}"     // 채팅방
     fun workerChatRoom(roomId: String) = "worker_chat_room/$roomId"
 
+    const val WORKER_HISTORY = "worker_history"
     const val WORKER_TRUST = "worker_trust"                      // 4-2 나의 신뢰도
 }

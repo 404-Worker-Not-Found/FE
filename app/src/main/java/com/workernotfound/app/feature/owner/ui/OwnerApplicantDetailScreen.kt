@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.workernotfound.app.BuildConfig
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
 import com.workernotfound.app.core.designsystem.AppTheme
@@ -124,13 +126,13 @@ private fun ProfileSection(detail: ApplicantDetail) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = applicant.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
                 Spacer(Modifier.height(2.dp))
-                Text(text = "${applicant.age}세 · 평점 %.1f".format(applicant.rating), color = AppColors.TextSub, fontSize = 13.sp)
+                Text(text = if (applicant.age != null && applicant.rating != null) "${applicant.age}세 · 평점 %.1f".format(applicant.rating) else androidx.compose.ui.res.stringResource(R.string.backend_not_provided), color = AppColors.TextSub, fontSize = 13.sp)
                 Spacer(Modifier.height(6.dp))
-                NoShowRiskBadge(risk = applicant.noShowRisk.toBadge())
+                applicant.noShowRisk?.let { NoShowRiskBadge(risk = it.toBadge()) }
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "${applicant.trustScore}점",
+                    text = applicant.trustScore?.toString() ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided),
                     color = AppTheme.role.accent,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
@@ -141,7 +143,7 @@ private fun ProfileSection(detail: ApplicantDetail) {
         Spacer(Modifier.height(12.dp))
         HorizontalDivider(color = AppColors.Border)
         Spacer(Modifier.height(12.dp))
-        OwnerInfoLine(label = "매칭 점수", value = "${applicant.matchScore}점")
+        OwnerInfoLine(label = "매칭 점수", value = applicant.matchScore?.toString() ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided))
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = "${detail.categoryName} 업종", color = AppColors.TextSub, fontSize = 13.sp)
@@ -156,7 +158,7 @@ private fun ArrivalSection(detail: ApplicantDetail) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
         OwnerInfoLine(
             label = "예상 도착 시간 (현재 위치 기준)",
-            value = "${detail.applicant.etaMinutes}분",
+            value = detail.applicant.etaMinutes?.let { androidx.compose.ui.res.stringResource(R.string.backend_arrival_minutes, it) } ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided),
             valueColor = AppTheme.role.accent,
             isEmphasized = true,
         )
@@ -164,15 +166,17 @@ private fun ArrivalSection(detail: ApplicantDetail) {
 }
 
 @Composable
-private fun WorkHistorySection(works: List<ApplicantWorkRecord>) {
+private fun WorkHistorySection(works: List<ApplicantWorkRecord>?) {
     Column {
         SectionLabel(text = "최근 근무 이력 (최대 ${RECENT_WORK_LIMIT}건)")
         Spacer(Modifier.height(8.dp))
         AppCard(modifier = Modifier.fillMaxWidth()) {
-            if (works.isEmpty()) {
+            if (works == null) {
+                Text(text = androidx.compose.ui.res.stringResource(R.string.backend_not_provided), color = AppColors.TextSub)
+            } else if (works.isEmpty()) {
                 Text(text = "근무 이력이 없어요.", color = AppColors.TextSub, fontSize = 13.sp)
             }
-            works.forEachIndexed { index, work ->
+            works?.forEachIndexed { index, work ->
                 if (index > 0) {
                     Spacer(Modifier.height(10.dp))
                     HorizontalDivider(color = AppColors.Border)
@@ -203,11 +207,11 @@ private fun NoShowHistorySection(detail: ApplicantDetail) {
         AppCard(modifier = Modifier.fillMaxWidth()) {
             OwnerInfoLine(
                 label = "누적 노쇼",
-                value = "${detail.noShowCount}회",
-                valueColor = if (detail.noShowCount > 0) AppColors.Danger else AppColors.TextMain,
+                value = detail.noShowCount?.toString() ?: androidx.compose.ui.res.stringResource(R.string.backend_not_provided),
+                valueColor = if ((detail.noShowCount ?: 0) > 0) AppColors.Danger else AppColors.TextMain,
             )
             Spacer(Modifier.height(8.dp))
-            OwnerInfoLine(label = "최근 노쇼 일자", value = detail.lastNoShowDate ?: "없음")
+            OwnerInfoLine(label = "최근 노쇼 일자", value = detail.lastNoShowDate ?: if (detail.noShowCount == null) androidx.compose.ui.res.stringResource(R.string.backend_not_provided) else "없음")
         }
     }
 }
@@ -218,7 +222,7 @@ private fun ConfirmBar(detail: ApplicantDetail, isConfirming: Boolean, onConfirm
         detail.applicant.isMatched -> "매칭 완료"
         !detail.canConfirmMatch -> "매칭할 수 없는 공고예요"
         isConfirming -> "매칭 확정 중..."
-        else -> "매칭 확정"
+        else -> if (BuildConfig.USE_DEMO_DATA) "매칭 확정" else androidx.compose.ui.res.stringResource(R.string.backend_send_proposal)
     }
     AppPrimaryButton(
         text = label,
@@ -243,8 +247,8 @@ private fun ApplicantDetailDialogs(
     val matchedWorkId = uiState.matchedWorkId
     when {
         uiState.isConfirmDialogVisible -> OwnerDialog(
-            title = "매칭 확정",
-            message = "${name} 님과 매칭을 확정할까요?\n확정하면 알바생에게 매칭 알림이 발송돼요.",
+            title = if (BuildConfig.USE_DEMO_DATA) "매칭 확정" else androidx.compose.ui.res.stringResource(R.string.backend_send_proposal),
+            message = if (BuildConfig.USE_DEMO_DATA) "${name} 님과 매칭을 확정할까요?\n확정하면 알바생에게 매칭 알림이 발송돼요." else androidx.compose.ui.res.stringResource(R.string.backend_proposal_confirm),
             confirmText = "확정",
             onConfirm = onConfirm,
             dismissText = "취소",
@@ -255,6 +259,11 @@ private fun ApplicantDetailDialogs(
             message = uiState.actionErrorMessage,
             confirmText = "확인",
             onConfirm = onDismissError,
+        )
+        uiState.isProposalSent -> OwnerDialog(
+            title = androidx.compose.ui.res.stringResource(R.string.backend_proposal_sent),
+            message = androidx.compose.ui.res.stringResource(R.string.backend_proposal_waiting),
+            confirmText = "확인", onConfirm = onClose,
         )
         matchedWorkId != null -> OwnerDialog(
             title = "매칭이 확정됐어요",

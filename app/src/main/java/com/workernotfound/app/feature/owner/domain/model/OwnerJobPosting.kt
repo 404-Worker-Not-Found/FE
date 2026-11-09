@@ -13,14 +13,14 @@ data class OwnerJobPosting(
     val workTime: String,
     val hourlyWage: Int,
     val status: PostingStatus,
-    val applicantCount: Int,
+    val applicantCount: Int?,
     val isUrgent: Boolean,
 )
 
-enum class PostingStatus { RECRUITING, CLOSED, DONE }
+enum class PostingStatus { RECRUITING, CLOSED, DONE, PAYMENT_PENDING, MATCHING, FUNDING_BLOCKED }
 
 /** Aggregate counters for the owner home summary strip. */
 data class OwnerHomeSummary(
     val activePostingCount: Int,
-    val totalApplicantCount: Int,
+    val totalApplicantCount: Int?,
 )

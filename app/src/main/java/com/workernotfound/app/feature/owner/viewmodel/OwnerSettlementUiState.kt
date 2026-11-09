@@ -9,6 +9,7 @@ data class OwnerSettlementUiState(
     val isLoading: Boolean = true,
     val work: OwnerWork? = null,
     val settlement: Settlement? = null,
+    val serverSettlement: com.workernotfound.app.feature.owner.domain.model.ServerSettlement? = null,
     val errorMessage: String? = null,
     val isConfirmDialogVisible: Boolean = false,
     val isProcessing: Boolean = false,

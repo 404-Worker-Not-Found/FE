@@ -1,0 +1,22 @@
+<resources>
+    <string name="reviews_title">내 리뷰</string>
+    <string name="reviews_refresh">새로고침</string>
+    <string name="reviews_pending">작성 가능한 리뷰</string>
+    <string name="reviews_no_pending">지금 작성할 수 있는 리뷰가 없습니다.</string>
+    <string name="reviews_until">작성 기한: %1$s</string>
+    <string name="reviews_write">리뷰 작성</string>
+    <string name="reviews_received">받은 리뷰</string>
+    <string name="reviews_count">총 %1$d개</string>
+    <string name="reviews_average">평균 %1$s점</string>
+    <string name="reviews_rating">%1$d점</string>
+    <string name="reviews_no_received">아직 받은 리뷰가 없습니다.</string>
+    <string name="reviews_from_owner">점주가 남긴 리뷰</string>
+    <string name="reviews_from_worker">알바생이 남긴 리뷰</string>
+    <string name="reviews_more_pending">작성할 리뷰 더 보기</string>
+    <string name="reviews_more_received">받은 리뷰 더 보기</string>
+    <string name="reviews_comment">한마디 남기기 (선택, 최대 500자)</string>
+    <string name="reviews_submit">등록</string>
+    <string name="reviews_close">닫기</string>
+    <string name="reviews_written">리뷰가 등록되었습니다.</string>
+    <string name="reviews_retry_notice">결과를 확인하지 못하면 같은 내용으로 다시 시도하거나 창을 닫고 목록을 새로고침해 주세요.</string>
+</resources>

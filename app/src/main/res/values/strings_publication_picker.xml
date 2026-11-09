@@ -1,0 +1,5 @@
+<resources>
+    <string name="publication_choose_schedule">%1$s 선택</string>
+    <string name="publication_picker_confirm">확인</string>
+    <string name="publication_picker_cancel">취소</string>
+</resources>

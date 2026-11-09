@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.workernotfound.app.BuildConfig
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
 import com.workernotfound.app.core.designsystem.AppTheme
@@ -57,6 +59,7 @@ fun OwnerWorkDetailScreen(
     onNoShowConfirmed: (workId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OwnerWorkDetailViewModel = hiltViewModel(),
+    onCancellation: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val openSettlement by rememberUpdatedState(onOpenSettlement)
@@ -79,7 +82,9 @@ fun OwnerWorkDetailScreen(
         onRetry = viewModel::refresh,
         onNoShow = viewModel::requestNoShow,
         onComplete = viewModel::requestComplete,
+        onStart = viewModel::startWork,
         onOpenSettlement = viewModel::openSettlement,
+        onCancellation = onCancellation,
         modifier = modifier,
     )
     WorkDetailDialogs(
@@ -97,7 +102,9 @@ private fun OwnerWorkDetailContent(
     onRetry: () -> Unit,
     onNoShow: () -> Unit,
     onComplete: () -> Unit,
+    onStart: () -> Unit,
     onOpenSettlement: () -> Unit,
+    onCancellation: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -126,12 +133,14 @@ private fun OwnerWorkDetailContent(
                     WorkHeader(timing)
                     AttendanceSection(timing)
                     TimerSection(timing)
+                    if (!BuildConfig.USE_DEMO_DATA) androidx.compose.material3.TextButton({ onCancellation(timing.work.id) }) { Text(androidx.compose.ui.res.stringResource(R.string.cancellation_title)) }
                 }
                 ActionBar(
                     timing = timing,
                     isProcessing = uiState.isProcessing,
                     onNoShow = onNoShow,
                     onComplete = onComplete,
+                    onStart = onStart,
                     onOpenSettlement = onOpenSettlement,
                 )
             }
@@ -172,7 +181,15 @@ private fun AttendanceSection(timing: WorkTiming) {
                 AttendanceBadge(isVerified = work.isAttendanceVerified)
             }
             Spacer(Modifier.height(12.dp))
-            OwnerLiveLocationMap(distanceMeters = work.workerDistanceMeters)
+            if (!com.workernotfound.app.BuildConfig.USE_DEMO_DATA && work.targetLatitude != null && work.targetLongitude != null) {
+                val label = androidx.compose.ui.res.stringResource(R.string.map_workplace)
+                Text(label, color = AppColors.TextSub)
+                com.workernotfound.app.core.maps.AppMap(listOf(com.workernotfound.app.core.maps.MapPoint(
+                    work.id, work.targetLatitude, work.targetLongitude, label)),
+                    modifier = Modifier.fillMaxWidth().height(AppDimens.locationMapHeight))
+            }
+            work.workerDistanceMeters?.let { OwnerLiveLocationMap(distanceMeters = it) }
+                ?: Text(text = androidx.compose.ui.res.stringResource(R.string.backend_live_location_unavailable), color = AppColors.TextSub)
         }
     }
 }
@@ -199,6 +216,9 @@ private fun TimerSection(timing: WorkTiming) {
 }
 
 private fun timerText(timing: WorkTiming): String = when {
+    timing.work.status == WorkProgressStatus.COMPLETED -> "근무 종료"
+    timing.work.status == WorkProgressStatus.CANCELED -> "근무 취소"
+    timing.work.status == WorkProgressStatus.FAILED -> "근무 생성 실패"
     timing.work.status == WorkProgressStatus.AWAITING_SETTLEMENT -> "근무 종료"
     timing.work.status == WorkProgressStatus.NO_SHOW -> "노쇼 처리됨"
     !timing.hasStarted -> "시작 전"
@@ -211,6 +231,7 @@ private fun ActionBar(
     isProcessing: Boolean,
     onNoShow: () -> Unit,
     onComplete: () -> Unit,
+    onStart: () -> Unit,
     onOpenSettlement: () -> Unit,
 ) {
     Column(
@@ -218,6 +239,20 @@ private fun ActionBar(
             .navigationBarsPadding()
             .padding(AppDimens.screenPadding),
     ) {
+        if (timing.work.backendStatus != null) {
+            Text(text = androidx.compose.ui.res.stringResource(R.string.backend_work_server_policy), color = AppColors.TextSub)
+            if (timing.work.canStart) {
+                AppPrimaryButton(text = androidx.compose.ui.res.stringResource(R.string.backend_start_work), onClick = onStart,
+                    enabled = !isProcessing && System.currentTimeMillis() >= timing.work.scheduledStartMillis)
+            }
+            if (timing.work.backendStatus == "COMPLETED") {
+                AppPrimaryButton(text = androidx.compose.ui.res.stringResource(R.string.settlement_view), onClick = onOpenSettlement)
+            }
+            if (timing.work.backendStatus == "IN_PROGRESS") {
+                AppPrimaryButton(text = "근무 완료", onClick = onComplete, enabled = !isProcessing && timing.canCompleteWork)
+            }
+            return@Column
+        }
         if (timing.work.status == WorkProgressStatus.AWAITING_SETTLEMENT) {
             AppPrimaryButton(text = "정산 확인하기", onClick = onOpenSettlement)
             return@Column
@@ -270,7 +305,7 @@ private fun WorkDetailDialogs(
         )
         uiState.isCompleteDialogVisible -> OwnerDialog(
             title = "근무 완료",
-            message = "$name 님의 근무를 종료하고 정산을 진행할까요?",
+            message = if (BuildConfig.USE_DEMO_DATA) "$name 님의 근무를 종료하고 정산을 진행할까요?" else androidx.compose.ui.res.stringResource(R.string.backend_complete_work_confirm),
             confirmText = "근무 완료",
             onConfirm = onConfirmComplete,
             dismissText = "취소",

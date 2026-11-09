@@ -20,6 +20,17 @@ If no update is needed, report:
 No agent document update needed.
 ```
 
+## Integration Readiness Reporting
+
+When reporting app integration readiness:
+
+- Compare the whole screen specification with implementation, including maps, location, push, social login, payment, account settings, reviews, and documents.
+- Inspect SDK dependencies, manifest components/permissions/callbacks, and configuration wiring. A placeholder screen or passing build does not establish integration.
+- Separate human-owned provider registration/configuration, backend contracts/data, remaining frontend implementation, and unverified device/server flows. State the owner and exact missing input for each dependency.
+- Check existing public backend endpoints before labeling a feature unsupported or blocked on external setup. Keep frontend work that can proceed without credentials visible.
+- Distinguish unknown provider/server configuration from confirmed absence. Never infer that all external setup is done from a successful login.
+- Report completed scope and remaining scope together; update the readiness inventory when scope changes.
+
 ## Repository Verification
 
 For repository-wide verification, run:

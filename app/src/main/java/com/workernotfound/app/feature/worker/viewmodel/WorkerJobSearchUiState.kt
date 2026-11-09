@@ -8,6 +8,8 @@ enum class JobViewMode { LIST, MAP }
 
 data class WorkerJobSearchUiState(
     val isLoading: Boolean = true,
+    val locating: Boolean = false,
+    val locationError: Boolean = false,
     val viewMode: JobViewMode = JobViewMode.LIST,
     val urgentJobs: List<WorkerJobPosting> = emptyList(),
     val recommendedJobs: List<WorkerJobPosting> = emptyList(),
