@@ -13,6 +13,8 @@ import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.*
 import com.workernotfound.app.core.designsystem.component.*
 import com.workernotfound.app.feature.account.domain.ContactChannel
+import com.workernotfound.app.feature.mypage.domain.ProfileNamePolicy
+import com.workernotfound.app.feature.mypage.ui.ProfileNameDialog
 
 @Composable
 fun AccountScreen(onBack: () -> Unit, onLogin: () -> Unit, modifier: Modifier = Modifier,
@@ -22,6 +24,16 @@ fun AccountScreen(onBack: () -> Unit, onLogin: () -> Unit, modifier: Modifier = 
         AppTopBar(stringResource(R.string.account_title), onBack = onBack)
         Column(Modifier.verticalScroll(rememberScrollState()).padding(AppDimens.screenPadding),
             verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
+            s.profile?.let { profile ->
+                AppCard(modifier = Modifier.fillMaxWidth()) {
+                    AccountInfoRow(stringResource(R.string.account_name_label), profile.name)
+                    TextButton(viewModel::editName, enabled = !s.nameSaving) { Text(stringResource(R.string.profile_edit_name)) }
+                    HorizontalDivider(color = AppColors.Border)
+                    Spacer(Modifier.height(AppDimens.cardGap))
+                    AccountInfoRow(stringResource(R.string.account_contact_label),
+                        profile.phone ?: stringResource(R.string.profile_unavailable_field))
+                }
+            }
             Text(stringResource(R.string.account_session_notice), color = AppColors.TextSub)
             if (s.key == null) {
                 Row {
@@ -54,8 +66,20 @@ fun AccountScreen(onBack: () -> Unit, onLogin: () -> Unit, modifier: Modifier = 
             s.error?.let { Text(it, color = AppColors.Danger) }
         }
     }
+    s.nameDraft?.let { name ->
+        ProfileNameDialog(name, ProfileNamePolicy.isValid(name), s.nameSaving, s.nameError,
+            viewModel::name, viewModel::saveName, viewModel::dismissName)
+    }
     if (s.confirmWithdrawal) AlertDialog(onDismissRequest = { viewModel.confirmWithdrawal(false) },
         title = { Text(stringResource(R.string.account_withdraw)) }, text = { Text(stringResource(R.string.account_withdraw_confirm)) },
         confirmButton = { TextButton(viewModel::withdraw) { Text(stringResource(R.string.account_withdraw), color = AppColors.Danger) } },
         dismissButton = { TextButton({ viewModel.confirmWithdrawal(false) }) { Text(stringResource(R.string.account_cancel)) } })
+}
+
+@Composable
+private fun AccountInfoRow(label: String, value: String) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, color = AppColors.TextSub)
+        Text(value, color = AppColors.TextMain)
+    }
 }

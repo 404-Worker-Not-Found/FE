@@ -1,5 +1,7 @@
 package com.workernotfound.app.feature.owner.ui.component
 
+import com.workernotfound.app.core.ui.KoreanDateTime
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
@@ -27,9 +29,9 @@ internal fun ServerSettlementCard(settlement: ServerSettlement?) {
             Text(stringResource(R.string.settlement_server_amount), style = MaterialTheme.typography.labelMedium)
             Text(formatSettlementAmount(settlement.amount, settlement.currency), style = MaterialTheme.typography.titleLarge)
             OwnerInfoLine(stringResource(R.string.settlement_server_status), stringResource(settlementStatusResource(settlement.status)))
-            OwnerInfoLine(stringResource(R.string.settlement_paid_at), settlement.paidAt?.replace('T', ' ')
+            OwnerInfoLine(stringResource(R.string.settlement_paid_at), settlement.paidAt?.let(KoreanDateTime::dateTime)
                 ?: stringResource(R.string.settlement_not_paid_yet))
-            settlement.payableAt?.let { OwnerInfoLine(stringResource(R.string.settlement_payable_at), it.replace('T', ' ')) }
+            settlement.payableAt?.let { OwnerInfoLine(stringResource(R.string.settlement_payable_at), KoreanDateTime.dateTime(it)) }
             if (settlement.payoutReviewRequired) Text(stringResource(R.string.settlement_review_required), color = AppColors.Warning)
             when (settlement.holdReason) {
                 "FUNDING_BLOCKED" -> Text(stringResource(R.string.settlement_funding_blocked), color = AppColors.Warning)

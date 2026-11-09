@@ -20,6 +20,8 @@ class CategoryCatalogContractTest {
             assertEquals("/api/jobs/categories", server.takeRequest().path)
             assertEquals(listOf(17L, 43L, 25L), choices.map { it.id })
             assertEquals("외식/음료 / 카페/음료", choices[1].name)
+            assertEquals("카페/음료", choices[1].key)
+            assertEquals("교육", choices[2].key)
         } finally { server.shutdown() }
     }
     @Test fun `empty catalog stays empty and invalid IDs cannot enable registration`() {

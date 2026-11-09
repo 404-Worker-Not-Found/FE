@@ -62,6 +62,7 @@ fun WorkerMyPageScreen(
     onAccountSettings: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    androidx.lifecycle.compose.LifecycleResumeEffect(viewModel) { viewModel.load(); onPauseOrDispose { } }
     LaunchedEffect(uiState.isLoggedOut) { if (uiState.isLoggedOut) onLogout() }
     val profile = uiState.profile
     if (uiState.isLoading) {
@@ -95,14 +96,6 @@ fun WorkerMyPageScreen(
         ProfileCard(profile = profile, onTrustClick = onTrustClick, onPhotoSelected = viewModel::updatePhoto)
 
         AppCard(modifier = Modifier.fillMaxWidth()) {
-            TextButton(onClick = viewModel::editName, modifier = Modifier.fillMaxWidth()) {
-                InfoRow(stringResource(R.string.profile_edit_name), profile.name)
-            }
-            Spacer(Modifier.height(10.dp)); Divider(color = AppColors.Border); Spacer(Modifier.height(10.dp))
-            InfoRow("연락처", profile.phone ?: stringResource(R.string.profile_unavailable_field))
-        }
-
-        AppCard(modifier = Modifier.fillMaxWidth()) {
             Text(text = "알림 설정", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.TextSub)
             Spacer(Modifier.height(8.dp))
             if (profile.isPushEnabled == null) Text(stringResource(R.string.profile_settings_unavailable), color = AppColors.TextSub)
@@ -112,9 +105,9 @@ fun WorkerMyPageScreen(
         }
 
         AppCard(modifier = Modifier.fillMaxWidth()) {
-            ActionRow(stringResource(R.string.profile_logout), AppColors.TextMain, onClick = viewModel::logout)
-            Spacer(Modifier.height(10.dp)); Divider(color = AppColors.Border); Spacer(Modifier.height(10.dp))
             TextButton(onAccountSettings) { Text(stringResource(R.string.account_title)) }
+            Spacer(Modifier.height(10.dp)); Divider(color = AppColors.Border); Spacer(Modifier.height(10.dp))
+            ActionRow(stringResource(R.string.profile_logout), AppColors.TextMain, onClick = viewModel::logout)
         }
     }
 
@@ -146,7 +139,6 @@ private fun ProfileCard(profile: WorkerProfile, onTrustClick: () -> Unit, onPhot
                 Text(text = "알바생 · ${profile.email}", fontSize = 12.sp, color = AppColors.TextSub)
             }
         }
-        ProfilePhotoButton(onSelected = onPhotoSelected)
         Spacer(Modifier.height(12.dp))
         Box(
             modifier = Modifier

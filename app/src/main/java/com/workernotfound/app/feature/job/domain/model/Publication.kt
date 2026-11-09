@@ -3,9 +3,21 @@ package com.workernotfound.app.feature.job.domain.model
 import java.math.BigDecimal
 import java.time.*
 
-data class PostingCategory(val id: Long, val name: String)
+/** [name] is the display label; [key] is the catalog name stored as a member's business type at signup. */
+data class PostingCategory(val id: Long, val name: String, val key: String = name)
 
-data class PostingBusiness(val id: Long, val name: String, val address: String, val latitude: BigDecimal, val longitude: BigDecimal)
+/**
+ * Finds the catalog entry for a business type saved at signup. Exact catalog names match first; older free-text
+ * values (for example "카페") match only when exactly one entry contains that word, so nothing is guessed.
+ */
+fun List<PostingCategory>.matchBusinessType(type: String?): PostingCategory? {
+    val value = type?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+    firstOrNull { it.key == value || it.name == value }?.let { return it }
+    return filter { category -> category.key.split('/').any { it.trim() == value } }.singleOrNull()
+}
+
+data class PostingBusiness(val id: Long, val name: String, val address: String, val latitude: BigDecimal, val longitude: BigDecimal,
+    val businessType: String? = null)
 data class PublicationDraft(
     val business: PostingBusiness, val categoryId: Long, val title: String, val description: String,
     val workDate: LocalDate, val start: LocalTime, val end: LocalTime, val nextDay: Boolean,

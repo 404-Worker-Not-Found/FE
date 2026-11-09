@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.workernotfound.app.R
 import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.auth.domain.*
+import com.workernotfound.app.feature.job.domain.repository.JobPublicationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -18,6 +19,7 @@ import java.time.DayOfWeek
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val auth: AuthRepository, private val registration: RegistrationRepository, private val backend: BackendAccess,
+    private val catalog: JobPublicationRepository,
 ) : ViewModel() {
     private val state = MutableStateFlow(AuthUiState())
     val uiState = state.asStateFlow()
@@ -40,12 +42,29 @@ class AuthViewModel @Inject constructor(
     }
     fun edit(field: AuthField, value: String) {
         if (state.value.busy) return
-        state.update { it.copy(fields = it.fields + (field to value), message = null, error = null, diagnostic = null,
+        state.update { it.copy(fields = withValidEnd(it.fields + (field to value), field), message = null, error = null, diagnostic = null,
             emailVerified = if (field == AuthField.EMAIL) false else it.emailVerified,
             smsVerified = if (field == AuthField.PHONE) false else it.smsVerified) }
     }
+    /** Available times must end on the same day; drop an end time the new start makes invalid. */
+    private fun withValidEnd(fields: Map<AuthField, String>, changed: AuthField): Map<AuthField, String> {
+        if (changed != AuthField.START) return fields
+        val start = runCatching { java.time.LocalTime.parse(fields[AuthField.START]) }.getOrNull() ?: return fields
+        val end = runCatching { java.time.LocalTime.parse(fields[AuthField.END]) }.getOrNull() ?: return fields
+        return if (end > start) fields else fields + (AuthField.END to "")
+    }
     fun page(page: AuthPage) {
-        if (!state.value.busy) state.update { AuthUiState(page = page, checkingSession = false) }
+        if (!state.value.busy) state.update { AuthUiState(page = page, checkingSession = false, businessTypes = it.businessTypes) }
+        if (page == AuthPage.SIGNUP && state.value.businessTypes.isEmpty()) loadBusinessTypes()
+    }
+    /** Business types come from the server job catalog so the signup value can be matched when posting jobs. */
+    fun loadBusinessTypes() {
+        state.update { it.copy(businessTypesFailed = false) }
+        viewModelScope.launch {
+            try { val types = catalog.categories(); state.update { it.copy(businessTypes = types) } }
+            catch (e: CancellationException) { throw e }
+            catch (e: Exception) { state.update { it.copy(businessTypesFailed = true) } }
+        }
     }
     fun role(role: String) { if (!state.value.busy) state.update { it.copy(role = role) } }
     fun day(day: DayOfWeek) { if (!state.value.busy) state.update { it.copy(day = day) } }

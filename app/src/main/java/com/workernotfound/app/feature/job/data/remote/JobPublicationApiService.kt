@@ -13,7 +13,8 @@ interface JobPublicationApiService {
 }
 
 data class PostingMemberDto(val role: String, val ownerProfile: PostingBusinessDto?)
-data class PostingBusinessDto(val ownerProfileId: Long, val storeName: String, val storeLocation: PostingLocationDto)
+data class PostingBusinessDto(val ownerProfileId: Long, val storeName: String, val storeLocation: PostingLocationDto,
+    val businessType: String? = null)
 data class PostingLocationDto(val address: String, val latitude: BigDecimal, val longitude: BigDecimal)
 data class CreateJobDto(
     val businessId: Long, val categoryId: Long, val storeName: String, val address: String,

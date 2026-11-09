@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.workernotfound.app.R
@@ -21,6 +22,7 @@ import com.workernotfound.app.core.designsystem.*
 import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import com.workernotfound.app.feature.auth.domain.AuthSession
 import com.workernotfound.app.feature.auth.viewmodel.*
+import com.workernotfound.app.feature.job.ui.component.TimePickerField
 import java.time.DayOfWeek
 
 @Composable
@@ -32,7 +34,7 @@ fun AuthScreen(onAuthenticated: (AuthSession) -> Unit, viewModel: AuthViewModel 
     }
     WorkerNotFoundTheme(role = if (state.role == "OWNER") AppRole.OWNER else AppRole.WORKER) {
         AuthContent(state, viewModel::edit, viewModel::page, viewModel::role, viewModel::day,
-            viewModel::available, viewModel::send, viewModel::verify, viewModel::submit)
+            viewModel::available, viewModel::send, viewModel::verify, viewModel::submit, viewModel::loadBusinessTypes)
     }
 }
 
@@ -41,6 +43,7 @@ private fun AuthContent(
     state: AuthUiState, edit: (AuthField, String) -> Unit, page: (AuthPage) -> Unit,
     role: (String) -> Unit, day: (DayOfWeek) -> Unit, available: (Boolean) -> Unit,
     send: (Boolean) -> Unit, verify: (Boolean) -> Unit, submit: () -> Unit,
+    onRetryBusinessTypes: () -> Unit,
 ) {
     val clipboard = LocalClipboardManager.current
     var copied by remember(state.diagnostic) { mutableStateOf(false) }
@@ -77,12 +80,23 @@ private fun AuthContent(
                 onAddress = { edit(AuthField.ADDRESS, it); edit(AuthField.LATITUDE, ""); edit(AuthField.LONGITUDE, "") },
                 onPick = { point -> edit(AuthField.ADDRESS, point.address); edit(AuthField.LATITUDE, point.latitude.toString()); edit(AuthField.LONGITUDE, point.longitude.toString()) },
             )
-            AuthInput(AuthField.BUSINESS_TYPE, state, edit)
+            BusinessTypeField(state, edit, retry = onRetryBusinessTypes)
             if (state.role == "OWNER") {
                 listOf(AuthField.BUSINESS_NUMBER, AuthField.STORE_NAME).forEach { AuthInput(it, state, edit) }
                 Text(stringResource(R.string.auth_business_verification))
             } else {
-                listOf(AuthField.WAGE, AuthField.RADIUS, AuthField.START, AuthField.END).forEach { AuthInput(it, state, edit) }
+                listOf(AuthField.WAGE, AuthField.RADIUS).forEach { AuthInput(it, state, edit) }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
+                    listOf(AuthField.START, AuthField.END).forEach { field ->
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(fieldLabel(field)), style = MaterialTheme.typography.labelLarge)
+                            TimePickerField(state[field].ifBlank { null }, { edit(field, it) },
+                                placeholder = stringResource(R.string.time_select_placeholder),
+                                startTime = if (field == AuthField.END) state[AuthField.START].ifBlank { null } else null,
+                                enabled = !state.busy, sameDayOnly = true)
+                        }
+                    }
+                }
                 val days = listOf(R.string.auth_mon, R.string.auth_tue, R.string.auth_wed, R.string.auth_thu, R.string.auth_fri, R.string.auth_sat, R.string.auth_sun)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(stringResource(days[state.day.ordinal]))
@@ -157,4 +171,25 @@ private fun fieldLabel(field: AuthField): Int = when (field) {
     AuthField.BUSINESS_TYPE -> R.string.auth_business_type; AuthField.WAGE -> R.string.auth_wage
     AuthField.RADIUS -> R.string.auth_radius; AuthField.START -> R.string.auth_start
     AuthField.END -> R.string.auth_end
+}
+
+@Composable
+private fun BusinessTypeField(state: AuthUiState, edit: (AuthField, String) -> Unit, retry: () -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val selected = state.businessTypes.firstOrNull { it.key == state[AuthField.BUSINESS_TYPE] }
+    Column(Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.auth_business_type), style = MaterialTheme.typography.labelLarge)
+        Box {
+            OutlinedButton({ expanded = true }, enabled = !state.busy && state.businessTypes.isNotEmpty(), modifier = Modifier.fillMaxWidth()) {
+                Text(selected?.name ?: stringResource(if (state.businessTypes.isEmpty() && !state.businessTypesFailed)
+                    R.string.auth_business_type_loading else R.string.time_select_placeholder))
+            }
+            DropdownMenu(expanded, onDismissRequest = { expanded = false }, modifier = Modifier.heightIn(max = 320.dp)) {
+                state.businessTypes.forEach { type ->
+                    DropdownMenuItem(text = { Text(type.name) }, onClick = { edit(AuthField.BUSINESS_TYPE, type.key); expanded = false })
+                }
+            }
+        }
+        if (state.businessTypesFailed) TextButton(retry, enabled = !state.busy) { Text(stringResource(R.string.auth_business_type_retry)) }
+    }
 }

@@ -21,7 +21,7 @@ class OwnerProfileRepositoryImpl @Inject constructor(
         backend.requireSession()
         val member = api.get().requireData()
         if (member.role != "OWNER" || member.ownerProfile == null) throw ApiException("ROLE_MISMATCH")
-        return OwnerProfile(member.name, member.ownerProfile.storeName, member.email, member.phoneNumber, null, null)
+        return OwnerProfile(member.name, member.ownerProfile.storeName, member.email, member.phoneNumber, null, null, member.ownerProfile.storeLocation?.address)
     }
 
     override suspend fun updateName(name: String) {

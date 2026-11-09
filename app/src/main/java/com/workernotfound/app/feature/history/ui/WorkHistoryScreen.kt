@@ -1,5 +1,7 @@
 package com.workernotfound.app.feature.history.ui
 
+import com.workernotfound.app.core.ui.KoreanDateTime
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -71,7 +73,7 @@ fun WorkHistoryScreen(onBack: () -> Unit, onJob: (String) -> Unit, onReviews: ()
                             "NO_SHOW" -> R.string.history_no_show
                             else -> R.string.history_failed
                         }))
-                        entry.completedAt?.let { Text(stringResource(R.string.history_completed_at, it.replace('T', ' ')), color = AppColors.TextSub) }
+                        entry.completedAt?.let { Text(stringResource(R.string.history_completed_at, KoreanDateTime.dateTime(it)), color = AppColors.TextSub) }
                         TextButton({ onJob(entry.jobId.toString()) }) { Text(stringResource(R.string.history_open_job)) }
                         ServerSettlementCard(entry.settlement)
                     }

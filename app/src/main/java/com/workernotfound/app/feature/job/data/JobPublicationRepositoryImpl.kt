@@ -23,7 +23,8 @@ class JobPublicationRepositoryImpl @Inject constructor(
         val location = profile.storeLocation
         if (profile.ownerProfileId <= 0) throw ApiException("BUSINESS_REQUIRED")
         // BE OwnerBusinessFindService returns ownerProfileId as businessId.
-        return PostingBusiness(profile.ownerProfileId, profile.storeName, location.address, location.latitude, location.longitude)
+        return PostingBusiness(profile.ownerProfileId, profile.storeName, location.address, location.latitude, location.longitude,
+            profile.businessType)
     }
     override suspend fun create(draft: PublicationDraft): Long {
         backend.requireSession()
@@ -63,7 +64,7 @@ internal fun JobCategoryListDto.toPostingCategories(): List<PostingCategory> {
         if (parent.id <= 0 || parent.name.isBlank()) throw ApiException("INVALID_CATEGORY_CATALOG")
         listOf(PostingCategory(parent.id, parent.name)) + parent.subCategories.map { child ->
             if (child.id <= 0 || child.name.isBlank()) throw ApiException("INVALID_CATEGORY_CATALOG")
-            PostingCategory(child.id, "${parent.name} / ${child.name}")
+            PostingCategory(child.id, "${parent.name} / ${child.name}", child.name)
         }
     }
     if (result.map { it.id }.distinct().size != result.size) throw ApiException("INVALID_CATEGORY_CATALOG")

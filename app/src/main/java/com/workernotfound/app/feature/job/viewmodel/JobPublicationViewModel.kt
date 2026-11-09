@@ -47,6 +47,7 @@ data class JobPublicationUiState(
             (date != null && start != null && deadline >= date.atTime(start)))) return PublicationValidationIssue.DEADLINE
         return null
     }
+    val categoryFromProfile get() = selectedCategory != null && selectedCategory == categories.matchBusinessType(business?.businessType)
     val canCreate get() = !busy && !creationAttempted && selectedCategory != null && selectedCategory in categories &&
         draft()?.isValid(LocalDateTime.now(ZoneId.of("Asia/Seoul"))) == true
 }
@@ -72,10 +73,15 @@ class JobPublicationViewModel @Inject constructor(
     private suspend fun fetchCategories() {
         state.update { it.copy(categories = emptyList(), selectedCategory = null) }
         val categories = repository.categories()
-        state.update { it.copy(categories = categories) }
+        // The owner already chose a business type at signup; reuse the matching catalog entry.
+        state.update { s -> s.copy(categories = categories,
+            selectedCategory = categories.matchBusinessType(s.business?.businessType)) }
     }
     fun edit(field: PublicationField, value: String) {
-        if (!state.value.busy && !state.value.creationAttempted) state.update { it.copy(fields = it.fields + (field to value), error = null) }
+        if (!state.value.busy && !state.value.creationAttempted) state.update { val fields = it.fields + (field to value)
+            val start = fields[PublicationField.START]?.let { raw -> runCatching { LocalTime.parse(raw) }.getOrNull() }
+            val end = fields[PublicationField.END]?.let { raw -> runCatching { LocalTime.parse(raw) }.getOrNull() }
+            it.copy(fields = fields, nextDay = start != null && end != null && end <= start, error = null) }
     }
     fun nextDay(value: Boolean) { if (!state.value.busy && !state.value.creationAttempted) state.update { it.copy(nextDay = value) } }
     fun urgency(value: String) { if (!state.value.busy && !state.value.creationAttempted) state.update { it.copy(urgency = value) } }

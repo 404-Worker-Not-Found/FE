@@ -93,4 +93,14 @@ class PublicationContractTest {
             assertEquals("/api/payments/orders/real-order", server.takeRequest().path)
         } finally { server.shutdown() }
     }
+    @Test fun `signup business type marks the matching catalog entry as from profile`() {
+        val cafe = PostingCategory(43, "외식/음료 / 카페/음료", "카페/음료")
+        val state = com.workernotfound.app.feature.job.viewmodel.JobPublicationUiState(
+            business = business.copy(businessType = "카페/음료"), categories = listOf(cafe), selectedCategory = cafe)
+        assertTrue(state.categoryFromProfile)
+        assertFalse(state.copy(business = business.copy(businessType = "직접 입력한 업종")).categoryFromProfile)
+        assertTrue(state.copy(business = business.copy(businessType = "카페")).categoryFromProfile)
+        val ambiguous = listOf(PostingCategory(1, "A / 카페", "카페/음료"), PostingCategory(2, "B / 카페", "카페/디저트"))
+        assertEquals(null, ambiguous.matchBusinessType("카페"))
+    }
 }

@@ -1,5 +1,7 @@
 package com.workernotfound.app.feature.notification.ui
 
+import com.workernotfound.app.core.ui.KoreanDateTime
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -38,7 +40,7 @@ private fun NotificationContent(state: NotificationUiState, onBack: () -> Unit, 
             items(state.items, key = { it.id }) { item ->
                 AppCard(Modifier.fillMaxWidth()) {
                     Text(stringResource(notificationTitle(item.type)), style = MaterialTheme.typography.titleMedium)
-                    Text(item.occurredAt.replace('T', ' '), color = AppColors.TextSub)
+                    Text(KoreanDateTime.dateTime(item.occurredAt), color = AppColors.TextSub)
                     Text(stringResource(if (item.read) R.string.notifications_read else R.string.notifications_new), color = AppColors.TextSub)
                     TextButton({ onOpen(item) }, enabled = !state.busy) { Text(stringResource(R.string.notifications_open)) }
                 }

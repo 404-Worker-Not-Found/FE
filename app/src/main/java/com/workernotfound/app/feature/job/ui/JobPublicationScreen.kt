@@ -65,7 +65,6 @@ private fun PublicationForm(state: JobPublicationUiState, viewModel: JobPublicat
         } else {
             Text(business.name, style = MaterialTheme.typography.titleMedium)
             Text(business.address)
-            Text(stringResource(R.string.publication_saved_store), color = AppColors.TextSub)
             AppMap(listOf(MapPoint(business.id.toString(), business.latitude.toDouble(), business.longitude.toDouble(), business.name)),
                 Modifier.fillMaxWidth().height(AppDimens.locationMapHeight))
         }
@@ -76,12 +75,7 @@ private fun PublicationForm(state: JobPublicationUiState, viewModel: JobPublicat
             Box(Modifier.weight(1f)) { PublicationInput(PublicationField.START, state, viewModel::edit) }
             Box(Modifier.weight(1f)) { PublicationInput(PublicationField.END, state, viewModel::edit) }
         }
-        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-            Checkbox(state.nextDay, viewModel::nextDay, enabled = enabled)
-            Text(stringResource(R.string.publication_next_day))
-        }
         PublicationInput(PublicationField.DEADLINE, state, viewModel::edit)
-        Text(stringResource(R.string.publication_schedule_help), color = AppColors.TextSub, style = MaterialTheme.typography.bodySmall)
     }
     PublicationSection(R.string.publication_section_work) {
         PublicationInput(PublicationField.TITLE, state, viewModel::edit)
@@ -89,7 +83,7 @@ private fun PublicationForm(state: JobPublicationUiState, viewModel: JobPublicat
         if (state.categories.isEmpty()) {
             Text(stringResource(R.string.publication_category_help), color = AppColors.TextSub)
             TextButton(viewModel::loadCategories, enabled = enabled) { Text(stringResource(R.string.publication_category_reload)) }
-        } else PublicationCategoryPicker(state.categories, state.selectedCategory, enabled, viewModel::category)
+        } else if (!state.categoryFromProfile) PublicationCategoryPicker(state.categories, state.selectedCategory, enabled, viewModel::category)
         PublicationInput(PublicationField.COUNT, state, viewModel::edit)
     }
     PublicationSection(R.string.publication_section_wage) {
@@ -104,11 +98,7 @@ private fun PublicationForm(state: JobPublicationUiState, viewModel: JobPublicat
         }
     }
     if (state.creationAttempted) Text(stringResource(R.string.publication_uncertain), color = AppColors.Danger)
-    else {
-        Text(stringResource(R.string.publication_rules), color = AppColors.TextSub)
-        state.validationIssue?.let { Text(stringResource(it.messageResource()), color = AppColors.Danger) }
-        if (!state.canCreate) Text(stringResource(R.string.publication_complete_fields), color = AppColors.TextSub)
-    }
+    else state.validationIssue?.let { Text(stringResource(it.messageResource()), color = AppColors.Danger) }
     AppPrimaryButton(stringResource(R.string.publication_create), viewModel::create, enabled = state.canCreate)
 }
 
@@ -133,7 +123,8 @@ private fun PublicationInput(field: PublicationField, state: JobPublicationUiSta
     }
     val enabled = !state.busy && !state.creationAttempted
     if (field in setOf(PublicationField.DATE, PublicationField.START, PublicationField.END, PublicationField.DEADLINE)) {
-        PublicationScheduleInput(field, state[field], stringResource(label), enabled) { edit(field, it) }
+        PublicationScheduleInput(field, state[field], stringResource(label), enabled, state[PublicationField.START],
+            state[PublicationField.DATE]) { edit(field, it) }
         return
     }
     val numeric = field in setOf(PublicationField.BASE_WAGE, PublicationField.EXTRA_WAGE, PublicationField.COUNT)

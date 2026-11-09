@@ -29,7 +29,6 @@
     <string name="publication_low">낮음</string>
     <string name="publication_medium">보통</string>
     <string name="publication_high">높음</string>
-    <string name="publication_rules">공고를 저장한 뒤 예치 금액을 확인하고 결제를 진행해요. 결제 후 모집 공개가 확인되면 지원을 받을 수 있어요.</string>
     <string name="publication_create">공고 저장하고 결제하기</string>
     <string name="publication_resume">기존 공고 결제 상태 조회</string>
     <string name="publication_back">돌아가기</string>
@@ -37,18 +36,15 @@
     <string name="publication_category_select">업종 선택</string>
     <string name="publication_payment_title">공고 등록 확인</string>
     <string name="publication_section_store">근무할 가게</string>
-    <string name="publication_saved_store">내 정보에 등록된 가게 주소를 사용해요.</string>
     <string name="publication_section_schedule">근무 일정</string>
     <string name="publication_section_work">모집 내용</string>
     <string name="publication_section_wage">시급과 긴급도</string>
-    <string name="publication_schedule_help">근무일은 오늘 또는 내일, 시간은 30분 단위로 선택해요. 지원 마감은 근무 시작 전으로 설정해 주세요.</string>
     <string name="publication_urgency">얼마나 급하게 구하고 있나요?</string>
     <string name="publication_description_count">%1$d/200자</string>
-    <string name="publication_complete_fields">업종과 필수 항목을 모두 입력하면 다음 단계로 진행할 수 있어요.</string>
     <string name="publication_invalid_wage">기본 시급은 10,320원 이상으로 입력해 주세요.</string>
     <string name="publication_invalid_extra">추가 시급은 1원 이상으로 입력하거나 비워 두세요.</string>
     <string name="publication_invalid_count">모집 인원은 1~10명으로 입력해 주세요.</string>
-    <string name="publication_invalid_schedule">종료는 시작보다 늦어야 해요. 밤을 넘기는 근무라면 다음 날 종료를 선택해 주세요. 근무는 최대 24시간이에요.</string>
+    <string name="publication_invalid_schedule">근무는 최대 24시간이에요.</string>
     <string name="publication_invalid_deadline">지원 마감은 현재 시각 이후, 근무 시작 전으로 선택해 주세요.</string>
     <string name="owner_postings_title">공고관리</string>
     <string name="owner_postings_current">현재 공고</string>

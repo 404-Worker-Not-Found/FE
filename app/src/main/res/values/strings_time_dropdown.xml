@@ -1,0 +1,12 @@
+<resources>
+<string name="time_duration_hours">%1$d시간</string>
+<string name="time_duration_minutes">%1$d시간 %2$d분</string>
+<string name="time_end_option">%1$s (%2$s)</string>
+<string name="time_duration_only_minutes">%1$d분</string>
+<string name="time_select_placeholder">선택</string>
+<string name="deadline_today">오늘 %1$s</string>
+<string name="deadline_tomorrow">내일 %1$s</string>
+<string name="deadline_option">%1$s (시작 %2$s 전)</string>
+<string name="deadline_need_schedule">근무 날짜·시작 시간을 먼저 선택</string>
+<string name="deadline_none_available">선택 가능한 마감 시간 없음</string>
+</resources>

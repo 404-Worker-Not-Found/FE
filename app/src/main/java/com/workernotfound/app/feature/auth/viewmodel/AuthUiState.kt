@@ -1,6 +1,7 @@
 package com.workernotfound.app.feature.auth.viewmodel
 
 import com.workernotfound.app.feature.auth.domain.AuthSession
+import com.workernotfound.app.feature.job.domain.model.PostingCategory
 import java.time.DayOfWeek
 import java.time.LocalTime
 
@@ -20,6 +21,7 @@ data class AuthUiState(
     val emailCooldown: Int = 0, val smsCooldown: Int = 0,
     val message: Int? = null, val error: String? = null, val session: AuthSession? = null,
     val diagnostic: String? = null,
+    val businessTypes: List<PostingCategory> = emptyList(), val businessTypesFailed: Boolean = false,
 ) {
     operator fun get(field: AuthField) = fields[field].orEmpty()
     val emailValid get() = Regex("[^@\\s]+@[^@\\s]+\\.[^@\\s]+").matches(this[AuthField.EMAIL]) && this[AuthField.EMAIL].length <= 255

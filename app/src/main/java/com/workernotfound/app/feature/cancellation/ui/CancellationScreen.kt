@@ -1,5 +1,7 @@
 package com.workernotfound.app.feature.cancellation.ui
 
+import com.workernotfound.app.core.ui.KoreanDateTime
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -39,7 +41,7 @@ fun CancellationScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewMo
                     AppCard(Modifier.fillMaxWidth()) {
                         Text(stringResource(cancellationStatus(request.status)))
                         Text(request.reason)
-                        Text(request.createdAt.replace('T', ' '), color = AppColors.TextSub)
+                        Text(KoreanDateTime.dateTime(request.createdAt), color = AppColors.TextSub)
                         if (context.withinWindow(s.now)) {
                             if (request.canWithdraw(context.member)) TextButton({ viewModel.confirm(CancellationIntent(CancellationAction.WITHDRAW, request.id)) }, enabled = !s.busy) { Text(stringResource(R.string.cancellation_withdraw)) }
                             if (request.canRespond(context.member)) Row {

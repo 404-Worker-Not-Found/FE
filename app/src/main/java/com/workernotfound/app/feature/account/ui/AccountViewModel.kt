@@ -15,6 +15,8 @@ import kotlinx.coroutines.launch
 
 data class AccountUiState(val channel: ContactChannel = ContactChannel.PHONE, val target: String = "",
     val code: String = "", val busy: Boolean = false, val cooldown: Int = 0,
+    val profile: com.workernotfound.app.feature.account.domain.AccountProfile? = null,
+    val nameDraft: String? = null, val nameSaving: Boolean = false, val nameError: Boolean = false,
     val invalidCode: Boolean = false,
     val sent: Boolean = false, val key: String? = null, val withdrawing: Boolean = false,
     val command: AccountCommand? = null, val confirmWithdrawal: Boolean = false, val error: String? = null) {
@@ -24,10 +26,26 @@ data class AccountUiState(val channel: ContactChannel = ContactChannel.PHONE, va
 }
 @HiltViewModel
 class AccountViewModel @Inject constructor(private val repository: AccountRepository,
+    private val profiles: com.workernotfound.app.feature.account.data.AccountProfileRepository,
     private val backend: BackendAccess, private val saved: SavedStateHandle) : ViewModel() {
     private val state = MutableStateFlow(AccountUiState(key = saved["accountCommand"], withdrawing = saved["withdrawing"] ?: false))
     val uiState = state.asStateFlow()
     init { viewModelScope.launch { while (true) { delay(1000); state.update { it.copy(cooldown = (it.cooldown - 1).coerceAtLeast(0)) } } } }
+    init { action { state.update { it.copy(profile = profiles.load()) } } }
+    fun editName() { state.update { it.copy(nameDraft = it.profile?.name, nameError = false) } }
+    fun name(value: String) { state.update { it.copy(nameDraft = value, nameError = false) } }
+    fun dismissName() { if (!state.value.nameSaving) state.update { it.copy(nameDraft = null) } }
+    fun saveName() {
+        val name = state.value.nameDraft ?: return
+        if (!com.workernotfound.app.feature.mypage.domain.ProfileNamePolicy.isValid(name) || state.value.nameSaving) return
+        state.update { it.copy(nameSaving = true) }
+        viewModelScope.launch {
+            try { val profile = profiles.rename(name); state.update { it.copy(profile = profile, nameDraft = null) } }
+            catch (e: CancellationException) { throw e }
+            catch (e: Exception) { state.update { it.copy(nameError = true) } }
+            finally { state.update { it.copy(nameSaving = false) } }
+        }
+    }
     fun channel(value: ContactChannel) { if (!state.value.busy && state.value.key == null) state.update { it.copy(channel = value, target = "", code = "", sent = false, error = null, invalidCode = false) } }
     fun target(value: String) { if (!state.value.busy && state.value.key == null) state.update { it.copy(target = value, code = "", sent = false, error = null, invalidCode = false) } }
     fun code(value: String) { if (!state.value.busy && state.value.key == null) state.update { it.copy(code = value, invalidCode = false) } }

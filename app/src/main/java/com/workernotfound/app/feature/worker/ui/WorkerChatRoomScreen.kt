@@ -16,9 +16,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -57,6 +58,7 @@ import com.workernotfound.app.core.designsystem.AppDimens
 import com.workernotfound.app.core.designsystem.AppRadius
 import com.workernotfound.app.core.designsystem.AppTheme
 import com.workernotfound.app.core.designsystem.component.AppTopBar
+import com.workernotfound.app.core.ui.KoreanDateTime
 import com.workernotfound.app.feature.worker.domain.model.ChatMessage
 import com.workernotfound.app.feature.worker.viewmodel.WorkerChatRoomUiState
 import com.workernotfound.app.feature.worker.viewmodel.WorkerChatRoomViewModel
@@ -149,8 +151,21 @@ private fun MessageList(messages: List<ChatMessage>, otherReadId: Long?, onVisib
         contentPadding = PaddingValues(AppDimens.screenPadding),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items(items = messages, key = { it.id }) { message ->
+        itemsIndexed(items = messages, key = { _, message -> message.id }) { index, message ->
+            val date = KoreanDateTime.date(message.timeText)
+            val previousDate = messages.getOrNull(index - 1)?.let { KoreanDateTime.date(it.timeText) }
             Column {
+                if (date != null && date != previousDate) {
+                    Box(Modifier.fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = KoreanDateTime.day(message.timeText),
+                            color = AppColors.TextSub,
+                            fontSize = 12.sp,
+                            modifier = Modifier.background(AppColors.CardSurface, RoundedCornerShape(AppRadius.pill))
+                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                        )
+                    }
+                }
                 MessageBubble(message)
                 if (message.fromMe && otherReadId != null && (message.id.toLongOrNull() ?: Long.MAX_VALUE) <= otherReadId)
                     Text(stringResource(R.string.chat_read), color = AppColors.TextSub)
@@ -161,26 +176,45 @@ private fun MessageList(messages: List<ChatMessage>, otherReadId: Long?, onVisib
 
 @Composable
 private fun MessageBubble(message: ChatMessage) {
-    val alignment = if (message.fromMe) Alignment.End else Alignment.Start
-    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = alignment) {
-        Box(
-            modifier = Modifier
-                .widthIn(max = 280.dp)
-                .background(
-                    if (message.fromMe) AppTheme.role.accent else AppColors.CardSurface,
-                    RoundedCornerShape(AppRadius.card),
-                )
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-        ) {
-            Text(
-                text = message.text,
-                color = if (message.fromMe) Color.White else AppColors.TextMain,
-                fontSize = 14.sp,
-            )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = if (message.fromMe) Arrangement.End else Arrangement.Start,
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        if (message.fromMe) {
+            MessageTimestamp(message.timeText)
+            Spacer(Modifier.width(6.dp))
+            MessageTextBubble(message, Modifier.weight(1f, fill = false))
+        } else {
+            MessageTextBubble(message, Modifier.weight(1f, fill = false))
+            Spacer(Modifier.width(6.dp))
+            MessageTimestamp(message.timeText)
         }
-        Spacer(Modifier.height(2.dp))
-        Text(text = message.timeText, fontSize = 10.sp, color = AppColors.TextPlaceholder)
     }
+}
+
+@Composable
+private fun MessageTextBubble(message: ChatMessage, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .widthIn(max = 280.dp)
+            .background(
+                if (message.fromMe) AppTheme.role.accent else AppColors.CardSurface,
+                RoundedCornerShape(AppRadius.card),
+            )
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+    ) {
+        Text(
+            text = message.text,
+            color = if (message.fromMe) Color.White else AppColors.TextMain,
+            fontSize = 14.sp,
+        )
+    }
+}
+
+@Composable
+private fun MessageTimestamp(raw: String) {
+    Text(text = KoreanDateTime.time(raw), fontSize = 12.sp, color = AppColors.TextSub)
 }
 
 @Composable

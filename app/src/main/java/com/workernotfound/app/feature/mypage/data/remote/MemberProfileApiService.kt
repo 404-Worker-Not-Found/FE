@@ -22,4 +22,5 @@ data class MemberProfileDto(
     val role: String,
     val ownerProfile: OwnerBusinessProfileDto?,
 )
-data class OwnerBusinessProfileDto(val storeName: String)
+data class OwnerBusinessProfileDto(val storeName: String, val storeLocation: ProfileStoreLocationDto? = null)
+data class ProfileStoreLocationDto(val address: String?)

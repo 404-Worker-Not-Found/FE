@@ -493,3 +493,27 @@ Related files:
 - `app/build.gradle.kts`
 - `app/src/main/java/com/workernotfound/app/core/network/BackendAccess.kt`
 
+
+## 2026-11-09 - Profile controls and overnight time selection
+
+Decision:
+- Keep profile avatars but hide photo editing controls for both roles. Move name and contact information into account management; place logout last. Show the owner's stored address below the store name.
+- Use compact 30-minute dropdowns. End options show elapsed duration; infer next-day end when end <= start (equal times represent 24 hours). This supersedes the explicit next-day picker decision.
+
+Reason:
+- User requested these screen changes and automatic overnight calculation.
+
+Implication for agents:
+- Preserve the backend nextDay contract and apply inference when either time changes.
+
+## 2026-11-09 - Signup business type comes from the job category catalog
+
+Decision:
+- Signup business type is a dropdown over `GET /api/jobs/categories`; the catalog name is sent as the free-text `businessType` / `preferredBusinessTypes` the backend accepts.
+- Job posting reuses the owner's stored `businessType`: exact catalog name first, otherwise a single unambiguous word match (for older free-text values). The picker appears only when nothing matches.
+
+Reason:
+- The backend stores member business type as free text but requires a catalog `categoryId` for jobs; the user asked not to choose the business type twice.
+
+Implication for agents:
+- Do not reintroduce free-text business type input or a second business type question in posting. Never guess a category ID when the match is ambiguous.

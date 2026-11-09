@@ -1,5 +1,7 @@
 package com.workernotfound.app.feature.review.ui
 
+import com.workernotfound.app.core.ui.KoreanDateTime
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,7 +34,7 @@ fun ReviewScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel: R
                     Text(target.storeName, style = MaterialTheme.typography.titleMedium)
                     Text(target.description)
                     Text(target.date, color = AppColors.TextSub)
-                    Text(stringResource(R.string.reviews_until, target.writableUntil.replace('T', ' ')), color = AppColors.TextSub)
+                    Text(stringResource(R.string.reviews_until, KoreanDateTime.dateTime(target.writableUntil)), color = AppColors.TextSub)
                     TextButton({ viewModel.select(target) }, enabled = !s.busy) { Text(stringResource(R.string.reviews_write)) }
                 }
             }
@@ -48,7 +50,7 @@ fun ReviewScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel: R
                     Text(stringResource(R.string.reviews_rating, review.rating))
                     Text(stringResource(if (review.role == "OWNER") R.string.reviews_from_owner else R.string.reviews_from_worker))
                     review.comment?.let { Text(it) }
-                    Text(review.createdAt.replace('T', ' '), color = AppColors.TextSub)
+                    Text(KoreanDateTime.dateTime(review.createdAt), color = AppColors.TextSub)
                 }
             }
             if (s.receivedNext != null) item { TextButton({ viewModel.more(false) }, enabled = !s.busy) { Text(stringResource(R.string.reviews_more_received)) } }

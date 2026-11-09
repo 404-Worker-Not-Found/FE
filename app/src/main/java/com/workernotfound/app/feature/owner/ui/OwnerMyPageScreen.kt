@@ -58,6 +58,7 @@ fun OwnerMyPageScreen(
     onReviews: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    androidx.lifecycle.compose.LifecycleResumeEffect(viewModel) { viewModel.load(); onPauseOrDispose { } }
     LaunchedEffect(uiState.isLoggedOut) { if (uiState.isLoggedOut) onLogout() }
     OwnerMyPageContent(
         uiState = uiState,
@@ -117,15 +118,14 @@ private fun OwnerMyPageContent(
             if (uiState.hasPhotoSaveError || uiState.hasNotificationSaveError) Text(stringResource(R.string.profile_save_error), color = AppColors.Danger)
             uiState.errorMessage?.let { Text(it, color = AppColors.Danger) }
             ProfileCard(profile, onPhotoSelected)
-            AccountCard(profile, onEditName)
             profile.notificationSettings?.let { settings ->
                 NotificationCard(settings = settings, onToggle = onToggle, enabled = !uiState.isSavingNotification)
             } ?: Text(stringResource(R.string.profile_settings_unavailable), color = AppColors.TextSub)
             AppCard(modifier = Modifier.fillMaxWidth()) {
-                ActionRow(label = "로그아웃", color = AppColors.TextMain, onClick = onLogout)
-                CardDivider()
                 androidx.compose.material3.TextButton(onAccountSettings) { Text(stringResource(R.string.account_title)) }
                 androidx.compose.material3.TextButton(onReviews) { Text(stringResource(R.string.reviews_title)) }
+                CardDivider()
+                ActionRow(label = stringResource(R.string.profile_logout), color = AppColors.TextMain, onClick = onLogout)
             }
         }
     }
@@ -143,7 +143,6 @@ private fun ProfileCard(profile: OwnerProfile, onPhotoSelected: (String) -> Unit
                 Text(text = "점주 · ${profile.email}", fontSize = 12.sp, color = AppColors.TextSub)
             }
         }
-        ProfilePhotoButton(onSelected = onPhotoSelected)
         Spacer(Modifier.height(12.dp))
         Text(
             text = "🏪 ${profile.storeName}",
@@ -151,6 +150,7 @@ private fun ProfileCard(profile: OwnerProfile, onPhotoSelected: (String) -> Unit
             fontWeight = FontWeight.Bold,
             color = AppTheme.role.accent,
         )
+        profile.storeAddress?.let { Text(it, color = AppColors.TextSub, fontSize = 13.sp) }
     }
 }
 

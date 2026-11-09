@@ -20,8 +20,8 @@
     <string name="auth_business_type">업종</string>
     <string name="auth_wage">희망 시급 (0원 이상)</string>
     <string name="auth_radius">활동 반경 (km, 양의 정수)</string>
-    <string name="auth_start">가능 시작 시간 (HH:mm)</string>
-    <string name="auth_end">가능 종료 시간 (HH:mm)</string>
+    <string name="auth_start">가능 시작 시간</string>
+    <string name="auth_end">가능 종료 시간</string>
     <string name="auth_available">즉시 근무 가능</string>
     <string name="auth_password_rule">비밀번호는 서버 기준 8~100자이며 확인 값과 같아야 합니다.</string>
     <string name="auth_verification_rule">이메일·SMS 인증이 모두 필요합니다. 인증 후 30분 이내 가입해 주세요.</string>
@@ -46,4 +46,6 @@
     <string name="auth_fri">금요일</string>
     <string name="auth_sat">토요일</string>
     <string name="auth_sun">일요일</string>
+    <string name="auth_business_type_loading">업종 불러오는 중</string>
+    <string name="auth_business_type_retry">업종 목록을 불러오지 못했어요. 다시 불러오기</string>
 </resources>
