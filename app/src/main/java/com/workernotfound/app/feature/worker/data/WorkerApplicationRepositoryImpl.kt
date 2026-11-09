@@ -2,6 +2,7 @@ package com.workernotfound.app.feature.worker.data
 
 import com.workernotfound.app.core.network.ApiException
 import com.workernotfound.app.core.network.BackendAccess
+import com.workernotfound.app.core.ui.KoreanDateTime
 import com.workernotfound.app.feature.worker.data.remote.ApplicationResponseDto
 import com.workernotfound.app.feature.worker.data.remote.CreateApplicationRequestDto
 import com.workernotfound.app.feature.worker.data.remote.MatchingResponseDto
@@ -81,14 +82,15 @@ class WorkerApplicationRepositoryImpl @Inject constructor(private val backend: B
 
     private suspend fun map(app: ApplicationResponseDto, matching: MatchingResponseDto?, includeChat: Boolean): WorkerApplication {
         val job = jobs.detail(app.jobPostId).requireData()
+        val expiresIn = matching?.expiresAt?.let { expiresInSeconds(it) }
         return WorkerApplication(
             id = app.applicationId.toString(), storeName = job.storeName, category = job.categoryName,
-            appliedAtText = app.appliedAt, status = applicationStatus(app.status, matching?.status),
-            workDate = job.workDate, workTimeRange = "${job.startTime.take(5)} ~ ${job.endTime.take(5)}",
+            appliedAtText = KoreanDateTime.relative(app.appliedAt), status = applicationStatus(app.status, matching?.status),
+            workDate = KoreanDateTime.workDate(job.workDate), workTimeRange = "${job.startTime.take(5)} ~ ${job.endTime.take(5)}",
             address = job.address, hourlyWage = job.baseHourlyWage + job.extraWage,
             matchScore = matching?.totalScore?.let { kotlin.math.round(it).toInt() },
-            hasRematchOffer = matching?.status == "PENDING", matchingId = matching?.matchingId?.toString(),
-            proposalExpiresInSeconds = matching?.expiresAt?.let { expiresInSeconds(it) },
+            hasRematchOffer = isValidOffer(app.status, matching?.status, expiresIn), matchingId = matching?.matchingId?.toString(),
+            proposalExpiresInSeconds = expiresIn,
             chatRoomId = if (includeChat && matching?.status in setOf("CONFIRMED", "COMPLETED")) findChatRoom(requireNotNull(matching).matchingId) else null,
 
         )
@@ -103,6 +105,10 @@ internal fun applicationStatus(applicationStatus: String, matchingStatus: String
     "APPLIED" -> if (matchingStatus == "PENDING") ApplicationStatus.MATCHING else ApplicationStatus.APPLYING
     else -> throw ApiException("UNKNOWN_APPLICATION_STATUS")
 }
+
+/** A matching proposal the worker can still answer: pending, on a live application, before expiresAt. */
+internal fun isValidOffer(applicationStatus: String, matchingStatus: String?, expiresInSeconds: Long?): Boolean =
+    applicationStatus == "APPLIED" && matchingStatus == "PENDING" && (expiresInSeconds ?: 0) > 0
 
 internal fun expiresInSeconds(expiresAt: String, clock: java.time.Clock = java.time.Clock.systemUTC()): Long {
     val expires = java.time.LocalDateTime.parse(expiresAt).atZone(java.time.ZoneId.of("Asia/Seoul")).toInstant()

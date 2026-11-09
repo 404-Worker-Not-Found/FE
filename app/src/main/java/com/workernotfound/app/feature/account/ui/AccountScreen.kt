@@ -1,6 +1,9 @@
 package com.workernotfound.app.feature.account.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -26,8 +29,17 @@ fun AccountScreen(onBack: () -> Unit, onLogin: () -> Unit, modifier: Modifier = 
             verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
             s.profile?.let { profile ->
                 AppCard(modifier = Modifier.fillMaxWidth()) {
-                    AccountInfoRow(stringResource(R.string.account_name_label), profile.name)
-                    TextButton(viewModel::editName, enabled = !s.nameSaving) { Text(stringResource(R.string.profile_edit_name)) }
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .clickable(enabled = !s.nameSaving, onClick = viewModel::editName)
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(stringResource(R.string.worker_mypage_name), color = AppColors.TextSub)
+                        Spacer(Modifier.weight(1f))
+                        Text(profile.name, color = AppColors.TextMain)
+                        Text("  ›", color = AppColors.TextPlaceholder)
+                    }
                     HorizontalDivider(color = AppColors.Border)
                     Spacer(Modifier.height(AppDimens.cardGap))
                     AccountInfoRow(stringResource(R.string.account_contact_label),

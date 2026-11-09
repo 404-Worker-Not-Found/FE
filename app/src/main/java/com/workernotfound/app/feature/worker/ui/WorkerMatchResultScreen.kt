@@ -136,7 +136,7 @@ private fun MatchSuccessView(app: WorkerApplication, onGoChat: () -> Unit, onHom
         AppPrimaryButton(text = "채팅방으로 이동", onClick = onGoChat, enabled = app.chatRoomId != null)
         Spacer(Modifier.height(8.dp))
         TextButton(onClick = onHome, modifier = Modifier.fillMaxWidth()) {
-            Text(text = stringResource(R.string.worker_back_to_main), color = AppColors.TextSub)
+            Text(text = stringResource(R.string.worker_go_home), color = AppColors.TextSub)
         }
     }
 }

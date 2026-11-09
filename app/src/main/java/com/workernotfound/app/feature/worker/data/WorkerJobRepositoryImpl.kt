@@ -7,6 +7,7 @@ import com.workernotfound.app.feature.worker.data.remote.WorkerJobApiService
 import com.workernotfound.app.feature.worker.data.remote.WorkerJobMapper
 import com.workernotfound.app.feature.worker.domain.model.JobFilter
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobDetail
+import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
 import com.workernotfound.app.feature.worker.domain.repository.JobSearchResult
 import com.workernotfound.app.feature.worker.domain.repository.WorkerJobRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,11 +30,17 @@ class WorkerJobRepositoryImpl @Inject constructor(
             all += response.jobs
             page++
         } while (page < response.totalPages)
-        val matched = all.filter { filter.categories.isEmpty() || it.categoryName in filter.categories }
-        val (urgent, recommended) = matched.partition { it.isUrgent }
-        return JobSearchResult(urgent.map(mapper::card), recommended.map(mapper::card))
+        val matched = all.distinctBy { it.id }
+            .filter { filter.categories.isEmpty() || it.categoryName in filter.categories }
+            .map(mapper::card)
+        matched.forEach { cards[it.id] = it }
+        return JobSearchResult(matched)
     }
 
     override suspend fun getJobDetail(id: String): WorkerJobDetail =
         mapper.detail(api.detail(id.toLong()).requireData())
+
+    override fun cachedCard(id: String): WorkerJobPosting? = cards[id]
+
+    private val cards = java.util.concurrent.ConcurrentHashMap<String, WorkerJobPosting>()
 }

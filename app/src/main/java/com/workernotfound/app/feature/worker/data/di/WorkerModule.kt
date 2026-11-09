@@ -2,13 +2,13 @@ package com.workernotfound.app.feature.worker.data.di
 
 import com.workernotfound.app.feature.worker.data.WorkerApplicationRepositoryImpl
 import com.workernotfound.app.feature.worker.data.WorkerChatRepositoryImpl
-import com.workernotfound.app.feature.worker.data.WorkerHomeRepositoryImpl
+import com.workernotfound.app.feature.worker.data.WorkerJobFeedRepositoryImpl
 import com.workernotfound.app.feature.worker.data.WorkerJobRepositoryImpl
 import com.workernotfound.app.feature.worker.data.WorkerTrustRepositoryImpl
 import com.workernotfound.app.feature.worker.data.WorkerWorkRepositoryImpl
 import com.workernotfound.app.feature.worker.domain.repository.WorkerApplicationRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerChatRepository
-import com.workernotfound.app.feature.worker.domain.repository.WorkerHomeRepository
+import com.workernotfound.app.feature.worker.domain.repository.WorkerJobFeedRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerJobRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerTrustRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerWorkRepository
@@ -25,7 +25,7 @@ abstract class WorkerModule {
 
     @Binds
     @Singleton
-    abstract fun bindWorkerHomeRepository(impl: WorkerHomeRepositoryImpl): WorkerHomeRepository
+    abstract fun bindWorkerJobFeedRepository(impl: WorkerJobFeedRepositoryImpl): WorkerJobFeedRepository
 
     @Binds
     @Singleton

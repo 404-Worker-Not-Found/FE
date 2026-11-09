@@ -41,6 +41,9 @@ fun JobFilterSheet(
     current: JobFilter,
     onApply: (JobFilter) -> Unit,
     onDismiss: () -> Unit,
+    usesCurrentLocation: Boolean = false,
+    onUseCurrentLocation: () -> Unit = {},
+    onUseDefaultLocation: () -> Unit = {},
 ) {
     var draft by remember { mutableStateOf(current) }
 
@@ -53,6 +56,19 @@ fun JobFilterSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(text = "필터", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
+
+            FilterGroup(title = androidx.compose.ui.res.stringResource(R.string.worker_filter_location)) {
+                SelectChip(
+                    label = androidx.compose.ui.res.stringResource(R.string.worker_filter_location_default),
+                    selected = !usesCurrentLocation,
+                    onClick = { if (usesCurrentLocation) onUseDefaultLocation() },
+                )
+                SelectChip(
+                    label = androidx.compose.ui.res.stringResource(R.string.worker_filter_location_current),
+                    selected = usesCurrentLocation,
+                    onClick = onUseCurrentLocation,
+                )
+            }
 
             FilterGroup(title = "긴급") {
                 SelectChip(

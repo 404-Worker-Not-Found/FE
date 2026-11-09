@@ -27,6 +27,22 @@ class DeviceLocationException(val reason: LocationFailure) : Exception()
 
 /** Reads a current GPS fix only; coordinates are never persisted or logged. */
 class DeviceLocationProvider @Inject constructor(@ApplicationContext private val context: Context) {
+    /** Most recent fix the OS already has, without prompting or waiting. Null without permission. */
+    @SuppressLint("MissingPermission") // Permission is checked immediately before reading.
+    fun lastKnownOrNull(): DeviceCoordinates? {
+        val granted = listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+            .any { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }
+        if (!granted) return null
+        val manager = context.getSystemService(LocationManager::class.java) ?: return null
+        return try {
+            listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
+                .filter { manager.isProviderEnabled(it) }
+                .mapNotNull { manager.getLastKnownLocation(it) }
+                .maxByOrNull { it.time }
+                ?.let { DeviceCoordinates(it.latitude, it.longitude) }
+        } catch (_: SecurityException) { null }
+    }
+
     @SuppressLint("MissingPermission") // Exact permission is checked immediately before registration.
     suspend fun current(): DeviceCoordinates = withContext(Dispatchers.Main.immediate) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)

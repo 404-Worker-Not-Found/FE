@@ -24,6 +24,7 @@ fun AppTopBar(
     title: String,
     modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
+    actions: @Composable () -> Unit = {},
 ) {
     Box(
         modifier = modifier
@@ -51,6 +52,14 @@ fun AppTopBar(
                     .clickable(onClick = onBack),
             )
         }
-        Text(text = title, style = MaterialTheme.typography.titleLarge, color = AppColors.TextMain)
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            color = AppColors.TextMain,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 96.dp),
+        )
+        Box(modifier = Modifier.align(Alignment.CenterEnd).padding(end = 4.dp)) { actions() }
     }
 }

@@ -83,7 +83,6 @@ private fun WorkerAttendanceContent(
         verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
     ) {
         item {
-            Text(stringResource(R.string.attendance_trust_pending), color = AppColors.TextSub)
             TextButton(onClick = onRefresh, enabled = !state.isLoading && state.busyWorkId == null) {
                 Text(stringResource(R.string.attendance_refresh))
             }
@@ -103,7 +102,7 @@ private fun WorkerAttendanceContent(
             AppCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
                     Text(work.storeName)
-                    Text("${work.workDate} · ${work.timeRange}", color = AppColors.TextSub)
+                    Text("${com.workernotfound.app.core.ui.KoreanDateTime.workDate(work.workDate)} · ${work.timeRange}", color = AppColors.TextSub)
                     work.address?.let { Text(it, color = AppColors.TextSub) }
                     val attendance = work.attendance
                     when {

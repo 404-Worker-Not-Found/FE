@@ -46,7 +46,8 @@ class WorkerWorkRepositoryImpl @Inject constructor(private val backend: BackendA
                     id = work.workId.toString(), jobId = work.jobPostId.toString(), address = job.address, storeName = job.storeName, category = job.categoryName,
                     workDate = work.workDate, timeRange = "${work.startTime.take(5)} ~ ${work.endTime.take(5)}",
                     hourlyWage = job.baseHourlyWage + job.extraWage,
-                    status = if (work.status == "SCHEDULED" && startsAt - System.currentTimeMillis() > 3_600_000) WorkStatus.SCHEDULED else WorkStatus.IN_PROGRESS,
+                    // Stays 예정 until the server confirms check-in/start, even when the start is near.
+                    status = workSection(work.status),
                     attendance = WorkAttendance(work.status, work.latitude, work.longitude, radius,
                         startsAt - early * 1000, startsAt + late * 1000, work.checkedInAt != null, policy.timeZone),
                 )
@@ -62,3 +63,7 @@ internal fun confirmedCheckInReceipt(workId: String, response: com.workernotfoun
     if (response.workId.toString() != workId || response.checkedInAt.isNullOrBlank()) throw ApiException("CHECK_IN_NOT_CONFIRMED")
     return CheckInReceipt(workId, response.status, response.checkedInAt)
 }
+
+/** 예정 vs 진행 중 follows the server work status only (SCHEDULED → 예정; CHECKED_IN/IN_PROGRESS → 진행 중). */
+internal fun workSection(serverStatus: String): WorkStatus =
+    if (serverStatus == "SCHEDULED") WorkStatus.SCHEDULED else WorkStatus.IN_PROGRESS

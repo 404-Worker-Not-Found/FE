@@ -45,6 +45,7 @@ import com.workernotfound.app.core.designsystem.component.AppCard
 import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import com.workernotfound.app.core.designsystem.component.SectionLabel
 import com.workernotfound.app.core.designsystem.component.UrgentBadge
+import com.workernotfound.app.feature.worker.domain.model.ApplyAvailability
 import com.workernotfound.app.feature.worker.domain.model.ApplyStatus
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobDetail
 import com.workernotfound.app.feature.worker.viewmodel.WorkerJobDetailUiState
@@ -156,27 +157,21 @@ private fun WageBreakdownCard(detail: WorkerJobDetail) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
         SectionLabel(text = "시급 정보")
         Spacer(Modifier.height(10.dp))
-        WageRow("기본 시급", detail.baseWage, isBonus = false)
-        if (detail.urgentBonus > 0) {
-            Spacer(Modifier.height(6.dp))
-            WageRow("긴급 가산", detail.urgentBonus, isBonus = true)
-        }
-        if (detail.timeBonus > 0) {
-            Spacer(Modifier.height(6.dp))
-            WageRow("시간대 가산", detail.timeBonus, isBonus = true)
-        }
+        WageRow(stringResource(R.string.worker_detail_base_wage), detail.baseWage, isBonus = false)
+        Spacer(Modifier.height(6.dp))
+        WageRow(stringResource(R.string.worker_detail_extra_wage), detail.extraWage, isBonus = true)
         if (detail.extraWage > 0) {
-            Spacer(Modifier.height(AppDimens.cardGap))
-            WageRow(stringResource(R.string.backend_extra_wage), detail.extraWage, isBonus = true)
+            Spacer(Modifier.height(4.dp))
+            Text(stringResource(R.string.worker_detail_extra_wage_note), color = AppColors.TextPlaceholder, fontSize = 11.sp)
         }
         Spacer(Modifier.height(10.dp))
         Divider(color = AppColors.Border)
         Spacer(Modifier.height(10.dp))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "최종 시급", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
+            Text(text = stringResource(R.string.worker_detail_final_wage), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
             Spacer(Modifier.weight(1f))
             Text(
-                text = "₩${"%,d".format(detail.finalWage)} / 시",
+                text = stringResource(R.string.worker_detail_wage_unit, "%,d".format(detail.finalWage)),
                 color = AppTheme.role.accentPressed,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
@@ -289,22 +284,43 @@ private fun BottomApplyBar(detail: WorkerJobDetail, onApply: () -> Unit) {
         AvailabilityRow(detail = detail)
         Spacer(Modifier.height(10.dp))
         AppPrimaryButton(
-            text = when {
-                applied -> "지원 완료"
-                detail.withinRadius == false -> "모집 반경 밖이에요"
-                else -> "즉시 지원하기"
-            },
+            text = stringResource(
+                when {
+                    applied -> R.string.worker_detail_applied
+                    detail.availability == ApplyAvailability.CLOSED -> R.string.worker_detail_closed_button
+                    detail.availability == ApplyAvailability.OUT_OF_RADIUS -> R.string.worker_detail_out_of_radius
+                    else -> R.string.worker_detail_apply
+                },
+            ),
             onClick = onApply,
-            enabled = !applied && detail.withinRadius != false,
+            enabled = !applied && detail.availability != ApplyAvailability.CLOSED &&
+                detail.availability != ApplyAvailability.OUT_OF_RADIUS,
         )
     }
 }
 
 @Composable
 private fun AvailabilityRow(detail: WorkerJobDetail) {
-    val bg = when (detail.withinRadius) { true -> AppColors.SuccessBg; false -> AppColors.DangerBg; null -> AppColors.Border }
-    val color = when (detail.withinRadius) { true -> AppColors.Success; false -> AppColors.Danger; null -> AppColors.TextSub }
-    val text = if (detail.withinRadius == null) detail.radiusText else if (detail.withinRadius == true) "지원 가능 · ${detail.radiusText}" else "지원 불가 · ${detail.radiusText}"
+    val availability = detail.availability
+    val bg = when (availability) {
+        ApplyAvailability.AVAILABLE -> AppColors.SuccessBg
+        ApplyAvailability.OUT_OF_RADIUS, ApplyAvailability.CLOSED -> AppColors.DangerBg
+        ApplyAvailability.UNKNOWN -> AppColors.Border
+    }
+    val color = when (availability) {
+        ApplyAvailability.AVAILABLE -> AppColors.Success
+        ApplyAvailability.OUT_OF_RADIUS, ApplyAvailability.CLOSED -> AppColors.Danger
+        ApplyAvailability.UNKNOWN -> AppColors.TextSub
+    }
+    val radiusText = detail.distanceKm?.let { distance ->
+        detail.activityRadiusKm?.let { stringResource(R.string.worker_detail_radius_text, formatDistance(distance), it) }
+    }
+    val text = when {
+        availability == ApplyAvailability.CLOSED -> stringResource(R.string.worker_detail_closed)
+        radiusText == null -> stringResource(R.string.worker_detail_unknown_eligibility)
+        availability == ApplyAvailability.AVAILABLE -> stringResource(R.string.worker_detail_eligible, radiusText)
+        else -> stringResource(R.string.worker_detail_ineligible, radiusText)
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -315,6 +331,9 @@ private fun AvailabilityRow(detail: WorkerJobDetail) {
         Text(text = text, color = color, fontSize = 13.sp, fontWeight = FontWeight.Bold)
     }
 }
+
+private fun formatDistance(km: Double): String =
+    if (km < 1) "${(km * 1000).toInt()}m" else String.format(java.util.Locale.KOREA, "%.1fkm", km)
 
 private fun formatCountdown(totalSeconds: Long): String {
     val h = totalSeconds / 3600

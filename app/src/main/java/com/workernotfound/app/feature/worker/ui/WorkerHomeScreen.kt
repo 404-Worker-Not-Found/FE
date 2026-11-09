@@ -41,6 +41,10 @@ import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import com.workernotfound.app.core.designsystem.component.SectionLabel
 import com.workernotfound.app.feature.worker.ui.component.WorkerRecommendedJobCard
 import com.workernotfound.app.feature.worker.ui.component.WorkerUrgentJobCard
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
+import com.workernotfound.app.feature.worker.domain.repository.SearchOrigin
 import com.workernotfound.app.feature.worker.viewmodel.WorkerHomeUiState
 import com.workernotfound.app.feature.worker.viewmodel.WorkerHomeViewModel
 
@@ -83,23 +87,25 @@ private fun WorkerHomeContent(
                 bottom = 8.dp,
             ),
         ) {
-            HomeHeader(onNotificationsClick = onNotificationsClick)
+            HomeHeader(workerName = uiState.workerName, onNotificationsClick = onNotificationsClick)
             Spacer(Modifier.height(12.dp))
             AvailabilityToggleCard(
                 checked = uiState.isAvailableOnly,
+                radiusKm = uiState.activityRadiusKm,
                 onCheckedChange = onToggleAvailable,
             )
+            if (!uiState.isLoading && uiState.errorMessage == null) {
+                Spacer(Modifier.height(8.dp))
+                Text(text = stringResource(uiState.origin.labelRes()), color = AppColors.TextSub, fontSize = 11.sp)
+            }
         }
 
         when {
             uiState.isLoading -> LoadingBox()
             uiState.errorMessage != null -> ErrorBox(uiState.errorMessage, onRetry)
-            uiState.urgentJobs.isEmpty() && (uiState.isAvailableOnly || uiState.recommendedJobs.isEmpty()) -> {
-                Text(
-                    text = androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.backend_no_jobs),
-                    modifier = Modifier.padding(AppDimens.screenPadding), color = AppColors.TextSub,
-                )
-            }
+            uiState.isAvailableOnly && uiState.applicableJobs.isEmpty() -> EmptyText(R.string.worker_home_available_empty)
+            !uiState.isAvailableOnly && uiState.urgentJobs.isEmpty() && uiState.recommendedJobs.isEmpty() ->
+                EmptyText(R.string.worker_home_recommended_empty)
             else -> JobLists(
                 uiState = uiState,
                 onJobClick = onJobClick,
@@ -110,12 +116,25 @@ private fun WorkerHomeContent(
 }
 
 @Composable
-private fun HomeHeader(onNotificationsClick: () -> Unit) {
+private fun EmptyText(@StringRes text: Int) {
+    Text(text = stringResource(text), modifier = Modifier.padding(AppDimens.screenPadding), color = AppColors.TextSub)
+}
+
+@StringRes
+private fun SearchOrigin.labelRes(): Int = when (this) {
+    SearchOrigin.FILTER, SearchOrigin.DEVICE -> R.string.worker_origin_device
+    SearchOrigin.BASE_LOCATION -> R.string.worker_origin_base
+    SearchOrigin.NONE -> R.string.worker_origin_none
+}
+
+@Composable
+private fun HomeHeader(workerName: String?, onNotificationsClick: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
             Text(text = "내 주변 알바", color = AppColors.TextSub, fontSize = 12.sp)
             Text(
-                text = androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.backend_greeting),
+                text = workerName?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.worker_home_greeting_name, it) }
+                    ?: stringResource(R.string.backend_greeting),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = AppColors.TextMain,
@@ -133,19 +152,20 @@ private fun HomeHeader(onNotificationsClick: () -> Unit) {
 }
 
 @Composable
-private fun AvailabilityToggleCard(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+private fun AvailabilityToggleCard(checked: Boolean, radiusKm: Int?, onCheckedChange: (Boolean) -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth(), radius = AppRadius.card) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.backend_urgent_only),
+                    text = stringResource(R.string.worker_home_available_title),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextMain,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.backend_urgent_only_description),
+                    text = radiusKm?.let { stringResource(R.string.worker_home_available_description, it) }
+                        ?: stringResource(R.string.worker_home_available_description_unknown),
                     color = AppColors.TextSub,
                     fontSize = 12.sp,
                 )
@@ -179,6 +199,17 @@ private fun JobLists(
         ),
         verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
     ) {
+        if (uiState.isAvailableOnly) {
+            items(items = uiState.applicableJobs, key = { it.id }) { job ->
+                WorkerRecommendedJobCard(
+                    job = job,
+                    onClick = { onJobClick(job.id) },
+                    onApply = { onApply(job.id) },
+                    modifier = Modifier.padding(horizontal = AppDimens.screenPadding),
+                )
+            }
+            return@LazyColumn
+        }
         if (uiState.urgentJobs.isNotEmpty()) {
             item {
                 SectionLabel(
@@ -201,22 +232,21 @@ private fun JobLists(
             }
         }
 
-        if (!uiState.isAvailableOnly) {
-            item {
-                SectionLabel(
-                    text = androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.backend_other_jobs),
-                    modifier = Modifier.padding(horizontal = AppDimens.screenPadding),
-                )
-                Spacer(Modifier.height(8.dp))
-            }
-            items(items = uiState.recommendedJobs, key = { it.id }) { job ->
-                WorkerRecommendedJobCard(
-                    job = job,
-                    onClick = { onJobClick(job.id) },
-                    onApply = { onApply(job.id) },
-                    modifier = Modifier.padding(horizontal = AppDimens.screenPadding),
-                )
-            }
+        item {
+            SectionLabel(
+                text = stringResource(R.string.worker_home_recommended),
+                modifier = Modifier.padding(horizontal = AppDimens.screenPadding),
+            )
+            Spacer(Modifier.height(8.dp))
+            if (uiState.recommendedJobs.isEmpty()) EmptyText(R.string.worker_home_recommended_empty)
+        }
+        items(items = uiState.recommendedJobs, key = { it.id }) { job ->
+            WorkerRecommendedJobCard(
+                job = job,
+                onClick = { onJobClick(job.id) },
+                onApply = { onApply(job.id) },
+                modifier = Modifier.padding(horizontal = AppDimens.screenPadding),
+            )
         }
     }
 }

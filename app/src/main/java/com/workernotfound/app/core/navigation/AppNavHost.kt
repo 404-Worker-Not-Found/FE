@@ -82,7 +82,9 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             }
         }
         listOf(AppRoute.OWNER_ACCOUNT to AppRole.OWNER, AppRoute.WORKER_ACCOUNT to AppRole.WORKER).forEach { (route, role) ->
-            composable(route) {
+            composable("$route?withdraw={withdraw}", arguments = listOf(navArgument("withdraw") {
+                type = NavType.BoolType; defaultValue = false
+            })) {
                 WorkerNotFoundTheme(role = role) {
                     com.workernotfound.app.feature.account.ui.AccountScreen(
                         onBack = { navController.popBackStack() },
@@ -220,9 +222,14 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             }
         }
 
-        composable(AppRoute.WORKER_ROOT) {
+        composable(AppRoute.WORKER_ROOT) { entry ->
             WorkerNotFoundTheme(role = AppRole.WORKER) {
-                WorkerRootScreen(navController = navController)
+                WorkerRootScreen(navController = navController, savedState = entry.savedStateHandle)
+            }
+        }
+        composable(AppRoute.WORKER_ATTENDANCE) {
+            WorkerNotFoundTheme(role = AppRole.WORKER) {
+                com.workernotfound.app.feature.worker.ui.WorkerAttendanceScreen(onBack = { navController.popBackStack() })
             }
         }
         composable(
@@ -249,7 +256,11 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 WorkerMatchResultScreen(
                     onBack = { navController.popBackStack() },
                     onGoChat = { roomId -> navController.navigate(AppRoute.workerChatRoom(roomId)) },
-                    onHome = { navController.popBackStack(AppRoute.WORKER_ROOT, inclusive = false) },
+                    onHome = {
+                        runCatching { navController.getBackStackEntry(AppRoute.WORKER_ROOT) }.getOrNull()
+                            ?.savedStateHandle?.set(AppRoute.WORKER_TAB_KEY, AppRoute.WORKER_TAB_HOME)
+                        navController.popBackStack(AppRoute.WORKER_ROOT, inclusive = false)
+                    },
                 )
             }
         }

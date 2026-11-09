@@ -9,11 +9,14 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.component.AppBottomBar
@@ -31,11 +34,21 @@ private val WORKER_TABS = listOf(
 /**
  * Worker section shell with bottom navigation (UI spec 3-1:
  * 홈 / 탐색 / 근무관리 / 채팅 / 마이페이지). Tab content switches in place;
- * detail screens are pushed on the app [navController].
+ * detail screens are pushed on the app [navController]. A screen returning to the root can
+ * request a tab through [savedState] ([AppRoute.WORKER_TAB_KEY]).
  */
 @Composable
-fun WorkerRootScreen(navController: NavHostController) {
+fun WorkerRootScreen(navController: NavHostController, savedState: SavedStateHandle? = null) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    if (savedState != null) {
+        val requested by savedState.getStateFlow<Int?>(AppRoute.WORKER_TAB_KEY, null).collectAsStateWithLifecycle()
+        LaunchedEffect(requested) {
+            requested?.let { tab ->
+                if (tab in WORKER_TABS.indices) selectedTab = tab
+                savedState[AppRoute.WORKER_TAB_KEY] = null
+            }
+        }
+    }
 
     Scaffold(
         containerColor = AppColors.WorkerSurface,
@@ -61,7 +74,7 @@ fun WorkerRootScreen(navController: NavHostController) {
             2 -> WorkerWorkScreen(
                 onCancellation = { navController.navigate(AppRoute.workerCancellation(it)) },
                 modifier = contentModifier,
-                onTrustClick = { navController.navigate(AppRoute.WORKER_TRUST) },
+                onAttendanceClick = { navController.navigate(AppRoute.WORKER_ATTENDANCE) },
                 onApplicationsClick = { navController.navigate(AppRoute.WORKER_APPLICATIONS) },
             )
             3 -> WorkerChatListScreen(
@@ -72,6 +85,7 @@ fun WorkerRootScreen(navController: NavHostController) {
                 onTrustClick = { navController.navigate(AppRoute.WORKER_TRUST) },
                 onLogout = { navController.popBackStack(AppRoute.ROLE_SWITCHER, inclusive = false) },
                 onAccountSettings = { navController.navigate(AppRoute.WORKER_ACCOUNT) },
+                onWithdraw = { navController.navigate(AppRoute.WORKER_ACCOUNT_WITHDRAW) },
                 modifier = contentModifier,
             )
         }

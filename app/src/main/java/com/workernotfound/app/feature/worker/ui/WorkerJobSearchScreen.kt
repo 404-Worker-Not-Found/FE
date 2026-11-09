@@ -1,5 +1,8 @@
 package com.workernotfound.app.feature.worker.ui
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,18 +21,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import android.Manifest
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.TextButton
-import androidx.compose.ui.res.stringResource
-import com.workernotfound.app.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,11 +40,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
 import com.workernotfound.app.core.designsystem.AppRadius
@@ -51,9 +58,11 @@ import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import com.workernotfound.app.core.designsystem.component.SectionLabel
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
 import com.workernotfound.app.feature.worker.ui.component.JobFilterSheet
+import com.workernotfound.app.feature.worker.ui.component.LiveJobMap
 import com.workernotfound.app.feature.worker.ui.component.WorkerRecommendedJobCard
 import com.workernotfound.app.feature.worker.ui.component.WorkerUrgentJobCard
 import com.workernotfound.app.feature.worker.viewmodel.JobViewMode
+import com.workernotfound.app.feature.worker.viewmodel.SearchMode
 import com.workernotfound.app.feature.worker.viewmodel.WorkerJobSearchUiState
 import com.workernotfound.app.feature.worker.viewmodel.WorkerJobSearchViewModel
 
@@ -67,10 +76,16 @@ fun WorkerJobSearchScreen(
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
         if (grants[Manifest.permission.ACCESS_FINE_LOCATION] == true) viewModel.locate() else viewModel.locationDenied()
     }
+    val requestLocation = {
+        permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+    }
 
     if (uiState.isFilterSheetOpen) {
         JobFilterSheet(
             current = uiState.filter,
+            usesCurrentLocation = uiState.usesCurrentLocation,
+            onUseCurrentLocation = { viewModel.dismissFilterSheet(); requestLocation() },
+            onUseDefaultLocation = viewModel::useDefaultLocation,
             onApply = viewModel::applyFilter,
             onDismiss = viewModel::dismissFilterSheet,
         )
@@ -78,12 +93,15 @@ fun WorkerJobSearchScreen(
 
     WorkerJobSearchContent(
         uiState = uiState,
+        onQueryChange = viewModel::onQueryChange,
+        onSubmitQuery = viewModel::submitQuery,
+        onClearQuery = viewModel::clearQuery,
         onOpenFilter = viewModel::openFilterSheet,
         onSetViewMode = viewModel::setViewMode,
         onJobClick = onJobClick,
         onApply = viewModel::applyTo,
         onRetry = viewModel::retry,
-        onLocate = { permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) },
+        onLocate = requestLocation,
         modifier = modifier,
     )
 }
@@ -91,6 +109,9 @@ fun WorkerJobSearchScreen(
 @Composable
 private fun WorkerJobSearchContent(
     uiState: WorkerJobSearchUiState,
+    onQueryChange: (String) -> Unit,
+    onSubmitQuery: () -> Unit,
+    onClearQuery: () -> Unit,
     onOpenFilter: () -> Unit,
     onSetViewMode: (JobViewMode) -> Unit,
     onJobClick: (String) -> Unit,
@@ -101,12 +122,15 @@ private fun WorkerJobSearchContent(
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(AppDimens.screenPadding)) {
-            TextButton(onLocate, enabled = !uiState.locating) {
-                Text(stringResource(if (uiState.locating) R.string.map_locating else R.string.map_use_current))
-            }
-            if (uiState.locationError) Text(stringResource(R.string.map_address_failed), color = AppColors.Danger)
-            if (uiState.filter.latitude != null) Text(stringResource(R.string.map_current_used), color = AppColors.TextSub)
-            SearchBarRow(filterActive = uiState.filter.isActive, onOpenFilter = onOpenFilter)
+            SearchBarRow(
+                query = uiState.query,
+                filterActive = uiState.filter.isActive || uiState.usesCurrentLocation,
+                onQueryChange = onQueryChange,
+                onSubmit = onSubmitQuery,
+                onClear = onClearQuery,
+                onOpenFilter = onOpenFilter,
+            )
+            SearchStatus(uiState)
             Spacer(Modifier.height(12.dp))
             ModeRow(
                 totalCount = uiState.totalCount,
@@ -119,13 +143,36 @@ private fun WorkerJobSearchContent(
             uiState.isLoading -> LoadingBox()
             uiState.errorMessage != null -> ErrorBox(uiState.errorMessage, onRetry)
             uiState.viewMode == JobViewMode.LIST -> JobList(uiState, onJobClick, onApply)
-            else -> MapView(uiState, onJobClick, onApply)
+            else -> MapView(uiState, onJobClick, onApply, onLocate)
         }
     }
 }
 
 @Composable
-private fun SearchBarRow(filterActive: Boolean, onOpenFilter: () -> Unit) {
+private fun SearchStatus(uiState: WorkerJobSearchUiState) {
+    val text = when (uiState.searchMode) {
+        SearchMode.NONE -> null
+        SearchMode.STORE -> stringResource(R.string.worker_search_store_result, uiState.submittedQuery)
+        SearchMode.AREA -> stringResource(R.string.worker_search_area_result, uiState.submittedQuery)
+        SearchMode.NO_RESULT -> stringResource(R.string.worker_search_no_result, uiState.submittedQuery)
+    }
+    val error = if (uiState.locationError) stringResource(R.string.map_address_failed) else null
+    listOfNotNull(text, error).forEach {
+        Spacer(Modifier.height(8.dp))
+        Text(text = it, color = if (it == error) AppColors.Danger else AppColors.TextSub, fontSize = 12.sp)
+    }
+}
+
+@Composable
+private fun SearchBarRow(
+    query: String,
+    filterActive: Boolean,
+    onQueryChange: (String) -> Unit,
+    onSubmit: () -> Unit,
+    onClear: () -> Unit,
+    onOpenFilter: () -> Unit,
+) {
+    val focus = LocalFocusManager.current
     Row(verticalAlignment = Alignment.CenterVertically) {
         Row(
             modifier = Modifier
@@ -138,7 +185,28 @@ private fun SearchBarRow(filterActive: Boolean, onOpenFilter: () -> Unit) {
         ) {
             Icon(Icons.Outlined.Search, contentDescription = null, tint = AppColors.TextPlaceholder, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text(text = "동네 · 가게 검색", color = AppColors.TextPlaceholder, fontSize = 13.sp)
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                if (query.isEmpty()) {
+                    Text(text = stringResource(R.string.worker_search_hint), color = AppColors.TextPlaceholder, fontSize = 13.sp)
+                }
+                BasicTextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    singleLine = true,
+                    textStyle = TextStyle(color = AppColors.TextMain, fontSize = 13.sp),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { focus.clearFocus(); onSubmit() }),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            if (query.isNotEmpty()) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.worker_search_clear),
+                    tint = AppColors.TextSub,
+                    modifier = Modifier.size(18.dp).clickable { focus.clearFocus(); onClear() },
+                )
+            }
         }
         Spacer(Modifier.width(10.dp))
         Box(
@@ -154,7 +222,7 @@ private fun SearchBarRow(filterActive: Boolean, onOpenFilter: () -> Unit) {
         ) {
             Icon(
                 Icons.Outlined.Tune,
-                contentDescription = "필터",
+                contentDescription = stringResource(R.string.worker_search_filter),
                 tint = if (filterActive) Color.White else AppColors.TextSub,
                 modifier = Modifier.size(20.dp),
             )
@@ -166,7 +234,7 @@ private fun SearchBarRow(filterActive: Boolean, onOpenFilter: () -> Unit) {
 private fun ModeRow(totalCount: Int, viewMode: JobViewMode, onSetViewMode: (JobViewMode) -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
-            text = "총 ${totalCount}개 공고",
+            text = stringResource(R.string.worker_search_total, totalCount),
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             color = AppColors.TextSub,
@@ -223,16 +291,8 @@ private fun JobList(
                 )
             }
         }
-        if (uiState.recommendedJobs.isNotEmpty()) {
-            item { SectionLabel(text = "추천 공고") }
-            items(items = uiState.recommendedJobs, key = { it.id }) { job ->
-                WorkerRecommendedJobCard(
-                    job = job,
-                    onClick = { onJobClick(job.id) },
-                    onApply = { onApply(job.id) },
-                )
-            }
-        }
+        jobSection(R.string.worker_home_recommended, uiState.recommendedJobs, onJobClick, onApply)
+        jobSection(R.string.worker_search_others, uiState.otherJobs, onJobClick, onApply)
         if (uiState.totalCount == 0) {
             item {
                 Text(
@@ -245,23 +305,57 @@ private fun JobList(
     }
 }
 
+private fun androidx.compose.foundation.lazy.LazyListScope.jobSection(
+    title: Int,
+    jobs: List<WorkerJobPosting>,
+    onJobClick: (String) -> Unit,
+    onApply: (String) -> Unit,
+) {
+    if (jobs.isEmpty()) return
+    item(key = "section-$title") { SectionLabel(text = stringResource(title)) }
+    items(items = jobs, key = { it.id }) { job ->
+        WorkerRecommendedJobCard(job = job, onClick = { onJobClick(job.id) }, onApply = { onApply(job.id) })
+    }
+}
+
 @Composable
 private fun MapView(
     uiState: WorkerJobSearchUiState,
     onJobClick: (String) -> Unit,
     onApply: (String) -> Unit,
+    onLocate: () -> Unit,
 ) {
-    val jobs: List<WorkerJobPosting> = uiState.urgentJobs + uiState.recommendedJobs
     var selectedId by remember { mutableStateOf<String?>(null) }
-    com.workernotfound.app.feature.worker.ui.component.LiveJobMap(
-        jobs = jobs,
-        selectedId = selectedId,
-        onSelect = { selectedId = it },
-        latitude = uiState.filter.latitude,
-        longitude = uiState.filter.longitude,
-        onJobClick = onJobClick,
-        onApply = onApply,
-    )
+    Box(Modifier.fillMaxSize()) {
+        LiveJobMap(
+            jobs = uiState.visibleJobs,
+            selectedId = selectedId,
+            onSelect = { selectedId = it },
+            latitude = uiState.originLatitude,
+            longitude = uiState.originLongitude,
+            onJobClick = onJobClick,
+            onApply = onApply,
+        )
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(12.dp)
+                .background(AppColors.CardSurface, RoundedCornerShape(AppRadius.pill))
+                .border(AppDimens.borderWidth, AppColors.Border, RoundedCornerShape(AppRadius.pill))
+                .clickable(enabled = !uiState.locating, onClick = onLocate)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Outlined.MyLocation, contentDescription = null, tint = AppTheme.role.accentPressed, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = stringResource(if (uiState.locating) R.string.map_locating else R.string.worker_map_my_location),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = AppColors.TextMain,
+            )
+        }
+    }
 }
 
 @Composable

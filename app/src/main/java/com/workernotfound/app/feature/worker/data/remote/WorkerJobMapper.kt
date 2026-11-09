@@ -2,6 +2,7 @@ package com.workernotfound.app.feature.worker.data.remote
 
 import android.content.Context
 import com.workernotfound.app.R
+import com.workernotfound.app.core.ui.KoreanDateTime
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobDetail
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -23,16 +24,20 @@ class WorkerJobMapper @Inject constructor(@ApplicationContext private val contex
         isUrgent = dto.isUrgent,
         deadlineText = if (dto.remainingMinutes > 0) context.getString(R.string.backend_deadline_minutes, dto.remainingMinutes)
             else context.getString(R.string.backend_deadline_closed),
+        distanceKm = dto.distanceKm?.takeIf { it.isFinite() && it >= 0 },
+        remainingMinutes = dto.remainingMinutes,
+        status = dto.status,
+        workDate = dto.workDate,
+        startTime = dto.startTime.take(5),
+        endTime = dto.endTime.take(5),
     )
 
     fun detail(dto: JobDetailResponseDto) = WorkerJobDetail(
         id = dto.id.toString(), storeName = dto.storeName, category = dto.categoryName, address = dto.address,
-        distanceKm = null, baseWage = dto.baseHourlyWage,
-        urgentBonus = 0, timeBonus = 0, extraWage = dto.extraWage,
-        workDate = dto.workDate, workTimeRange = "${dto.startTime.take(5)} ~ ${dto.endTime.take(5)}",
+        distanceKm = null, baseWage = dto.baseHourlyWage, extraWage = dto.extraWage,
+        workDate = KoreanDateTime.workDate(dto.workDate), workTimeRange = "${dto.startTime.take(5)} ~ ${dto.endTime.take(5)}",
         totalWorkHours = context.getString(R.string.backend_duration, dto.workHours, dto.workMinutes),
         startsInSeconds = startsInSeconds(dto.workDate, dto.startTime), description = dto.description,
-        withinRadius = null, radiusText = context.getString(R.string.backend_radius_unknown),
         applicantCount = dto.applicantCount, matchScore = null, isUrgent = false,
     )
 }

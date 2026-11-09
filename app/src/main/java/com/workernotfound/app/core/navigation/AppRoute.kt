@@ -59,4 +59,10 @@ object AppRoute {
 
     const val WORKER_HISTORY = "worker_history"
     const val WORKER_TRUST = "worker_trust"                      // 4-2 나의 신뢰도
+    const val WORKER_ATTENDANCE = "worker_attendance"            // 3-6 GPS 출근 체크
+    const val WORKER_ACCOUNT_WITHDRAW = "worker_account?withdraw=true"  // 4-1 회원 탈퇴 확인부터
+
+    /** savedStateHandle key on [WORKER_ROOT]: bottom tab to select when returning to the root. */
+    const val WORKER_TAB_KEY = "worker_tab"
+    const val WORKER_TAB_HOME = 0
 }

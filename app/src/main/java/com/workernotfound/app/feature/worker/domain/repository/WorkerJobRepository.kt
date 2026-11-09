@@ -6,16 +6,15 @@ import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
 
 /** Job search (3-2) and detail (3-3) data. */
 interface WorkerJobRepository {
-    /** Openings matching [filter], already split into urgent and recommended. */
+    /** Every opening matching [filter] across all result pages. */
     suspend fun searchJobs(filter: JobFilter): JobSearchResult
 
     suspend fun getJobDetail(id: String): WorkerJobDetail
+
+    /** The search card last seen for [id]; it carries fields the detail API lacks (urgency, distance, deadline). */
+    fun cachedCard(id: String): WorkerJobPosting?
 }
 
-/** Search result grouped as the 공고 탐색 list shows it (UI spec 3-2). */
-data class JobSearchResult(
-    val urgent: List<WorkerJobPosting>,
-    val recommended: List<WorkerJobPosting>,
-) {
-    val totalCount: Int get() = urgent.size + recommended.size
+data class JobSearchResult(val jobs: List<WorkerJobPosting>) {
+    val totalCount: Int get() = jobs.size
 }

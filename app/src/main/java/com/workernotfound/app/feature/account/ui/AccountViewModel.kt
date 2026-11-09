@@ -32,6 +32,15 @@ class AccountViewModel @Inject constructor(private val repository: AccountReposi
     val uiState = state.asStateFlow()
     init { viewModelScope.launch { while (true) { delay(1000); state.update { it.copy(cooldown = (it.cooldown - 1).coerceAtLeast(0)) } } } }
     init { action { state.update { it.copy(profile = profiles.load()) } } }
+    // 마이페이지 '회원 탈퇴' opens this screen with the existing confirmation dialog already shown (once).
+    init {
+        if (saved.get<Boolean>("withdraw") == true && saved.get<Boolean>("withdrawPrompted") != true) {
+            saved["withdrawPrompted"] = true
+            // Not via confirmWithdrawal(): the profile load above marks the screen busy right now.
+            // The dialog only asks; withdraw() still refuses while busy or with a pending command.
+            if (state.value.key == null) state.update { it.copy(confirmWithdrawal = true) }
+        }
+    }
     fun editName() { state.update { it.copy(nameDraft = it.profile?.name, nameError = false) } }
     fun name(value: String) { state.update { it.copy(nameDraft = value, nameError = false) } }
     fun dismissName() { if (!state.value.nameSaving) state.update { it.copy(nameDraft = null) } }

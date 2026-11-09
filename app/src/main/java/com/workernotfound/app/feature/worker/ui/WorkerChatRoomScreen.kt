@@ -104,15 +104,25 @@ private fun WorkerChatRoomContent(
             .background(AppTheme.role.screenBackground)
             .statusBarsPadding(),
     ) {
-        AppTopBar(title = uiState.room?.let { room -> room.counterpartName ?: room.counterpartId?.let {
-            stringResource(R.string.chat_member_number, it) } } ?: stringResource(R.string.chat_counterpart), onBack = onBack)
-        uiState.room?.let { room ->
-            TextButton(onClick = { room.jobId?.let(onJobClick) }, enabled = room.jobId != null,
-                modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.chat_open_posting, room.storeName), maxLines = 2,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            }
-        }
+        val room = uiState.room
+        AppTopBar(
+            title = when {
+                room == null -> stringResource(R.string.chat_counterpart)
+                // 알바생에게 상대는 가게: 회원 번호 대신 가게명을 제목으로 쓴다.
+                !room.viewerIsOwner -> room.storeName
+                else -> room.counterpartName ?: room.counterpartId?.let { stringResource(R.string.chat_member_number, it) }
+                    ?: stringResource(R.string.chat_counterpart)
+            },
+            onBack = onBack,
+            actions = {
+                val jobId = room?.jobId
+                if (jobId != null) {
+                    TextButton(onClick = { onJobClick(jobId) }) {
+                        Text(stringResource(R.string.chat_open_posting_action), fontSize = 13.sp)
+                    }
+                }
+            },
+        )
         if (uiState.reconnecting) Text(stringResource(R.string.chat_reconnecting), color = AppColors.TextSub)
         uiState.errorMessage?.let {
             Text(it, color = AppColors.Danger)
@@ -166,23 +176,27 @@ private fun MessageList(messages: List<ChatMessage>, otherReadId: Long?, onVisib
                         )
                     }
                 }
-                MessageBubble(message)
-                if (message.fromMe && otherReadId != null && (message.id.toLongOrNull() ?: Long.MAX_VALUE) <= otherReadId)
-                    Text(stringResource(R.string.chat_read), color = AppColors.TextSub)
+                val isRead = message.fromMe && otherReadId != null &&
+                    (message.id.toLongOrNull() ?: Long.MAX_VALUE) <= otherReadId
+                MessageBubble(message, isRead = isRead)
             }
         }
     }
 }
 
 @Composable
-private fun MessageBubble(message: ChatMessage) {
+private fun MessageBubble(message: ChatMessage, isRead: Boolean) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (message.fromMe) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Bottom,
     ) {
         if (message.fromMe) {
-            MessageTimestamp(message.timeText)
+            // 상대가 읽은 내 메시지에만 말풍선 왼쪽 아래(시각 위)에 작은 회색 '읽음'.
+            Column(horizontalAlignment = Alignment.End) {
+                if (isRead) Text(stringResource(R.string.chat_read), fontSize = 11.sp, color = AppColors.TextSub)
+                MessageTimestamp(message.timeText)
+            }
             Spacer(Modifier.width(6.dp))
             MessageTextBubble(message, Modifier.weight(1f, fill = false))
         } else {

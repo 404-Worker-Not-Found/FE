@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 3-1 홈 -->
+    <string name="worker_home_greeting_name">%1$s님 👋</string>
+    <string name="worker_home_available_title">즉시 지원 가능</string>
+    <string name="worker_home_available_description">모집 중 · 마감 전 · 내 활동 반경 %1$dkm 안의 공고만 보여줘요</string>
+    <string name="worker_home_available_description_unknown">모집 중 · 마감 전 · 내 활동 반경 안의 공고만 보여줘요</string>
+    <string name="worker_home_recommended">추천 공고</string>
+    <string name="worker_home_recommended_empty">조건에 맞는 추천 공고가 없어요. 공고 탐색에서 전체 공고를 볼 수 있어요.</string>
+    <string name="worker_home_available_empty">지금 바로 지원할 수 있는 공고가 없어요.</string>
+    <string name="worker_origin_device">현재 위치 기준 거리</string>
+    <string name="worker_origin_base">등록한 활동 지역 기준 거리</string>
+    <string name="worker_origin_none">위치 정보가 없어 거리를 표시할 수 없어요</string>
+
+    <!-- 3-2 공고 탐색 -->
+    <string name="worker_search_hint">동네 · 가게 검색</string>
+    <string name="worker_search_clear">검색어 지우기</string>
+    <string name="worker_search_filter">필터</string>
+    <string name="worker_search_total">총 %1$d개 공고</string>
+    <string name="worker_search_area_result">\'%1$s\' 주변 공고</string>
+    <string name="worker_search_store_result">\'%1$s\' 검색 결과</string>
+    <string name="worker_search_no_result">\'%1$s\'에 맞는 가게나 동네를 찾지 못했어요.</string>
+    <string name="worker_search_others">다른 공고</string>
+    <string name="worker_filter_location">기준 위치</string>
+    <string name="worker_filter_location_current">현재 위치</string>
+    <string name="worker_filter_location_default">기본 (등록 지역)</string>
+    <string name="worker_map_my_location">내 위치</string>
+
+    <!-- 3-3 공고 상세 -->
+    <string name="worker_detail_base_wage">기본 시급</string>
+    <string name="worker_detail_extra_wage">가산 시급</string>
+    <string name="worker_detail_extra_wage_note">긴급·시간대 가산 합계예요. 서버에서 항목별 금액을 아직 제공하지 않아요.</string>
+    <string name="worker_detail_final_wage">최종 시급</string>
+    <string name="worker_detail_wage_unit">₩%1$s / 시</string>
+    <string name="worker_detail_eligible">지원 가능 · %1$s</string>
+    <string name="worker_detail_ineligible">지원 불가 · %1$s</string>
+    <string name="worker_detail_radius_text">거리 %1$s · 내 활동 반경 %2$dkm</string>
+    <string name="worker_detail_unknown_eligibility">공고 목록에서 열면 거리와 활동 반경으로 지원 가능 여부를 확인해요</string>
+    <string name="worker_detail_closed">모집이 마감된 공고예요</string>
+    <string name="worker_detail_out_of_radius">활동 반경 밖이에요</string>
+    <string name="worker_detail_closed_button">모집 마감</string>
+    <string name="worker_detail_apply">즉시 지원하기</string>
+    <string name="worker_detail_applied">지원 완료</string>
+    <string name="worker_detail_map_missing">주소로 위치를 찾지 못했어요</string>
+
+    <!-- 3-4 / 3-5 -->
+    <string name="worker_application_meta">%1$s · %2$s</string>
+    <string name="worker_application_applied_at">지원 %1$s</string>
+    <string name="worker_rematch_banner">🔔 매칭 제안이 도착했어요 · %1$s 남음 ›</string>
+    <string name="worker_go_home">홈으로</string>
+
+    <!-- 채팅 -->
+    <string name="chat_open_posting_action">공고 보기</string>
+
+    <!-- 3-6 근무 관리 -->
+    <string name="worker_work_menu">더보기</string>
+    <string name="worker_work_card_menu">근무 메뉴</string>
+    <string name="worker_work_attendance">출근 체크</string>
+    <string name="worker_work_scheduled">예정 근무</string>
+    <string name="worker_work_in_progress">진행 중 근무</string>
+    <string name="worker_work_badge_scheduled">예정</string>
+    <string name="worker_work_badge_checked_in">출근 완료</string>
+
+    <!-- 4-1 마이페이지 -->
+    <string name="worker_mypage_name">이름</string>
+    <string name="worker_mypage_trust">나의 신뢰도</string>
+    <string name="worker_mypage_trust_score">%1$d점 · %2$s</string>
+    <string name="worker_mypage_trust_unavailable">점수 준비 중</string>
+    <string name="worker_mypage_notification_unavailable">서버에 알림 수신 설정 API가 없어 아직 변경할 수 없어요.</string>
+    <string name="worker_mypage_withdraw">회원 탈퇴</string>
+
+    <!-- 4-2 나의 신뢰도 -->
+    <string name="trust_title">나의 신뢰도</string>
+    <string name="trust_score_unavailable">신뢰 점수와 등급은 서버에서 아직 제공하지 않아요.</string>
+    <string name="trust_risk_title">노쇼 위험도</string>
+    <string name="trust_risk_unavailable">노쇼 위험 등급은 서버에서 아직 제공하지 않아요.</string>
+    <string name="trust_total_work">총 근무</string>
+    <string name="trust_no_show">노쇼</string>
+    <string name="trust_review_average">리뷰 평균</string>
+    <string name="trust_count">%1$d회</string>
+    <string name="trust_recent_reviews">최근 받은 리뷰</string>
+    <string name="trust_recent_history">최근 근무 이력</string>
+    <string name="trust_view_all">전체 보기 ›</string>
+    <string name="trust_no_reviews">아직 받은 리뷰가 없어요.</string>
+    <string name="trust_no_history">아직 근무 이력이 없어요.</string>
+    <string name="trust_unknown_store">근무 정보 없음</string>
+    <string name="trust_no_rating">평점 없음</string>
+    <string name="trust_settlement_pending">정산 전</string>
+    <string name="trust_load_error">신뢰도 정보를 불러오지 못했어요.</string>
+</resources>
