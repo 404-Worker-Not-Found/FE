@@ -31,6 +31,21 @@ mistake and asks for it to be recorded (see docs/agent/decisions.md -
 "Failure Memory Requires User Identification").
 -->
 
+## 2026-11-08 - Verify before handing UI work to the user
+
+Context:
+- Emulator Korean keyboard installation and setup.
+
+Mistake:
+- Claimed readiness after installation and instructed the user to find an unverified Always show option that did not exist in the installed version.
+
+Why it was wrong:
+- Wasted user time and left recovery unfinished.
+
+Correct behavior:
+- Execute available checks and commands directly, inspect the installed version and actual UI, verify visible keyboard and Korean composition before claiming success, and continue recovery after failures.
+- Keep an up-to-date checkpoint for pending work and honor requested resume scheduling.
+
 ## 2026-11-09 - 사용자 흐름보다 구현 편의를 우선한 점주 UI
 
 Context:

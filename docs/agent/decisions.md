@@ -428,38 +428,12 @@ Reason:
 
 Implication for agents:
 - The Naver Cloud Platform Maps client ID is a secret-style value: read it from `local.properties` / `BuildConfig` (or a manifest meta-data placeholder fed by Gradle), never hardcode or commit it.
-- Style guide's "custom map view" colors apply to non-Naver map placeholders/mini-maps; the live/search map uses the Naver SDK.
+- Style guide's "custom map view" colors apply to non-Naver map placeholders/mini-maps; the search map uses the Naver SDK.
 
 Related files:
 - `docs/agent/style_guide.md`
 - `local.properties`
 - `app/src/main/AndroidManifest.xml`
-
-## 2026-06-16 - Demo Scope and Mock-First Strategy
-
-Decision:
-- The current build target is the demo defined in `demo_scenario.md` (owner + worker happy-path flows).
-- In-scope screens: owner 2-1, 2-2, 2-3, 2-4, 2-5, 2-6; worker 3-1, 3-2, 3-3, 3-4, 3-5, 3-6, 4-2.
-- Out of demo scope: 1-1 splash/onboarding, 1-2 sign up, 1-3 login, social login, business/email/SMS verification, chat (feature/chat), and 4-1 profile settings.
-- Data is mock-first: feature repositories expose interfaces backed by in-memory mock data sources for the demo; swap to Retrofit when the backend contract is confirmed.
-- Real-time (application-status WebSocket) and Push (re-matching) are simulated in-app with timers for the demo; no FCM/WebSocket infrastructure.
-- A lightweight role switcher (owner/worker) is the demo entry point in place of the excluded auth flow.
-
-Reason:
-- The demo scenario starts at each role's main screen and does not exercise auth, chat, or profile. Mock-first lets the UI be built and shown before backend contracts are final.
-
-Implication for agents:
-- Build only in-scope screens for the demo; do not scaffold auth/chat/profile screens unless asked.
-- `docs/UI_Specification.md` stays authoritative. Where the scenario diverges from the spec, the spec wins for the demo and the difference is NOT silently adopted:
-  - Job posting (2-2) has no "title" field — do not add one.
-  - Worker "work history" lives in 신뢰도 (4-2), not 근무 관리 (3-6).
-  - The review-writing screen is undefined in the spec; treat the review button as a placeholder destination for the demo rather than inventing a full screen.
-- Keep mock data sources behind repository interfaces so the real network layer can replace them without UI changes.
-
-Related files:
-- `docs/UI_Specification.md`
-- `docs/architecture/package-structure.md`
-- `docs/PROJECT_CONTEXT.md`
 
 ## 2026-11-01 - Backend Contract Priority During Integration
 
@@ -474,8 +448,8 @@ Reason:
 
 Implication for agents:
 - Inspect existing screens first and distinguish implemented APIs, missing frontend screens, missing backend support, and unverified integration flows.
-- Do not fabricate server fields, successful mutations, account credentials, or unsupported endpoint paths to preserve mock behavior.
-- Request backend-provided test accounts and required business/payment setup for authenticated end-to-end verification; mock identities do not authenticate with the server.
+- Do not fabricate server fields, successful mutations, account credentials, or unsupported endpoint paths.
+- Request backend-provided test accounts and required business/payment setup for authenticated end-to-end verification.
 - Record any screen-specification differences in the integration status documentation. Preserve the existing visual design system.
 
 Related files:
@@ -495,9 +469,27 @@ Reason:
 
 Implication for agents:
 - Preserve required backend fields behind understandable labels. Do not expose internal IDs or raw status codes as ordinary user inputs or primary progress messages.
-- Verify creation → list → detail and pending-payment recovery, not just individual screen rendering. Demo mutations must feed the same repository-backed lists as other demo owner screens.
+- Verify creation → list → detail and pending-payment recovery, not just individual screen rendering.
 
 Related files:
 - `docs/UI_Specification.md`
 - `app/src/main/java/com/workernotfound/app/feature/owner/ui/OwnerPostingManagementScreen.kt`
 - `app/src/main/java/com/workernotfound/app/feature/job/ui/JobPublicationScreen.kt`
+
+## 2026-11-09 - Single Server-Connected Build
+
+Decision:
+- The app has one build, connected to the deployed backend. There is no build flag or local fixture data that replaces server responses.
+- Features in `docs/UI_Specification.md` without a confirmed backend contract keep their UI and report an unavailable state through `BackendAccess.unsupported()`.
+
+Reason:
+- The user chose to keep only the server-connected app.
+
+Implication for agents:
+- Do not add fixture data sources, data-source switching flags or simulated success. Isolate a missing contract behind the repository and return an unavailable error.
+- Verify with `./docs/scripts/verify.sh`.
+
+Related files:
+- `app/build.gradle.kts`
+- `app/src/main/java/com/workernotfound/app/core/network/BackendAccess.kt`
+

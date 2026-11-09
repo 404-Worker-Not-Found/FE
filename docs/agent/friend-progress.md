@@ -12,7 +12,7 @@
 
 ## 완료한 코드
 
-- 실제 모드 로그인, 서버 본인 조회를 통한 저장 세션 확인 및 OWNER/WORKER 진입. AuthRepository, Keystore 암호화 저장, 기존 회전 갱신을 재사용한다. demo 역할 선택 유지.
+- 로그인, 서버 본인 조회를 통한 저장 세션 확인 및 OWNER/WORKER 진입. AuthRepository, Keystore 암호화 저장, 기존 회전 갱신을 재사용한다.
 - 이메일/SMS 발송·검증 및 역할별 회원가입. verified=false를 인증 완료로 처리하지 않는다. 점주 사업자 검증은 서버 가입 절차를 따른다. 알바생은 희망 시급/반경/업종/요일·가능 시간/기준 위치를 입력한다.
 - 비밀번호 재설정 전용 코드 발송 및 코드+새 비밀번호 제출.
 - 자격증명·인증코드는 ViewModel 메모리에서만 사용한다. SavedStateHandle/rememberSaveable, 소스·문서·로그에 저장하지 않는다. 인증 DTO/상태의 진단 문자열에도 자격증명을 포함하지 않는다.
@@ -44,10 +44,9 @@
 
 - 초기 SDK/Build Tools/오프라인 의존성 부재는 작업 폴더의 Android SDK와 기존 JDK/Gradle 캐시로 해결했다. JDK: Android Studio `jbr`, SDK: 인접 `work/android-sdk`. 경로/키를 Git에 추가하지 않았다.
 - `compileDebugKotlin`: 통과.
-- 최종 실제 모드 `lintDebug testDebugUnitTest --tests 'com.workernotfound.app.feature.auth.*' --tests 'com.workernotfound.app.feature.job.*' assembleDebug`: 추가 테스트 9개 통과, lint/APK 성공. lint 0 errors, 28 warnings.
+- 최종 `lintDebug testDebugUnitTest --tests 'com.workernotfound.app.feature.auth.*' --tests 'com.workernotfound.app.feature.job.*' assembleDebug`: 추가 테스트 9개 통과, lint/APK 성공. lint 0 errors, 28 warnings.
 - 최종 필수 `./docs/scripts/verify.sh`: 67 tests 중 66 통과, 기존 카메라 테스트 1 실패. lint와 assemble 단계는 통과했다.
 - 실패: `ProfileCameraFilesTest.refusesTraversalGalleryNamesAndSymlinkTargets`의 `Files.createSymbolicLink`에서 Windows '클라이언트가 필요한 권한을 가지고 있지 않습니다'. 해당 코드/테스트는 HEAD와 동일하고 이번 변경과 무관한 환경 권한 문제다. 테스트를 삭제/비활성화하거나 전체 통과로 기록하지 않았다.
-- 최종 `-Pdemo.enabled=true` 모드 인증/공고 테스트 9개 및 debug APK 생성: 통과.
 - `git diff --check` 통과, 변경 파일 비밀 패턴 검사 0건. 사용자 자격증명/토큰을 소스·문서·로그에 추가하지 않았다.
 
 ## 다음 행동
