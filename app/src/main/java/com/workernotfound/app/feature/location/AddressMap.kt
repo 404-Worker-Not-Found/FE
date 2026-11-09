@@ -21,7 +21,6 @@ fun AddressMap(address: String, modifier: Modifier = Modifier) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(address) { viewModel.find(address) }
     Column {
-        Text(stringResource(R.string.map_address_approximate), color = AppColors.TextSub)
         if (state.error) Text(stringResource(R.string.map_locations_missing), color = AppColors.TextSub)
         AppMap(state.candidates.firstOrNull()?.let { listOf(MapPoint("address", it.latitude, it.longitude, address)) }.orEmpty(), modifier)
     }

@@ -2,14 +2,12 @@ package com.workernotfound.app.feature.worker.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.worker.domain.model.ApplicationStatus
 import com.workernotfound.app.feature.worker.domain.repository.WorkerApplicationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,7 +39,6 @@ class WorkerApplicationViewModel @Inject constructor(
             runCatching { repository.getApplications() }
                 .onSuccess { apps ->
                     _uiState.update { it.copy(isLoading = false, applications = apps) }
-                    if (BuildConfig.USE_DEMO_DATA) simulateRealtimeUpdate()
                 }
                 .onFailure { t ->
                     if (t is CancellationException) throw t
@@ -49,27 +46,6 @@ class WorkerApplicationViewModel @Inject constructor(
                         it.copy(isLoading = false, errorMessage = backend.message(t))
                     }
                 }
-        }
-    }
-
-    /**
-     * UI spec 3-4: 실시간 갱신 (원래 WebSocket). 데모에서는 타이머로 시뮬레이션 —
-     * 잠시 후 '지원중' 건이 '매칭중'으로 새로고침 없이 바뀐다.
-     */
-    private fun simulateRealtimeUpdate() {
-        viewModelScope.launch {
-            delay(5000)
-            _uiState.update { state ->
-                state.copy(
-                    applications = state.applications.map { app ->
-                        if (app.status == ApplicationStatus.APPLYING) {
-                            app.copy(status = ApplicationStatus.MATCHING)
-                        } else {
-                            app
-                        }
-                    },
-                )
-            }
         }
     }
 

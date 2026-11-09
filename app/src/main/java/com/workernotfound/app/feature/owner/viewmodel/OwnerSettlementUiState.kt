@@ -1,15 +1,13 @@
 package com.workernotfound.app.feature.owner.viewmodel
 
 import com.workernotfound.app.feature.owner.domain.model.OwnerWork
-import com.workernotfound.app.feature.owner.domain.model.Settlement
-import com.workernotfound.app.feature.owner.domain.model.WorkProgressStatus
+import com.workernotfound.app.feature.owner.domain.model.ServerSettlement
 
 /** 정산 상태 (UI spec 2-4: 정산 내역 + 정산 확인). */
 data class OwnerSettlementUiState(
     val isLoading: Boolean = true,
     val work: OwnerWork? = null,
-    val settlement: Settlement? = null,
-    val serverSettlement: com.workernotfound.app.feature.owner.domain.model.ServerSettlement? = null,
+    val serverSettlement: ServerSettlement? = null,
     val errorMessage: String? = null,
     val isConfirmDialogVisible: Boolean = false,
     val isProcessing: Boolean = false,
@@ -17,5 +15,5 @@ data class OwnerSettlementUiState(
     val actionErrorMessage: String? = null,
 ) {
     val canApprove: Boolean
-        get() = work?.status == WorkProgressStatus.AWAITING_SETTLEMENT && !isProcessing && !isApproved
+        get() = serverSettlement != null && serverSettlement.paidAt == null && !isProcessing && !isApproved
 }

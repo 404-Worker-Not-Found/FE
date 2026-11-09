@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
@@ -41,7 +40,6 @@ import com.workernotfound.app.feature.owner.domain.NoShowPolicy
 import com.workernotfound.app.feature.owner.domain.model.WorkProgressStatus
 import com.workernotfound.app.feature.owner.ui.component.AttendanceBadge
 import com.workernotfound.app.feature.owner.ui.component.OwnerDialog
-import com.workernotfound.app.feature.owner.ui.component.OwnerLiveLocationMap
 import com.workernotfound.app.feature.owner.ui.component.OwnerLoadingBox
 import com.workernotfound.app.feature.owner.ui.component.OwnerMessageBox
 import com.workernotfound.app.feature.owner.ui.component.OwnerOutlinedButton
@@ -133,7 +131,7 @@ private fun OwnerWorkDetailContent(
                     WorkHeader(timing)
                     AttendanceSection(timing)
                     TimerSection(timing)
-                    if (!BuildConfig.USE_DEMO_DATA) androidx.compose.material3.TextButton({ onCancellation(timing.work.id) }) { Text(androidx.compose.ui.res.stringResource(R.string.cancellation_title)) }
+                    androidx.compose.material3.TextButton({ onCancellation(timing.work.id) }) { Text(androidx.compose.ui.res.stringResource(R.string.cancellation_title)) }
                 }
                 ActionBar(
                     timing = timing,
@@ -181,15 +179,14 @@ private fun AttendanceSection(timing: WorkTiming) {
                 AttendanceBadge(isVerified = work.isAttendanceVerified)
             }
             Spacer(Modifier.height(12.dp))
-            if (!com.workernotfound.app.BuildConfig.USE_DEMO_DATA && work.targetLatitude != null && work.targetLongitude != null) {
+            if (work.targetLatitude != null && work.targetLongitude != null) {
                 val label = androidx.compose.ui.res.stringResource(R.string.map_workplace)
-                Text(label, color = AppColors.TextSub)
                 com.workernotfound.app.core.maps.AppMap(listOf(com.workernotfound.app.core.maps.MapPoint(
                     work.id, work.targetLatitude, work.targetLongitude, label)),
                     modifier = Modifier.fillMaxWidth().height(AppDimens.locationMapHeight))
+            } else {
+                Text(text = androidx.compose.ui.res.stringResource(R.string.backend_live_location_unavailable), color = AppColors.TextSub)
             }
-            work.workerDistanceMeters?.let { OwnerLiveLocationMap(distanceMeters = it) }
-                ?: Text(text = androidx.compose.ui.res.stringResource(R.string.backend_live_location_unavailable), color = AppColors.TextSub)
         }
     }
 }
@@ -305,7 +302,7 @@ private fun WorkDetailDialogs(
         )
         uiState.isCompleteDialogVisible -> OwnerDialog(
             title = "근무 완료",
-            message = if (BuildConfig.USE_DEMO_DATA) "$name 님의 근무를 종료하고 정산을 진행할까요?" else androidx.compose.ui.res.stringResource(R.string.backend_complete_work_confirm),
+            message = androidx.compose.ui.res.stringResource(R.string.backend_complete_work_confirm),
             confirmText = "근무 완료",
             onConfirm = onConfirmComplete,
             dismissText = "취소",

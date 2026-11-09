@@ -2,7 +2,6 @@ package com.workernotfound.app.feature.worker.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,19 +13,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
-import com.workernotfound.app.R
-import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -34,91 +26,62 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
 import com.workernotfound.app.core.designsystem.AppRadius
 import com.workernotfound.app.core.designsystem.AppTheme
 import com.workernotfound.app.core.designsystem.component.AppCard
 import com.workernotfound.app.core.designsystem.component.AppTopBar
-import com.workernotfound.app.core.designsystem.component.SectionLabel
 import com.workernotfound.app.feature.worker.domain.model.NoShowRiskLevel
-import com.workernotfound.app.feature.worker.domain.model.Review
 import com.workernotfound.app.feature.worker.domain.model.TrustSummary
-import com.workernotfound.app.feature.worker.domain.model.WorkHistoryItem
 import com.workernotfound.app.feature.worker.viewmodel.WorkerTrustUiState
 import com.workernotfound.app.feature.worker.viewmodel.WorkerTrustViewModel
 
+/** 나의 신뢰도 (UI spec 4-2) + 출근 인증. Reviews and work history open their own screens. */
 @Composable
 fun WorkerTrustScreen(
     onBack: () -> Unit,
-    onJobClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: WorkerTrustViewModel? = null,
+    viewModel: WorkerTrustViewModel = hiltViewModel(),
     onReviews: () -> Unit = {},
     onHistory: () -> Unit = {},
 ) {
-    if (!com.workernotfound.app.BuildConfig.USE_DEMO_DATA) {
-        Column(modifier.fillMaxSize().background(AppColors.WorkerSurface).statusBarsPadding()) {
-            AppTopBar(title = stringResource(R.string.attendance_title), onBack = onBack)
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    Column(modifier.fillMaxSize().background(AppColors.WorkerSurface).statusBarsPadding()) {
+        AppTopBar(title = stringResource(R.string.attendance_title), onBack = onBack)
+        Row {
             TextButton(onHistory) { Text(stringResource(R.string.history_title)) }
             TextButton(onReviews) { Text(stringResource(R.string.reviews_title)) }
-            WorkerAttendancePanel(modifier = Modifier.weight(1f))
         }
-        return
+        TrustSummarySection(uiState, onRetry = viewModel::load)
+        WorkerAttendancePanel(modifier = Modifier.weight(1f))
     }
-    val resolvedViewModel = viewModel ?: hiltViewModel<WorkerTrustViewModel>()
-    val uiState by resolvedViewModel.uiState.collectAsStateWithLifecycle()
-    WorkerTrustContent(
-        uiState = uiState, onBack = onBack, onRetry = resolvedViewModel::load,
-        onRetrySchedule = resolvedViewModel::loadSchedule, onJobClick = onJobClick, modifier = modifier,
-    )
 }
 
 @Composable
-private fun WorkerTrustContent(
-    uiState: WorkerTrustUiState,
-    onBack: () -> Unit,
-    onRetry: () -> Unit,
-    onRetrySchedule: () -> Unit,
-    onJobClick: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(AppColors.WorkerSurface)
-            .statusBarsPadding(),
-    ) {
-        AppTopBar(title = "나의 신뢰도", onBack = onBack)
-        val summary = uiState.summary
+private fun TrustSummarySection(uiState: WorkerTrustUiState, onRetry: () -> Unit) {
+    val summary = uiState.summary
+    Column(Modifier.padding(horizontal = AppDimens.screenPadding)) {
         when {
-            uiState.isLoading -> LoadingBox()
-            summary == null -> Column(
-                Modifier.fillMaxSize().padding(AppDimens.screenPadding),
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(stringResource(R.string.worker_trust_load_error), color = AppColors.TextSub)
-                AppPrimaryButton(text = stringResource(R.string.worker_retry), onClick = onRetry)
+            uiState.isLoading -> Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = AppTheme.role.accent)
             }
-            else -> Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = AppDimens.screenPadding)
-                    .padding(bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
-            ) {
-                Spacer(Modifier.height(4.dp))
+            summary == null -> AppCard(modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.worker_trust_load_error), color = AppColors.TextSub)
+                uiState.errorMessage?.let { Text(it, fontSize = 12.sp, color = AppColors.TextSub) }
+                TextButton(onClick = onRetry) { Text(stringResource(R.string.worker_retry)) }
+            }
+            else -> {
                 TrustGaugeCard(summary)
+                Spacer(Modifier.height(AppDimens.cardGap))
                 RiskBanner(summary.noShowRisk)
-                TrustScheduleCard(uiState, onRetrySchedule, onJobClick)
-                ReviewCard(summary.averageRating, summary.recentReviews.take(3))
-                WorkHistoryCard(summary.workHistory)
             }
         }
     }
@@ -231,99 +194,3 @@ private fun RiskBanner(risk: NoShowRiskLevel) {
 }
 
 private data class RiskStyle(val bg: Color, val color: Color, val label: String, val desc: String)
-
-@Composable
-private fun ReviewCard(averageRating: Double, reviews: List<Review>) {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            SectionLabel(text = "리뷰")
-            Spacer(Modifier.weight(1f))
-            Text(text = "평균 ★ ${"%.1f".format(averageRating)}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.WorkerEmphasis)
-        }
-        Spacer(Modifier.height(8.dp))
-        reviews.forEachIndexed { index, review ->
-            if (index > 0) {
-                Spacer(Modifier.height(8.dp))
-                Divider(color = AppColors.Border)
-                Spacer(Modifier.height(8.dp))
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = review.storeName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
-                Spacer(Modifier.weight(1f))
-                Text(text = stars(review.rating), fontSize = 12.sp, color = AppColors.Worker)
-            }
-            Spacer(Modifier.height(2.dp))
-            Text(text = review.comment, fontSize = 13.sp, color = AppColors.TextSub)
-            Spacer(Modifier.height(2.dp))
-            Text(text = review.dateText, fontSize = 11.sp, color = AppColors.TextPlaceholder)
-        }
-    }
-}
-
-@Composable
-private fun WorkHistoryCard(history: List<WorkHistoryItem>) {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
-        SectionLabel(text = "근무 이력")
-        Spacer(Modifier.height(8.dp))
-        history.forEachIndexed { index, item ->
-            if (index > 0) {
-                Spacer(Modifier.height(8.dp))
-                Divider(color = AppColors.Border)
-                Spacer(Modifier.height(8.dp))
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = item.storeName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
-                    Spacer(Modifier.height(2.dp))
-                    Text(text = "${item.dateText} · ${stars(item.rating)}", fontSize = 12.sp, color = AppColors.TextSub)
-                    Text(
-                        text = stringResource(R.string.worker_hourly_wage, item.hourlyWage),
-                        style = MaterialTheme.typography.bodySmall, color = AppColors.TextSub,
-                    )
-                }
-                Text(text = "₩${"%,d".format(item.settlement)}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
-            }
-        }
-    }
-}
-
-private fun stars(rating: Int): String = "★".repeat(rating.coerceIn(0, 5)) + "☆".repeat((5 - rating).coerceIn(0, 5))
-
-@Composable
-private fun LoadingBox() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = AppTheme.role.accent)
-    }
-}
-
-
-@Composable
-private fun TrustScheduleCard(uiState: WorkerTrustUiState, onRetry: () -> Unit, onJobClick: (String) -> Unit) {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
-        SectionLabel(text = stringResource(R.string.worker_trust_schedule))
-        when {
-            uiState.isScheduleLoading -> CircularProgressIndicator(color = AppTheme.role.accent)
-            uiState.hasScheduleError -> {
-                Text(stringResource(R.string.worker_schedule_load_error), color = AppColors.TextSub)
-                TextButton(onClick = onRetry) { Text(stringResource(R.string.worker_retry)) }
-            }
-            uiState.works.isEmpty() -> Text(stringResource(R.string.worker_no_schedule), color = AppColors.TextSub)
-            else -> uiState.works.forEach { work ->
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = AppDimens.cardGap),
-                    verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
-                ) {
-                    Text(work.storeName, style = MaterialTheme.typography.titleMedium, color = AppColors.TextMain)
-                    Text("${work.workDate} · ${work.timeRange}", style = MaterialTheme.typography.bodyMedium)
-                    work.address?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = AppColors.TextSub) }
-                    Text(stringResource(R.string.worker_hourly_wage, work.hourlyWage), color = AppTheme.role.accentPressed)
-                    work.jobId?.let { jobId ->
-                        TextButton(onClick = { onJobClick(jobId) }) {
-                            Text(stringResource(R.string.worker_view_posting), color = AppTheme.role.accentPressed)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}

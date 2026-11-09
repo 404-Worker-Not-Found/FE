@@ -4,11 +4,7 @@ import com.workernotfound.app.feature.worker.domain.model.JobFilter
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobDetail
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
 
-/**
- * Job search (3-2) and detail (3-3) data. Mock-backed for the demo; swap for a
- * network-backed implementation when the backend contract is confirmed
- * (decision: Demo Scope and Mock-First Strategy).
- */
+/** Job search (3-2) and detail (3-3) data. */
 interface WorkerJobRepository {
     /** Openings matching [filter], already split into urgent and recommended. */
     suspend fun searchJobs(filter: JobFilter): JobSearchResult

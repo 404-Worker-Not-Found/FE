@@ -1,7 +1,6 @@
 package com.workernotfound.app.feature.owner.data
 
 import android.content.Context
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.R
 import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.owner.data.remote.OwnerJobApiService
@@ -17,11 +16,9 @@ import com.workernotfound.app.feature.worker.data.remote.WorkerJobApiService
 import com.workernotfound.app.feature.worker.data.remote.WorkerWorkApiService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.delay
 
 class OwnerPastPostingRepositoryImpl @Inject constructor(
     private val backend: BackendAccess,
-    private val store: OwnerMockStore,
     private val works: WorkerWorkApiService,
     private val jobs: WorkerJobApiService,
     private val ownerJobs: OwnerJobApiService,
@@ -29,7 +26,6 @@ class OwnerPastPostingRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : OwnerPastPostingRepository {
     override suspend fun getPastPostings(): List<PastPosting> {
-        if (BuildConfig.USE_DEMO_DATA) { delay(MOCK_DELAY_MILLIS); return store.pastPostings() }
         backend.requireSession()
         val allWorks = loadWorks()
         val postings = loadPostings()
@@ -60,7 +56,6 @@ class OwnerPastPostingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getPastPosting(postingId: String): PastPosting {
-        if (BuildConfig.USE_DEMO_DATA) { delay(MOCK_DELAY_MILLIS); return store.pastPosting(postingId) }
         return getPastPostings().firstOrNull { it.entryId == postingId }
             ?: throw NoSuchElementException()
     }
@@ -88,7 +83,6 @@ class OwnerPastPostingRepositoryImpl @Inject constructor(
     }
 
     private companion object {
-        const val MOCK_DELAY_MILLIS = 300L
         val TERMINAL_STATUSES = setOf("COMPLETED", "NO_SHOW", "CANCELED", "FAILED")
     }
 }

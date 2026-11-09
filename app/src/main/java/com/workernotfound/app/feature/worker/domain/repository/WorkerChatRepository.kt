@@ -3,7 +3,7 @@ package com.workernotfound.app.feature.worker.domain.repository
 import com.workernotfound.app.feature.worker.domain.model.ChatMessage
 import com.workernotfound.app.feature.worker.domain.model.ChatRoom
 
-/** Chat data source (UI spec: 채팅). Mock-first; real-time(WebSocket)은 후속. */
+/** Chat data source (UI spec: 채팅). Realtime updates arrive over WSS/STOMP. */
 interface WorkerChatRepository {
     fun changes(roomId: String): kotlinx.coroutines.flow.Flow<Unit>
     suspend fun sync(roomId: String, afterId: Long): List<ChatMessage>

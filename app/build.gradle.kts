@@ -13,7 +13,6 @@ val localConfiguration = Properties().apply {
 }
 val apiBaseUrl = providers.gradleProperty("api.baseUrl").orNull
     ?: localConfiguration.getProperty("api.baseUrl", "https://api.15-165-106-227.sslip.io/")
-val useDemoData = providers.gradleProperty("demo.enabled").orNull?.toBooleanStrictOrNull() ?: false
 val naverMapClientId = providers.gradleProperty("naver.mapClientId").orNull
     ?: localConfiguration.getProperty("naver.mapClientId", "")
 val tossClientKey = providers.gradleProperty("toss.clientKey").orNull
@@ -35,7 +34,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
-        buildConfigField("boolean", "USE_DEMO_DATA", useDemoData.toString())
         buildConfigField("String", "TOSS_CLIENT_KEY", "\"${tossClientKey.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
         buildConfigField("String", "NAVER_MAP_CLIENT_ID", "\"${naverMapClientId.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
         buildConfigField("String", "API_BASE_URL", "\"${apiBaseUrl.replace("\\", "\\\\").replace("\"", "\\\"")}\"")

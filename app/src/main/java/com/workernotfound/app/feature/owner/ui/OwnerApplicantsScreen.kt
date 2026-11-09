@@ -47,9 +47,7 @@ fun OwnerApplicantsScreen(
     viewModel: OwnerApplicantsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) {
-        LifecycleResumeEffect(Unit) { viewModel.refresh(); onPauseOrDispose { } }
-    } else com.workernotfound.app.core.ui.RefreshWhileResumed(true, viewModel::refresh)
+    com.workernotfound.app.core.ui.RefreshWhileResumed(true, viewModel::refresh)
     OwnerApplicantsContent(
         uiState = uiState,
         onBack = onBack,

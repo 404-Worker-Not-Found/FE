@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
@@ -31,7 +30,6 @@ import com.workernotfound.app.feature.worker.domain.model.TimeSlot
 
 private val DISTANCE_OPTIONS = listOf(1, 3, 5, 10)
 private val WAGE_OPTIONS = listOf(0, 11000, 12000, 13000)
-private val CATEGORY_OPTIONS = listOf("음식점", "카페", "편의점")
 
 /**
  * Multi-filter bottom sheet for job search (UI spec 3-2: 거리 / 시급 / 시간대 / 업종).
@@ -95,8 +93,7 @@ fun JobFilterSheet(
             }
 
             FilterGroup(title = "업종") {
-                val categories = if (BuildConfig.USE_DEMO_DATA) CATEGORY_OPTIONS
-                    else androidx.compose.ui.res.stringArrayResource(R.array.backend_job_categories).toList()
+                val categories = androidx.compose.ui.res.stringArrayResource(R.array.backend_job_categories).toList()
                 categories.forEach { category ->
                     SelectChip(
                         label = category,

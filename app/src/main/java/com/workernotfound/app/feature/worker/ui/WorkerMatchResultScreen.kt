@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
 import com.workernotfound.app.core.designsystem.AppRadius
@@ -59,7 +58,7 @@ fun WorkerMatchResultScreen(
     viewModel: WorkerMatchResultViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    com.workernotfound.app.core.ui.RefreshWhileResumed(!BuildConfig.USE_DEMO_DATA, viewModel::poll)
+    com.workernotfound.app.core.ui.RefreshWhileResumed(true, viewModel::poll)
     WorkerMatchResultContent(
         uiState = uiState,
         onBack = onBack,
@@ -95,7 +94,7 @@ private fun WorkerMatchResultContent(
             uiState.errorMessage != null -> InfoBox(uiState.errorMessage, onBack)
             app == null -> InfoBox("매칭 정보를 불러오지 못했어요.", onBack)
             app.status == ApplicationStatus.MATCHED || uiState.outcome == RematchOutcome.ACCEPTED ->
-                MatchSuccessView(app = app, onGoChat = { (if (BuildConfig.USE_DEMO_DATA) app.id else app.chatRoomId)?.let(onGoChat) }, onHome = onHome)
+                MatchSuccessView(app = app, onGoChat = { app.chatRoomId?.let(onGoChat) }, onHome = onHome)
             app.hasRematchOffer && uiState.outcome == RematchOutcome.PENDING ->
                 RematchWaitingView(
                     app = app,
@@ -134,7 +133,7 @@ private fun MatchSuccessView(app: WorkerApplication, onGoChat: () -> Unit, onHom
         Spacer(Modifier.height(20.dp))
         ScheduleCard(app)
         Spacer(Modifier.height(20.dp))
-        AppPrimaryButton(text = "채팅방으로 이동", onClick = onGoChat, enabled = BuildConfig.USE_DEMO_DATA || app.chatRoomId != null)
+        AppPrimaryButton(text = "채팅방으로 이동", onClick = onGoChat, enabled = app.chatRoomId != null)
         Spacer(Modifier.height(8.dp))
         TextButton(onClick = onHome, modifier = Modifier.fillMaxWidth()) {
             Text(text = stringResource(R.string.worker_back_to_main), color = AppColors.TextSub)
@@ -159,10 +158,10 @@ private fun RematchWaitingView(
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = "🔔", fontSize = 44.sp)
             Spacer(Modifier.height(8.dp))
-            Text(text = if (BuildConfig.USE_DEMO_DATA) "재매칭 요청" else androidx.compose.ui.res.stringResource(R.string.backend_matching_proposal), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
+            Text(text = androidx.compose.ui.res.stringResource(R.string.backend_matching_proposal), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
             Spacer(Modifier.height(4.dp))
             Text(
-                text = if (BuildConfig.USE_DEMO_DATA) "먼저 매칭된 분이 취소되어 기회가 왔어요" else androidx.compose.ui.res.stringResource(R.string.backend_matching_proposal_description),
+                text = androidx.compose.ui.res.stringResource(R.string.backend_matching_proposal_description),
                 color = AppColors.TextSub,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,

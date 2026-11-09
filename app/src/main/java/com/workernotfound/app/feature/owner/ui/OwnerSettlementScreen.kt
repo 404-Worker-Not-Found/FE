@@ -12,13 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.R
 import androidx.compose.ui.res.stringResource
 import com.workernotfound.app.feature.owner.ui.component.ServerSettlementCard
+import com.workernotfound.app.feature.owner.ui.component.formatSettlementAmount
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -28,21 +27,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
-import com.workernotfound.app.core.designsystem.AppTheme
 import com.workernotfound.app.core.designsystem.component.AppCard
 import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import com.workernotfound.app.core.designsystem.component.AppTopBar
-import com.workernotfound.app.core.designsystem.component.SectionLabel
 import com.workernotfound.app.feature.owner.domain.model.OwnerWork
-import com.workernotfound.app.feature.owner.domain.model.Settlement
 import com.workernotfound.app.feature.owner.ui.component.OwnerDialog
-import com.workernotfound.app.feature.owner.ui.component.OwnerInfoLine
 import com.workernotfound.app.feature.owner.ui.component.OwnerLoadingBox
 import com.workernotfound.app.feature.owner.ui.component.OwnerMessageBox
 import com.workernotfound.app.feature.owner.viewmodel.OwnerSettlementUiState
 import com.workernotfound.app.feature.owner.viewmodel.OwnerSettlementViewModel
 
-/** 정산 (UI spec 2-4): 총 근무시간, 시급, 가산액, 최종 지급액 + 정산 확인. */
+/** 정산 (UI spec 2-4): 서버 정산 금액 + 정산 확인. */
 @Composable
 fun OwnerSettlementScreen(
     onBack: () -> Unit,
@@ -82,10 +77,9 @@ private fun OwnerSettlementContent(
     ) {
         AppTopBar(title = "정산", onBack = onBack)
         val work = uiState.work
-        val settlement = uiState.settlement
         when {
             uiState.isLoading -> OwnerLoadingBox()
-            work == null || (BuildConfig.USE_DEMO_DATA && settlement == null) -> OwnerMessageBox(
+            work == null -> OwnerMessageBox(
                 message = uiState.errorMessage ?: "정산 내역을 불러오지 못했어요.",
                 actionText = "다시 시도",
                 onAction = onRetry,
@@ -99,13 +93,12 @@ private fun OwnerSettlementContent(
                     verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
                 ) {
                     WorkSummaryCard(work)
-                    if (BuildConfig.USE_DEMO_DATA) SettlementCard(requireNotNull(settlement))
-                    else ServerSettlementCard(uiState.serverSettlement)
+                    ServerSettlementCard(uiState.serverSettlement)
                 }
                 AppPrimaryButton(
-                    text = if (!BuildConfig.USE_DEMO_DATA) stringResource(R.string.settlement_close) else if (uiState.isApproved) "지급 승인 완료" else "정산 확인",
-                    onClick = if (BuildConfig.USE_DEMO_DATA) onApprove else onBack,
-                    enabled = !BuildConfig.USE_DEMO_DATA || uiState.canApprove,
+                    text = if (uiState.isApproved) "지급 승인 완료" else "정산 확인",
+                    onClick = onApprove,
+                    enabled = uiState.canApprove,
                     modifier = Modifier
                         .navigationBarsPadding()
                         .padding(AppDimens.screenPadding),
@@ -132,43 +125,17 @@ private fun WorkSummaryCard(work: OwnerWork) {
 }
 
 @Composable
-private fun SettlementCard(settlement: Settlement) {
-    Column {
-        SectionLabel(text = "정산 내역")
-        Spacer(Modifier.height(8.dp))
-        AppCard(modifier = Modifier.fillMaxWidth()) {
-            OwnerInfoLine(label = "총 근무시간", value = OwnerFormat.duration(settlement.workedMinutes))
-            Spacer(Modifier.height(10.dp))
-            OwnerInfoLine(label = "시급", value = OwnerFormat.won(settlement.hourlyWage))
-            Spacer(Modifier.height(10.dp))
-            OwnerInfoLine(label = "기본 급여", value = OwnerFormat.won(settlement.basePay))
-            Spacer(Modifier.height(10.dp))
-            OwnerInfoLine(label = "가산액", value = "+ ${OwnerFormat.won(settlement.bonusAmount)}")
-            Spacer(Modifier.height(12.dp))
-            HorizontalDivider(color = AppColors.Border)
-            Spacer(Modifier.height(12.dp))
-            OwnerInfoLine(
-                label = "최종 지급액",
-                value = OwnerFormat.won(settlement.totalPay),
-                valueColor = AppTheme.role.accent,
-                isEmphasized = true,
-            )
-        }
-    }
-}
-
-@Composable
 private fun SettlementDialogs(
     uiState: OwnerSettlementUiState,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
     onDone: () -> Unit,
 ) {
-    val total = uiState.settlement?.totalPay ?: 0
+    val total = uiState.serverSettlement?.let { formatSettlementAmount(it.amount, it.currency) }.orEmpty()
     when {
         uiState.isConfirmDialogVisible -> OwnerDialog(
             title = "정산 확인",
-            message = "최종 지급액 ${OwnerFormat.won(total)}을 지급 승인할까요?",
+            message = "최종 지급액 ${total}을 지급 승인할까요?",
             confirmText = "지급 승인",
             onConfirm = onConfirm,
             dismissText = "취소",
@@ -182,9 +149,10 @@ private fun SettlementDialogs(
         )
         uiState.isApproved -> OwnerDialog(
             title = "지급 승인 완료",
-            message = "${uiState.work?.workerName.orEmpty()} 님에게 ${OwnerFormat.won(total)} 지급을 승인했어요.",
+            message = "${uiState.work?.workerName.orEmpty()} 님에게 $total 지급을 승인했어요.",
             confirmText = "확인",
             onConfirm = onDone,
         )
     }
 }
+

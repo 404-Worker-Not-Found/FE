@@ -14,7 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.R
 import androidx.compose.ui.res.stringResource
 import com.workernotfound.app.feature.owner.ui.component.ServerSettlementCard
@@ -34,7 +33,6 @@ import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import com.workernotfound.app.core.designsystem.component.AppTopBar
 import com.workernotfound.app.core.designsystem.component.SectionLabel
 import com.workernotfound.app.core.designsystem.component.StatusBadge
-import com.workernotfound.app.feature.owner.domain.ReviewPolicy
 import com.workernotfound.app.feature.owner.domain.model.PastPosting
 import com.workernotfound.app.feature.owner.domain.model.PastPostingStatus
 import com.workernotfound.app.feature.owner.ui.component.OwnerInfoLine
@@ -93,12 +91,7 @@ private fun OwnerPastPostingDetailContent(
             ) {
                 SummaryCard(posting)
                 SettlementSection(posting)
-                if (BuildConfig.USE_DEMO_DATA) ReviewSection(
-                    posting = posting,
-                    canWriteReview = uiState.canWriteReview,
-                    nowMillis = uiState.nowMillis,
-                    onWriteReview = { onWriteReview(posting.postingId) },
-                ) else AppPrimaryButton(text = stringResource(R.string.reviews_title), onClick = { onWriteReview(posting.postingId) })
+                AppPrimaryButton(text = stringResource(R.string.reviews_title), onClick = { onWriteReview(posting.postingId) })
             }
         }
     }
@@ -133,62 +126,5 @@ private fun SummaryCard(posting: PastPosting) {
 /** 정산 내역 확인: 최종 정산 금액 및 지급 일시. */
 @Composable
 private fun SettlementSection(posting: PastPosting) {
-    if (!BuildConfig.USE_DEMO_DATA) {
-        ServerSettlementCard(posting.serverSettlement)
-        return
-    }
-    val settlement = posting.settlement
-    Column {
-        SectionLabel(text = "정산 내역")
-        Spacer(Modifier.height(8.dp))
-        AppCard(modifier = Modifier.fillMaxWidth()) {
-            if (settlement == null) {
-                Text(text = noSettlementText(posting.status), color = AppColors.TextSub, fontSize = 13.sp)
-                return@AppCard
-            }
-            OwnerInfoLine(
-                label = "최종 정산 금액",
-                value = OwnerFormat.won(settlement.totalPay),
-                valueColor = AppTheme.role.accent,
-                isEmphasized = true,
-            )
-            Spacer(Modifier.height(10.dp))
-            OwnerInfoLine(
-                label = "지급 일시",
-                value = settlement.paidAtMillis?.let(OwnerFormat::dateTime) ?: "지급 보류 (분쟁 처리 중)",
-                valueColor = if (settlement.paidAtMillis == null) AppColors.Warning else AppColors.TextMain,
-            )
-        }
-    }
+    ServerSettlementCard(posting.serverSettlement)
 }
-
-private fun noSettlementText(status: PastPostingStatus): String = when (status) {
-    PastPostingStatus.NO_SHOW -> "노쇼로 처리되어 지급된 금액이 없어요."
-    else -> "정산 내역이 없어요."
-}
-
-/** 리뷰 작성 버튼: 근무 종료 후 7일 이내 활성화. */
-@Composable
-private fun ReviewSection(
-    posting: PastPosting,
-    canWriteReview: Boolean,
-    nowMillis: Long,
-    onWriteReview: () -> Unit,
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-        AppPrimaryButton(text = "리뷰 작성", onClick = onWriteReview, enabled = canWriteReview)
-        Spacer(Modifier.height(6.dp))
-        Text(
-            text = reviewHint(posting, canWriteReview, nowMillis),
-            color = AppColors.TextSub,
-            fontSize = 12.sp,
-        )
-    }
-}
-
-private fun reviewHint(posting: PastPosting, canWriteReview: Boolean, nowMillis: Long): String =
-    if (canWriteReview) {
-        "리뷰 작성 기간이 ${ReviewPolicy.remainingDays(posting.reviewStartMillis, nowMillis)}일 남았어요."
-    } else {
-        "리뷰는 근무 종료 후 ${ReviewPolicy.REVIEW_WINDOW_DAYS}일 이내에만 작성할 수 있어요."
-    }

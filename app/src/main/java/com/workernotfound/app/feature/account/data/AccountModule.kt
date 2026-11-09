@@ -21,7 +21,6 @@ class AccountRepositoryImpl @Inject constructor(private val api: AccountApi,
     private val sessions: SessionStore, private val backend: BackendAccess) : AccountRepository {
     private var original: StoredSession? = null
     private suspend fun requireAccount() {
-        if (BuildConfig.USE_DEMO_DATA) throw ApiException("LIVE_ACCOUNT_ONLY")
         backend.requireSession()
         if (original == null) original = withContext(Dispatchers.IO) { sessions.read() }
     }

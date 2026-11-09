@@ -15,7 +15,6 @@ import com.workernotfound.app.feature.owner.ui.OwnerApplicantsScreen
 import com.workernotfound.app.feature.owner.ui.OwnerPastPostingDetailScreen
 import com.workernotfound.app.feature.owner.ui.OwnerPastPostingsScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRematchScreen
-import com.workernotfound.app.feature.owner.ui.OwnerReviewPlaceholderScreen
 import com.workernotfound.app.feature.owner.ui.OwnerRootScreen
 import com.workernotfound.app.feature.owner.ui.OwnerSettlementScreen
 import com.workernotfound.app.feature.owner.ui.OwnerWorkDetailScreen
@@ -27,7 +26,7 @@ import com.workernotfound.app.feature.worker.ui.WorkerRootScreen
 import com.workernotfound.app.feature.worker.ui.WorkerTrustScreen
 
 /**
- * Top-level navigation. Live mode starts with authentication; demo retains role selection. Enters the
+ * Top-level navigation. Starts with onboarding/authentication, then enters the
  * owner or worker section. Each section re-applies its role theme so the
  * accent color follows the role (style guide: 오렌지=점주, 노랑=알바생).
  */
@@ -35,13 +34,7 @@ import com.workernotfound.app.feature.worker.ui.WorkerTrustScreen
 fun AppNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = AppRoute.ROLE_SWITCHER) {
         composable(AppRoute.ROLE_SWITCHER) {
-            if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) {
-                RoleSwitcherScreen(
-                    onSelectOwner = { navController.navigate(AppRoute.OWNER_ROOT) },
-                    onSelectWorker = { navController.navigate(AppRoute.WORKER_ROOT) },
-                )
-            } else {
-                com.workernotfound.app.feature.onboarding.StartupGate {
+            com.workernotfound.app.feature.onboarding.StartupGate {
                 com.workernotfound.app.feature.auth.ui.AuthScreen(onAuthenticated = { session ->
                     val route = if (session.role == "OWNER") AppRoute.OWNER_ROOT else AppRoute.WORKER_ROOT
                     navController.navigate(route) {
@@ -49,7 +42,6 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                         launchSingleTop = true
                     }
                 })
-                }
             }
         }
 
@@ -223,17 +215,8 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
                 OwnerPastPostingDetailScreen(
                     onBack = { navController.popBackStack() },
-                    onWriteReview = { postingId -> navController.navigate(if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA)
-                        AppRoute.ownerReviewWrite(postingId) else AppRoute.OWNER_REVIEWS) },
+                    onWriteReview = { navController.navigate(AppRoute.OWNER_REVIEWS) },
                 )
-            }
-        }
-        composable(
-            route = AppRoute.OWNER_REVIEW_WRITE,
-            arguments = listOf(navArgument("postingId") { type = NavType.StringType }),
-        ) {
-            WorkerNotFoundTheme(role = AppRole.OWNER) {
-                OwnerReviewPlaceholderScreen(onBack = { navController.popBackStack() })
             }
         }
 
@@ -291,7 +274,6 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             WorkerNotFoundTheme(role = AppRole.WORKER) {
                 WorkerTrustScreen(
                     onBack = { navController.popBackStack() },
-                    onJobClick = { id -> navController.navigate(AppRoute.workerJobDetail(id)) },
                     onReviews = { navController.navigate(AppRoute.WORKER_REVIEWS) },
                     onHistory = { navController.navigate(AppRoute.WORKER_HISTORY) },
                 )

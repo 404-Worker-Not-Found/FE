@@ -17,7 +17,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
-import com.workernotfound.app.BuildConfig
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
@@ -38,7 +37,6 @@ import com.workernotfound.app.core.designsystem.AppTheme
 import com.workernotfound.app.core.designsystem.component.AppCard
 import com.workernotfound.app.feature.owner.domain.model.NotificationSettings
 import com.workernotfound.app.feature.owner.domain.model.OwnerProfile
-import com.workernotfound.app.feature.owner.ui.component.OwnerDialog
 import com.workernotfound.app.feature.owner.ui.component.OwnerInfoLine
 import com.workernotfound.app.feature.owner.ui.component.OwnerLoadingBox
 import com.workernotfound.app.feature.owner.ui.component.OwnerMessageBox
@@ -66,7 +64,6 @@ fun OwnerMyPageScreen(
         onRetry = viewModel::load,
         onToggle = viewModel::setNotification,
         onLogout = viewModel::logout,
-        onWithdraw = viewModel::showWithdrawDialog,
         onEditName = viewModel::editName,
         onPhotoSelected = viewModel::updatePhoto,
         onAccountSettings = onAccountSettings,
@@ -80,17 +77,6 @@ fun OwnerMyPageScreen(
             onSave = viewModel::saveName, onDismiss = viewModel::dismissName,
         )
     }
-    if (uiState.isWithdrawDialogVisible) {
-        OwnerDialog(
-            title = "회원 탈퇴",
-            message = "정말 탈퇴하시겠어요? 이 작업은 되돌릴 수 없어요.",
-            confirmText = "탈퇴",
-            onConfirm = viewModel::dismissWithdrawDialog,
-            dismissText = "닫기",
-            onDismiss = viewModel::dismissWithdrawDialog,
-            isDestructive = true,
-        )
-    }
 }
 
 @Composable
@@ -99,7 +85,6 @@ private fun OwnerMyPageContent(
     onRetry: () -> Unit,
     onToggle: (NotificationChannel, Boolean) -> Unit,
     onLogout: () -> Unit,
-    onWithdraw: () -> Unit,
     onEditName: () -> Unit,
     onPhotoSelected: (String) -> Unit,
     onAccountSettings: () -> Unit,
@@ -139,9 +124,8 @@ private fun OwnerMyPageContent(
             AppCard(modifier = Modifier.fillMaxWidth()) {
                 ActionRow(label = "로그아웃", color = AppColors.TextMain, onClick = onLogout)
                 CardDivider()
-                if (BuildConfig.USE_DEMO_DATA) ActionRow(label = "회원 탈퇴", color = AppColors.Danger, onClick = onWithdraw)
-                else androidx.compose.material3.TextButton(onAccountSettings) { Text(stringResource(R.string.account_title)) }
-                if (!BuildConfig.USE_DEMO_DATA) androidx.compose.material3.TextButton(onReviews) { Text(stringResource(R.string.reviews_title)) }
+                androidx.compose.material3.TextButton(onAccountSettings) { Text(stringResource(R.string.account_title)) }
+                androidx.compose.material3.TextButton(onReviews) { Text(stringResource(R.string.reviews_title)) }
             }
         }
     }
@@ -159,8 +143,7 @@ private fun ProfileCard(profile: OwnerProfile, onPhotoSelected: (String) -> Unit
                 Text(text = "점주 · ${profile.email}", fontSize = 12.sp, color = AppColors.TextSub)
             }
         }
-        if (BuildConfig.USE_DEMO_DATA) ProfilePhotoButton(onSelected = onPhotoSelected)
-        else Text(stringResource(R.string.profile_photo_unavailable), color = AppColors.TextSub)
+        ProfilePhotoButton(onSelected = onPhotoSelected)
         Spacer(Modifier.height(12.dp))
         Text(
             text = "🏪 ${profile.storeName}",

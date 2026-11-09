@@ -4,9 +4,8 @@ import com.workernotfound.app.feature.owner.domain.model.NotificationSettings
 import com.workernotfound.app.feature.owner.domain.model.OwnerProfile
 
 /**
- * Owner profile for 마이페이지 (UI spec 4-1). Mock-backed; account actions
- * (phone edit with re-verification, logout, withdrawal) need the auth
- * backend and are not implemented (decision: Demo Scope and Mock-First Strategy).
+ * Owner profile for 마이페이지 (UI spec 4-1). Photo upload and notification preferences have no
+ * confirmed backend contract yet. Account actions live in the account feature.
  */
 interface OwnerProfileRepository {
     suspend fun getProfile(): OwnerProfile

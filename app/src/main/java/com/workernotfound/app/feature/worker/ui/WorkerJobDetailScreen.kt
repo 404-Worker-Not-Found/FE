@@ -146,23 +146,8 @@ private fun StoreInfoCard(detail: WorkerJobDetail) {
         Spacer(Modifier.height(4.dp))
         Text(text = detail.address, color = AppColors.TextSub, fontSize = 13.sp)
         Spacer(Modifier.height(12.dp))
-        if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) MiniMap()
-        else com.workernotfound.app.feature.location.AddressMap(detail.address,
+        com.workernotfound.app.feature.location.AddressMap(detail.address,
             modifier = Modifier.fillMaxWidth().height(AppDimens.locationMapHeight))
-    }
-}
-
-/** Small custom mini-map (style guide: 지도 미니맵). Placeholder, not a real map. */
-@Composable
-private fun MiniMap() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(120.dp)
-            .background(AppColors.MapBackground, RoundedCornerShape(AppRadius.inner)),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(Modifier.size(18.dp).background(AppColors.Primary, CircleShape))
     }
 }
 

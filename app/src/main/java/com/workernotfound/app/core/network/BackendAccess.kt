@@ -19,10 +19,8 @@ class BackendAccess @Inject constructor(
         if (kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { sessions.read() } == null) throw IllegalStateException(context.getString(R.string.backend_login_required))
     }
 
-    /** Unconnected features must never simulate successful server changes in live mode. */
-    fun requireDemo() {
-        if (!BuildConfig.USE_DEMO_DATA) throw IllegalStateException(context.getString(R.string.backend_unavailable))
-    }
+    /** Features without a confirmed backend contract must never simulate a successful server change. */
+    fun unsupported(): Nothing = throw IllegalStateException(context.getString(R.string.backend_unavailable))
 
     fun message(error: Throwable): String = when (error) {
         is HttpException -> context.getString(when (error.code()) {

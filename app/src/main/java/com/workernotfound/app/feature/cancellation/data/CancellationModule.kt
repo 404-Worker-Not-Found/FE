@@ -20,7 +20,6 @@ class CancellationRepositoryImpl @Inject constructor(private val api: Cancellati
     private val works: WorkerWorkApiService, private val jobs: WorkerJobApiService,
     private val profiles: MemberProfileApiService) : CancellationRepository {
     private suspend fun requireLive() {
-        if (BuildConfig.USE_DEMO_DATA) throw ApiException("LIVE_CANCELLATION_ONLY")
         backend.requireSession()
     }
     override suspend fun context(workId: Long): CancellationContext {

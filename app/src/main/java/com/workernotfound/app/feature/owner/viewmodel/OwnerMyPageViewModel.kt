@@ -1,6 +1,5 @@
 package com.workernotfound.app.feature.owner.viewmodel
 
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.auth.domain.AuthRepository
 import kotlinx.coroutines.CancellationException
@@ -111,7 +110,7 @@ class OwnerMyPageViewModel @Inject constructor(
         _uiState.update { it.copy(isLoggingOut = true, errorMessage = null) }
         viewModelScope.launch {
             try {
-                if (!BuildConfig.USE_DEMO_DATA) auth.logout()
+                auth.logout()
                 _uiState.update { it.copy(isLoggedOut = true) }
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
@@ -119,10 +118,6 @@ class OwnerMyPageViewModel @Inject constructor(
             } finally { _uiState.update { it.copy(isLoggingOut = false) } }
         }
     }
-
-    fun showWithdrawDialog() = _uiState.update { it.copy(isWithdrawDialogVisible = true) }
-
-    fun dismissWithdrawDialog() = _uiState.update { it.copy(isWithdrawDialogVisible = false) }
 
     private fun NotificationSettings.with(channel: NotificationChannel, isEnabled: Boolean) = when (channel) {
         NotificationChannel.PUSH -> copy(isPushEnabled = isEnabled)
