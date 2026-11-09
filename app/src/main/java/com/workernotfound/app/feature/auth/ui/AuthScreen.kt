@@ -8,6 +8,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -40,6 +42,8 @@ private fun AuthContent(
     role: (String) -> Unit, day: (DayOfWeek) -> Unit, available: (Boolean) -> Unit,
     send: (Boolean) -> Unit, verify: (Boolean) -> Unit, submit: () -> Unit,
 ) {
+    val clipboard = LocalClipboardManager.current
+    var copied by remember(state.diagnostic) { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().background(AppTheme.role.screenBackground).safeDrawingPadding()
         .imePadding().verticalScroll(rememberScrollState()).padding(AppDimens.screenPadding),
         verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
@@ -89,6 +93,12 @@ private fun AuthContent(
         }
         state.message?.let { Text(stringResource(it)) }
         state.error?.let { Text(it, color = AppColors.Danger) }
+        state.diagnostic?.let { report ->
+            TextButton(onClick = { clipboard.setText(AnnotatedString(report)); copied = true }) {
+                Text(stringResource(if (copied) R.string.auth_error_copied else R.string.auth_copy_error))
+            }
+            Text(report, style = MaterialTheme.typography.bodySmall, color = AppColors.TextSub)
+        }
         if (state.busy) CircularProgressIndicator()
         AppPrimaryButton(stringResource(when (state.page) {
             AuthPage.LOGIN -> R.string.auth_login
