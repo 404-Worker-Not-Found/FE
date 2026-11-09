@@ -22,7 +22,6 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -34,8 +33,8 @@ import com.workernotfound.app.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
-import com.workernotfound.app.feature.mypage.ui.ProfilePhotoButton
 import com.workernotfound.app.feature.mypage.ui.ProfileNameDialog
+import com.workernotfound.app.feature.mypage.ui.ProfilePhotoButton
 import com.workernotfound.app.feature.worker.viewmodel.WorkerMyPageViewModel
 import com.workernotfound.app.feature.worker.viewmodel.WorkerNotificationChannel
 import com.workernotfound.app.feature.worker.domain.model.WorkerProfile
@@ -51,7 +50,7 @@ import com.workernotfound.app.core.designsystem.AppTheme
 import com.workernotfound.app.core.designsystem.component.AppCard
 
 /**
- * 마이페이지 (UI spec 4-1 프로필 설정). 데모용 mock — 실제 인증/계정 연동은 후속.
+ * 마이페이지 (UI spec 4-1 프로필 설정). 계정 변경·탈퇴는 계정 설정 화면에서 처리한다.
  * 신뢰 점수 영역을 누르면 '나의 신뢰도'(4-2)로 이동한다.
  */
 @Composable
@@ -115,8 +114,7 @@ fun WorkerMyPageScreen(
         AppCard(modifier = Modifier.fillMaxWidth()) {
             ActionRow(stringResource(R.string.profile_logout), AppColors.TextMain, onClick = viewModel::logout)
             Spacer(Modifier.height(10.dp)); Divider(color = AppColors.Border); Spacer(Modifier.height(10.dp))
-            if (BuildConfig.USE_DEMO_DATA) ActionRow("회원 탈퇴", AppColors.Danger, onClick = viewModel::showWithdrawDialog)
-            else TextButton(onAccountSettings) { Text(stringResource(R.string.account_title)) }
+            TextButton(onAccountSettings) { Text(stringResource(R.string.account_title)) }
         }
     }
 
@@ -124,22 +122,6 @@ fun WorkerMyPageScreen(
         ProfileNameDialog(
             name = draft, isValid = uiState.isNameValid, isSaving = uiState.isSaving, hasSaveError = uiState.hasNameSaveError,
             onNameChange = viewModel::changeName, onSave = viewModel::saveName, onDismiss = viewModel::dismissName,
-        )
-    }
-    if (uiState.isWithdrawDialogVisible) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissWithdrawDialog,
-            containerColor = AppColors.CardSurface,
-            title = { Text("회원 탈퇴", fontWeight = FontWeight.Bold, color = AppColors.TextMain) },
-            text = { Text("정말 탈퇴하시겠어요? 이 작업은 되돌릴 수 없어요.", color = AppColors.TextSub) },
-            confirmButton = {
-                TextButton(onClick = viewModel::dismissWithdrawDialog) {
-                    Text("탈퇴", color = AppColors.Danger, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissWithdrawDialog) { Text("닫기", color = AppColors.TextSub) }
-            },
         )
     }
 }
@@ -164,8 +146,7 @@ private fun ProfileCard(profile: WorkerProfile, onTrustClick: () -> Unit, onPhot
                 Text(text = "알바생 · ${profile.email}", fontSize = 12.sp, color = AppColors.TextSub)
             }
         }
-        if (BuildConfig.USE_DEMO_DATA) ProfilePhotoButton(onSelected = onPhotoSelected)
-        else Text(stringResource(R.string.profile_photo_unavailable), color = AppColors.TextSub)
+        ProfilePhotoButton(onSelected = onPhotoSelected)
         Spacer(Modifier.height(12.dp))
         Box(
             modifier = Modifier
@@ -177,7 +158,7 @@ private fun ProfileCard(profile: WorkerProfile, onTrustClick: () -> Unit, onPhot
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "⭐ 나의 신뢰도", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColors.WorkerEmphasis)
                 Spacer(Modifier.weight(1f))
-                Text(text = if (BuildConfig.USE_DEMO_DATA) "92점 · 우수  ›" else stringResource(R.string.profile_trust_link), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.WorkerEmphasis)
+                Text(text = stringResource(R.string.profile_trust_link), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.WorkerEmphasis)
             }
         }
     }

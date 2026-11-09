@@ -1,7 +1,6 @@
 package com.workernotfound.app.feature.owner.data
 
 import android.content.Context
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.R
 import com.workernotfound.app.core.network.ApiException
 import com.workernotfound.app.core.network.BackendAccess
@@ -15,20 +14,13 @@ import com.workernotfound.app.feature.owner.domain.repository.OwnerHomeRepositor
 import com.workernotfound.app.feature.worker.data.remote.WorkerJobApiService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.delay
 
-/**
- * Mock applicant repository backed by [OwnerMockStore]. Chat-room creation and
- * the worker notification on 매칭 확정 are backend responsibilities and are not
- * simulated here.
- */
 class OwnerApplicantRepositoryImpl @Inject constructor(
     private val backend: BackendAccess,
     private val api: OwnerApplicantApiService,
     private val home: OwnerHomeRepository,
     private val jobs: WorkerJobApiService,
     @ApplicationContext private val context: Context,
-    private val store: OwnerMockStore,
 ) : OwnerApplicantRepository {
 
     override suspend fun proposeMatch(postingId: String, applicantId: String) {
@@ -38,41 +30,27 @@ class OwnerApplicantRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getApplicantBoard(postingId: String): ApplicantBoard {
-        if (!BuildConfig.USE_DEMO_DATA) {
-            backend.requireSession()
-            val posting = home.getMyPostings().first { it.id == postingId }
-            val job = jobs.detail(postingId.toLong()).requireData()
-            val applicants = mutableListOf<Applicant>()
-            var page = 0
-            var batchId: Long? = null
-            do {
-                val result = api.list(postingId.toLong(), page, batchId).requireData()
-                batchId = result.scoreBatchId
-                applicants += result.applicants.map(::map)
-                page++
-            } while (page < result.totalPages)
-            return ApplicantBoard(posting, job.categoryName, applicants, matchedApplicantId = null)
-        }
-        delay(MOCK_DELAY_MILLIS)
-        return store.applicantBoard(postingId, System.currentTimeMillis())
+        backend.requireSession()
+        val posting = home.getMyPostings().first { it.id == postingId }
+        val job = jobs.detail(postingId.toLong()).requireData()
+        val applicants = mutableListOf<Applicant>()
+        var page = 0
+        var batchId: Long? = null
+        do {
+            val result = api.list(postingId.toLong(), page, batchId).requireData()
+            batchId = result.scoreBatchId
+            applicants += result.applicants.map(::map)
+            page++
+        } while (page < result.totalPages)
+        return ApplicantBoard(posting, job.categoryName, applicants, matchedApplicantId = null)
     }
 
     override suspend fun getApplicantDetail(postingId: String, applicantId: String): ApplicantDetail {
-        if (!BuildConfig.USE_DEMO_DATA) {
-            backend.requireSession()
-            val dto = api.detail(postingId.toLong(), applicantId.toLong()).requireData()
-            val job = jobs.detail(postingId.toLong()).requireData()
-            return ApplicantDetail(map(dto), job.categoryName, recentWorks = null, noShowCount = null,
-                lastNoShowDate = null, canConfirmMatch = dto.status == "APPLIED")
-        }
-        delay(MOCK_DELAY_MILLIS)
-        return store.applicantDetail(postingId, applicantId)
-    }
-
-    override suspend fun confirmMatch(postingId: String, applicantId: String): String {
-        backend.requireDemo()
-        delay(MOCK_DELAY_MILLIS)
-        return store.confirmMatch(postingId, applicantId, System.currentTimeMillis())
+        backend.requireSession()
+        val dto = api.detail(postingId.toLong(), applicantId.toLong()).requireData()
+        val job = jobs.detail(postingId.toLong()).requireData()
+        return ApplicantDetail(map(dto), job.categoryName, recentWorks = null, noShowCount = null,
+            lastNoShowDate = null, canConfirmMatch = dto.status == "APPLIED")
     }
 
     private fun map(dto: OwnerApplicantResponseDto) = Applicant(
@@ -81,8 +59,4 @@ class OwnerApplicantRepositoryImpl @Inject constructor(
         matchScore = dto.totalScore?.let { kotlin.math.round(it).toInt() }, noShowRisk = null,
         hasCategoryExperience = null, trustScore = null, isMatched = dto.status == "SELECTED", noShowProbability = dto.noShowProbability,
     )
-
-    private companion object {
-        const val MOCK_DELAY_MILLIS = 300L
-    }
 }

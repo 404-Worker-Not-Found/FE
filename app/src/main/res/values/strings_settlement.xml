@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settlement_close">확인</string>
     <string name="settlement_server_amount">정산 금액</string>
     <string name="settlement_server_status">지급 상태</string>
     <string name="settlement_reserved">정산 예약</string>

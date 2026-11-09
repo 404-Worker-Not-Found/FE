@@ -1,0 +1,7 @@
+<resources>
+    <string name="auth_copy_error">서버 전달용 오류 복사</string>
+    <string name="auth_error_copied">복사됨 · 서버 담당자에게 붙여넣으세요</string>
+    <string name="auth_response_body_label">응답 본문:</string>
+    <string name="auth_response_body_missing">확인 불가 (응답 본문이 없거나 읽지 못했습니다)</string>
+    <string name="auth_diagnostic_sensitive">응답 본문에는 개인정보나 토큰이 포함될 수 있습니다. 공유하기 전에 내용을 확인하세요. 요청 본문과 헤더는 제외했습니다.</string>
+</resources>

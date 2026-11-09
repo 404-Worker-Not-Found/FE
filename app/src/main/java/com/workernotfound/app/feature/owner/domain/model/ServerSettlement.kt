@@ -2,7 +2,7 @@ package com.workernotfound.app.feature.owner.domain.model
 
 import java.math.BigDecimal
 
-/** Server-owned payout record. Amounts are never reconstructed from the demo wage calculator. */
+/** Server-owned payout record. Amounts are never reconstructed on the client. */
 data class ServerSettlement(
     val id: Long,
     val workId: Long,

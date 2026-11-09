@@ -15,12 +15,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class NotificationRepositoryImpl @Inject constructor(private val api: NotificationApi, private val backend: BackendAccess) : NotificationRepository {
     override suspend fun page(before: Long?): NotificationPage {
-        if (BuildConfig.USE_DEMO_DATA) return NotificationPage(emptyList(), null)
         backend.requireSession()
         return api.page(before).requireData().toDomain(before)
     }
     override suspend fun unreadCount(): Long {
-        if (BuildConfig.USE_DEMO_DATA) return 0
         backend.requireSession()
         return api.unread().requireData().unreadCount
     }

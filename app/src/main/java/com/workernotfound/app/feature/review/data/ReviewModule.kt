@@ -17,7 +17,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 class ReviewRepositoryImpl @Inject constructor(private val api: ReviewApi, private val backend: BackendAccess,
     private val profiles: MemberProfileApiService, private val jobs: WorkerJobApiService) : ReviewRepository {
     override suspend fun pending(page: Int): PendingReviewPage {
-        if (BuildConfig.USE_DEMO_DATA) return PendingReviewPage(emptyList(), null)
         backend.requireSession()
         val response = api.pending(page).requireData()
         val contexts = response.works.map { it.jobPostId }.distinct().associateWith { jobs.detail(it).requireData() }
@@ -28,7 +27,6 @@ class ReviewRepositoryImpl @Inject constructor(private val api: ReviewApi, priva
         }, nextReviewPage(page, response.page, response.size, response.totalCount, response.works.size))
     }
     override suspend fun received(page: Int): ReceivedReviewPage {
-        if (BuildConfig.USE_DEMO_DATA) return ReceivedReviewPage(emptyList(), null, 0, null)
         backend.requireSession()
         val member = profiles.get().requireData().memberId
         val response = api.received(member, page).requireData()
@@ -39,7 +37,6 @@ class ReviewRepositoryImpl @Inject constructor(private val api: ReviewApi, priva
     }
     override suspend fun write(target: ReviewTarget, rating: Int, comment: String) {
         backend.requireSession()
-        if (BuildConfig.USE_DEMO_DATA) throw ApiException("LIVE_REVIEW_ONLY")
         require(rating in 1..5 && comment.length <= 500)
         val normalized = comment.trim().takeIf { it.isNotEmpty() }
         val result = api.write(WriteReviewDto(target.workId, rating, normalized)).requireData()

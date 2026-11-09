@@ -46,7 +46,7 @@ class WorkerChatRoomViewModel @Inject constructor(
 
     fun startUpdates() {
         foreground = true
-        if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA || updates?.isActive == true) return
+        if (updates?.isActive == true) return
         updates = viewModelScope.launch {
             repository.changes(roomId).retryWhen { _, attempt ->
                 _uiState.update { it.copy(reconnecting = true) }
@@ -72,7 +72,7 @@ class WorkerChatRoomViewModel @Inject constructor(
         catch (e: Exception) { _uiState.update { it.copy(errorMessage = backend.message(e)) } }
     }
     fun visible(id: Long) {
-        if (!foreground || id <= 0 || com.workernotfound.app.BuildConfig.USE_DEMO_DATA) return
+        if (!foreground || id <= 0) return
         visibleThrough = maxOf(visibleThrough, id)
         if (reading?.isActive == true || visibleThrough <= acknowledgedRead) return
         reading = viewModelScope.launch {

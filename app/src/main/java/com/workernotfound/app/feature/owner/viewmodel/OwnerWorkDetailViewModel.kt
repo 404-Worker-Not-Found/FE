@@ -3,7 +3,6 @@ package com.workernotfound.app.feature.owner.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.owner.domain.model.OwnerWork
 import com.workernotfound.app.feature.owner.domain.model.WorkProgressStatus
@@ -69,11 +68,7 @@ class OwnerWorkDetailViewModel @Inject constructor(
     }
 
     /** 근무 완료 → 정산 트리거 (UI spec 2-4). */
-    fun completeWork() {
-        if (BuildConfig.USE_DEMO_DATA) {
-            runAction(OwnerWorkDetailEvent.OpenSettlement(workId)) { repository.completeWork(workId) }
-        } else changeWork { repository.finishWork(workId) }
-    }
+    fun completeWork() = changeWork { repository.finishWork(workId) }
 
     fun startWork() = changeWork { repository.startWork(workId) }
 

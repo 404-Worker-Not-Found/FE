@@ -11,7 +11,7 @@
 - 실제 응답은 `success/status/code/message/data/...` envelope이다. 일부 Swagger auth/job 성공 응답은 내부 DTO만 표기하지만 BE controller 및 실제 공개 조회에서 `ApiResponse<T>`를 확인했다.
 - 로그인은 `POST /api/auth/login` (`email/password/deviceId`), 갱신은 `POST /api/auth/tokens/reissue` (`refreshToken/deviceId`). 둘 다 `data` 안에 토큰 결과가 있다. Refresh Token은 회전한다.
 - `AuthRepository`가 로그인·로그아웃을 제공한다. 비밀번호는 저장하지 않는다. 토큰은 Android Keystore AES-GCM으로 암호화하고 `noBackupFilesDir`에 저장한다. Bearer 첨부 및 401당 한 번의 갱신/재시도는 공통 OkHttp 계층에서 수행한다. 갱신 중 로그아웃/다른 로그인은 덮어쓰지 않는다.
-- 실제 모드는 로그인·회원가입 화면에서 AuthRepository와 암호화 세션에 연결한다. 서버 본인 조회로 저장 세션을 확인하고 역할별로 진입한다. 개발용 토큰이나 비밀번호를 BuildConfig에 넣지 않는다. 친구 작업의 원본 검증은 friend-progress.md, 통합 후 검증은 이 문서와 work-handoff.md를 확인한다.
+- 앱은 로그인·회원가입 화면에서 AuthRepository와 암호화 세션에 연결한다. 서버 본인 조회로 저장 세션을 확인하고 역할별로 진입한다. 개발용 토큰이나 비밀번호를 BuildConfig에 넣지 않는다. 친구 작업의 원본 검증은 friend-progress.md, 통합 후 검증은 이 문서와 work-handoff.md를 확인한다.
 
 ## Android 앱에 프론트 배포 주소가 필요한가
 
@@ -23,7 +23,7 @@ BE `e24145f`는 기존 웹 프론트 전제를 수정해 `FRONTEND_ORIGIN` 의�
 
 ## 실행 모드
 
-기본 빌드는 실제 서버 연결 모드이다. 기존 데모는 `./gradlew assembleDebug -Pdemo.enabled=true`로 명시적으로 선택한다. 실서버 오류 후 mock으로 전환하지 않는다. 아직 연결되지 않은 repository는 실제 모드에서 준비 중 오류를 반환하며 가짜 공고 등록/매칭/노쇼/지급 성공을 만들지 않는다. 첫 역할 선택 화면에 현재 모드를 안내한다.
+아직 계약이 없는 기능(노쇼·재매칭, 정산 지급 승인, 신뢰도 점수, 프로필 사진, 알림 설정)은 화면을 유지하되 준비 중 오류를 반환하며 가짜 성공을 만들지 않는다.
 
 ## 현재 구현 화면 우선 연결
 
@@ -32,7 +32,7 @@ BE `e24145f`는 기존 웹 프론트 전제를 수정해 `FRONTEND_ORIGIN` 의�
 | 알바생 홈 3-1 | `GET /api/jobs/search`, `POST /api/applications` | 긴급은 `type=URGENT`, 별도 추천 API가 없어 일반 공고 영역에 비긴급 공고 표시. 지원은 세션 필요 |
 | 공고 탐색 3-2 | `GET /api/jobs/search`, 지원 | 페이지 전체 조회, 시급/시간/긴급 서버 필터. 업종명은 확인된 서버 seed 이름을 표시하고 categoryName으로 필터링. 위치 미연결 상태에서 거리 필터를 좁히면 명시적 오류 |
 | 공고 상세 3-3 | `GET /api/jobs/{id}`, 지원 | baseHourlyWage+extraWage 표시. 미제공 거리·반경·점수·지원자 수를 발명하지 않음 |
-| 지원 현황 3-4 | `GET /api/applications`, `GET /api/jobs/{id}`, `PATCH /api/applications/{id}/cancel` | 지원 ID와 공고 ID 구분. 서버 수락 후 상태 갱신. 실제 모드의 타이머 매칭 시뮬레이션 제거. WebSocket 미연결 |
+| 지원 현황 3-4 | `GET /api/applications`, `GET /api/jobs/{id}`, `PATCH /api/applications/{id}/cancel` | 지원 ID와 공고 ID 구분. 서버 수락 후 상태 갱신. 타이머 매칭 시뮬레이션 없음. WebSocket 미연결 |
 | 매칭 결과 3-5 | 지원·매칭 목록/상세, `PATCH /api/matchings/{id}/accept`·`decline`, 실제 방 조회 | PENDING 제안의 서버 expiresAt 사용. 수락 응답 CONFIRMED 확인. SELECTED는 최종 confirmation saga 이후 확정 상태. 방 목록의 matchingId로 실제 chatRoomId 조회 |
 | 알바생 근무 목록 3-6 | `GET /api/works/me`, 공고 상세 조합 | 예정/진행 상태 표시. GPS 출근은 독립 출근 패널에 연결. 근무 취소 API UI는 후속 |
 | 채팅 목록/내역 | `GET /api/chat-rooms/me`, 방 상세, 메시지 내역, 공고 상세 | 모든 목록 페이지, 메시지 cursor 조회; 읽음·실시간 sync는 후속 |
@@ -42,21 +42,21 @@ BE `e24145f`는 기존 웹 프론트 전제를 수정해 `FRONTEND_ORIGIN` 의�
 | 점주 지원자 2-3 | 지원자 목록/상세, 수동 매칭 제안 생성 API | 페이지 사이 scoreBatchId 유지. 미제공 나이·평점·이력·신뢰도 등은 nullable. 제안 성공을 즉시 근무확정으로 표시하지 않음 |
 | 점주 근무 2-4 | 근무 목록/상세, attendance-policy, start·complete API | 실제 startedAt 타이머와 서버 완료 역할/조기완료 정책 반영. 근무완료와 지급완료 분리 |
 | 점주 정산/지난 공고 | 정산 cursor 조회와 본인 근무·공고 조합 | 서버 BigDecimal 금액·통화·지급 상태 표시. 다중 근무자는 workId별 구분. 지급 승인·수동 노쇼 공개 API는 없음 |
-| 점주·알바생 마이페이지 | `GET/PATCH /api/members/me`, AuthRepository 로그아웃 | 기본 프로필 조회/이름 변경 연결. API 없는 사진·알림 설정은 실제 모드 비노출. 로그인 UI 연결, 기기 E2E 후속 |
+| 점주·알바생 마이페이지 | `GET/PATCH /api/members/me`, AuthRepository 로그아웃 | 기본 프로필 조회/이름 변경 연결. API 없는 사진·알림 설정은 비노출. 로그인 UI 연결, 기기 E2E 후속 |
 | 알바생 신뢰도/출근 | GPS 정책 조회·실제 위치·check-in POST 연결 | 신뢰점수 통계는 미지원으로 분리. 시간/반경/정확한 권한을 확인하고 서버 수락 후 출근 완료 |
 
 ## 확인된 UI와 백엔드 차이
 
 사용자 지시에 따라 연동에서는 백엔드 계약을 우선한다. 구현하지 않은 화면을 임의로 먼저 만들지 않는다.
 
-- 근무 가능 토글과 개인화 추천 데이터가 공개 조회에 없어 실제 모드에서는 긴급 공고 필터와 일반 공고로 표시한다. 개인 이름을 mock 이름으로 표시하지 않는다.
-- 공고 생성은 `title` 필수이며 공고 생성 직후 공개가 아니라 결제 대기/예치금 확정 후 공개 흐름이다. 실제 모드는 ‘등록 완료=모집 공개’ 가정을 제거했다. businessId와 categoryId를 임의의 고정 숫자로 보내지 않는다.
-- 업종 seed는 카페/음료, 일반음식점 등이다. 기존 UI의 카페/음식점 라벨과 달라 실제 모드 탐색 필터는 seed 이름으로 수정했다. 서버 카테고리 조회 API와 공고 생성용 ID 선택 계약은 후속이다.
+- 근무 가능 토글과 개인화 추천 데이터가 공개 조회에 없어 긴급 공고 필터와 일반 공고로 표시한다. 개인 이름을 임의 이름으로 표시하지 않는다.
+- 공고 생성은 `title` 필수이며 공고 생성 직후 공개가 아니라 결제 대기/예치금 확정 후 공개 흐름이다. ‘등록 완료=모집 공개’ 가정을 제거했다. businessId와 categoryId를 임의의 고정 숫자로 보내지 않는다.
+- 업종 seed는 카페/음료, 일반음식점 등이다. 기존 UI의 카페/음식점 라벨과 달라 탐색 필터는 seed 이름으로 수정했다. 서버 카테고리 조회 API와 공고 생성용 ID 선택 계약은 후속이다.
 - 공고 상세에는 가산 합계 `extraWage`만 있다. 긴급/시간대별 가산으로 임의 분해하지 않는다. applicantCount는 실제 구현상 null이다. 거리·모집 반경·매칭 점수·공개 상태/긴급도도 상세 응답에 없으므로 해당 표시/제약은 후속이다.
 - 점주 공고 목록은 `title/status/confirmedCount` 등을 제공하지만 시급은 없어서 상세 조회를 조합한다. 긴급도는 목록/상세 모두 없으므로 긴급 배지를 추정하지 않는다.
-- BE MatchingConfirmationCommandService가 근무·채팅 생성 후 Application.SELECTED를 설정하므로 SELECTED는 매칭완료이다. APPLIED와 매칭 PENDING을 조합해 제안 대기를 표시한다. 서버 expiresAt를 사용하고 앱의 고정 5분/자동 성공은 실제 모드에 적용하지 않는다.
+- BE MatchingConfirmationCommandService가 근무·채팅 생성 후 Application.SELECTED를 설정하므로 SELECTED는 매칭완료이다. APPLIED와 매칭 PENDING을 조합해 제안 대기를 표시한다. 서버 expiresAt를 사용하고 앱의 고정 5분/자동 성공은 적용하지 않는다.
 - 점주 지원자 API의 totalScore·expectedArrivalMinutes를 연결했다. 프로필 사진·나이·신뢰도·근무 이력·누적 노쇼·경험 여부는 미제공 nullable로 처리한다. noShowProbability에서 LOW/MIDDLE/HIGH 임계값을 발명하지 않는다.
-- 점주 근무 API는 attendance-policy에 맞춰 시작·완료한다. 실제 모드에는 수동 노쇼 버튼과 가짜 실시간 위치 지도를 노출하지 않는다. 수동 노쇼/실시간 위치/즉시 정산 승인 공개 API가 없다. internal endpoint를 모바일에서 호출하지 않는다.
+- 점주 근무 API는 attendance-policy에 맞춰 시작·완료한다. 수동 노쇼 버튼과 가짜 실시간 위치 지도를 노출하지 않는다. 수동 노쇼/실시간 위치/즉시 정산 승인 공개 API가 없다. internal endpoint를 모바일에서 호출하지 않는다.
 - 채팅방 ID는 매칭/지원 ID와 다르다. 방 목록의 matchingId로 chatRoomId를 찾으며, 찾지 못하면 이동 버튼을 비활성화한다.
 - 알림 읽기 API와 계정의 Push/이메일/SMS 수신 설정 API는 다르다. 후자는 계약에 없다.
 
@@ -89,19 +89,19 @@ BE `e24145f`는 기존 웹 프론트 전제를 수정해 `FRONTEND_ORIGIN` 의�
 
 - 제공받은 알바생 테스트 계정으로 로그인 성공과 WORKER 역할을 확인했다. 본인 근무·지원·매칭·정산은 모두 200/빈 목록이었으며 임시 로그인 세션은 로그아웃했다. 자격증명은 저장하지 않았다. 구글 계정은 용도 확인 전 사용자 지시로 보류다.
 - 정산 응답은 Spring page가 아닌 beforeId cursor 목록이다. 합계에서 시급별 breakdown을 역산하지 않으며 paidAt가 null이라고 분쟁 처리 중으로 표시하지 않는다.
-- 지난 공고에는 같은 공고의 서로 다른 근무가 존재할 수 있어 항목/상세 이동을 workId로 구별한다. 근무 취소·실패를 완료로 바꾸지 않는다. live 리뷰 상세 화면은 아직 후속이다.
+- 지난 공고에는 같은 공고의 서로 다른 근무가 존재할 수 있어 항목/상세 이동을 workId로 구별한다. 근무 취소·실패를 완료로 바꾸지 않는다. 리뷰 상세 화면은 아직 후속이다.
 
 - GPS 출근은 서버의 radiusMeters/earlyWindowSeconds/lateWindowSeconds/timeZone을 사용한다. 기기 위치를 확인한 뒤에만 출근 버튼을 활성화하고 제출 때 다시 위치를 읽는다. 서버 수락 없이 완료를 표시하지 않는다.
 - 정확한 위치 권한 거부·GPS 비활성·현재 위치 없음·20초 제한·인증 반경 밖 상태를 구별한다. 실제 출근 E2E는 배정 근무 데이터가 없어 미검증이며 계약/경계 테스트와 전체 빌드는 통과했다.
 
-- 최종 회귀 검증은 live/demo 모두 통과했다(66 tests). 외부 카메라 촬영 완료·프로필 미리보기·취소/기존 사진 유지와 임시파일 정리를 에뮬레이터에서 확인했다. GPS 실서버 성공은 배정 근무가 없어 후속이다.
-- 추가 점주 데모 검증에서 근무 완료→정산→지난 공고 반영 및 노쇼→재매칭 성공을 확인했다. 조기 종료 후 리뷰 시작 시각을 예정 종료가 아닌 실제 종료로 수정하고 기기 재검증했다. 최신 live/demo 검증은 67 tests, 실패/오류 0이다. 실서버 점주 계정/지급 검증과 구분한다.
+- 최종 회귀 검증을 통과했다(66 tests). 외부 카메라 촬영 완료·프로필 미리보기·취소/기존 사진 유지와 임시파일 정리를 에뮬레이터에서 확인했다. GPS 실서버 성공은 배정 근무가 없어 후속이다.
+- 조기 종료 후 리뷰 시작 시각을 예정 종료가 아닌 실제 종료로 수정하고 기기 재검증했다. 최신 검증은 67 tests, 실패/오류 0이다. 실서버 점주 계정/지급 검증은 후속이다.
 
 ## 2026-11-02 인증·공고 작업 (#21)
 
 BE 최신 `e24145f`의 auth/signup/verification/password-reset 및 job/payment controller·DTO·service를 확인했다. 이번 추가 계약의 배포 OpenAPI 대조는 별도 Swagger Basic 인증정보가 없어 미완이다.
 
-- 실제 모드는 로그인, 암호화 세션 확인(본인 조회 및 기존 401 갱신), 역할별 홈 진입을 제공한다. 명시적 demo 모드는 역할 선택을 유지한다.
+- 앱은 로그인, 암호화 세션 확인(본인 조회 및 기존 401 갱신), 역할별 홈 진입을 제공한다.
 - 회원가입은 `POST /api/auth/signup/{owner|worker}`. 이메일·SMS 발송/검증은 `/api/auth/{email|sms}-verifications/{send|verify}`. 발송 응답의 verified=false를 실패로 처리하지 않고, 코드 확인 응답의 verified=true만 인증 완료로 사용한다.
 - UI 명세의 선택 SMS와 달리 BE SignupService는 이메일/SMS 둘 다 필수다. BE DTO에 맞춰 이름 최대 50자, 비밀번호 8~100자, 알바생 희망 시급/활동 반경/업종/가능 시간/기준 위치를 입력한다. 현재 한 개 업종과 한 개 요일·시간 구간을 입력할 수 있다.
 - 사업자번호는 별도 공개 검증 API를 발명하지 않고 점주 가입 시 서버 검증을 따른다. 카카오/네이버는 provider·callback 설정 확인 전 의존성으로 안내한다. Google 계정은 사용하지 않는다.
@@ -126,6 +126,6 @@ BE 최신 `e24145f`의 auth/signup/verification/password-reset 및 job/payment c
 - 후속 알림 REST 구현: 양 역할 홈→알림 목록/더 보기/unread count/서버 확인 후 읽음/관련 업무 이동 연결. 전체 verify.sh 78 tests 통과. 단말 푸시는 미연결이며 실제 이벤트 데이터 E2E는 별도다.
 
 - 친구 브랜치 `8f8f2d5`를 API 브랜치에 통합했다. develop 및 친구 원격 브랜치는 변경하지 않았다. 인증/공고 코드와 기존 GPS·정산·지난 공고를 함께 빌드했다.
-- 통합 live verify.sh 및 demo lint/test/assemble 통과: 76 tests, 실패/오류 0. 친구의 Windows 환경에서 권한 때문에 실패했던 기존 카메라 symlink 테스트도 이 환경에서는 통과했다. 테스트를 삭제하거나 비활성화하지 않았다.
+- 통합 verify.sh 통과: 76 tests, 실패/오류 0. 친구의 Windows 환경에서 권한 때문에 실패했던 기존 카메라 symlink 테스트도 이 환경에서는 통과했다. 테스트를 삭제하거나 비활성화하지 않았다.
 - 실제 Android 에뮬레이터에서 WORKER 로그인→홈 진입→프로세스 종료/재시작 후 자동 로그인→근무 관리→출근 패널의 빈 근무 상태→본인 프로필→서버 로그아웃→프로세스 재시작 후 로그인 화면 유지를 확인했다. 계정/토큰 값을 기록하지 않았다.
 - 점주 실계정, 회원가입/문자 인증, 실제 GPS 출근 성공, 공고 생성/결제/게시 성공은 이 결과에 포함하지 않는다. 새 공고 저장은 카테고리 계약이 없어 계속 차단하며 Toss 실행 연결도 미완이다.

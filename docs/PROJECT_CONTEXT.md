@@ -6,7 +6,7 @@ This repository contains the Android (Kotlin) frontend for an urgent job matchin
 
 The app is the client for an MSA-based backend (separate repository). It communicates with backend services through REST HTTP APIs and, for real-time state, WebSocket. The app does not own data; it presents and edits data that the backend services own.
 
-The app module and the owner/worker demo screens are implemented. Work is now moving from mock data to the deployed backend, alongside a separate UI-only completion branch.
+The app module and the owner/worker screens are implemented and connected to the deployed backend.
 
 The screen-level product definition lives in:
 
@@ -46,9 +46,10 @@ Current state:
 
 - A single `app` module is scaffolded with Kotlin, Compose, Hilt, navigation, and feature repository interfaces.
 - Owner screens cover home, job posting, applicants, work management, settlement, no-show/rematching, past postings, and my page. Their presence does not imply production API integration.
-- Worker screens cover home, search/detail, application status, matching result, work management, chat, my page, and trust/history. Several device-backed and account actions remain mock or incomplete.
-- The explicit demo entry point is a role switcher. Live mode starts with splash/first-run onboarding and authentication; existing sessions skip onboarding and undergo real token validation.
-- Live maps use Naver SDK with guarded empty-key behavior, actual GPS search and address-derived job locations. Live chat uses WSS/STOMP plus REST sync/read. Demo retains simulations; device push and continuous worker tracking are not connected. Full map authentication/tiles and populated work/chat/check-in success flows still need keys/test data.
+- Worker screens cover home, search/detail, application status, matching result, work management, chat, my page, and trust/history. Actions without a confirmed backend contract show an unavailable state instead of simulating success.
+- The app starts with splash/first-run onboarding and authentication; existing sessions skip onboarding and undergo real token validation.
+- Features without a backend contract (owner no-show/re-matching, settlement payment approval, worker trust score, profile photo upload, notification preferences) keep their UI and report an unavailable state.
+- Job maps, owner posting-location maps, and owner work-detail workplace maps use the Naver SDK with guarded empty-key behavior. Search supports actual GPS-based filtering. Live chat uses WSS/STOMP plus REST sync/read. Device push and continuous worker tracking are not connected. Populated work/chat/check-in success flows still need test data.
 - API integration status and confirmed backend differences are tracked in `docs/backend-integration.md`. UI-only changes maintain a separate screen inventory in their branch.
 - A repository-wide verification script exists at `docs/scripts/verify.sh`.
 - External registrations, backend inputs, and remaining frontend work are inventoried in `docs/integration-readiness-audit.md`. Passing integration tests does not imply maps, push, social login, payments, or all specified screens are complete.
@@ -70,7 +71,7 @@ Decided technology baseline (see `docs/agent/decisions.md`):
 - Jetpack Navigation (Compose)
 - Coil for image loading
 
-The current module uses `compileSdk = 35`, `targetSdk = 35`, and `minSdk = 26`. Naver Map is the selected map SDK, but the map UI currently uses placeholders. These choices are already recorded in the decision memory.
+The current module uses `compileSdk = 35`, `targetSdk = 35`, and `minSdk = 26`. Naver Map is the selected map SDK. Worker search and job detail use real Naver tiles and address-derived pins when the local client ID is configured.
 
 Exact library versions, `minSdk`, and `targetSdk` are managed in the Gradle version catalog and `build.gradle.kts`. Where this document and the build configuration disagree, the build configuration is authoritative and the mismatch should be reported.
 
@@ -104,8 +105,7 @@ This is the conceptual feature map. Existing screens are primarily grouped under
 
 Current priorities:
 
-- Map existing screens to confirmed backend contracts and replace mock repositories incrementally.
-- Keep explicit demo behavior separate from live mode; do not report mock data or simulated mutations as server success.
+- Map remaining screens to confirmed backend contracts. Do not simulate server results; show an unavailable state until a contract exists.
 - Obtain backend-provided worker/owner test accounts, a registered owner business, and payment test configuration for authenticated end-to-end verification.
 - Complete missing behavior in existing owner/worker UIs on the UI-only branch.
 - Verify the connected auth/signup/reset screens with real accounts and complete the pending social provider/callback and onboarding setup.
@@ -123,22 +123,24 @@ These questions are not yet settled in code:
 
 ## 2026-11-02 Auth and Job Integration Checkpoint (#21)
 
-- Live mode now includes login, validated stored-session entry, OWNER/WORKER routing, email/SMS verification, role-specific signup, and code-based password reset. Existing encrypted session storage and refresh infrastructure are reused. Social login awaits provider/callback registration.
-- Live job creation uses the authenticated owner's profile ID/business location, prepares the actual required creation fields behind a repository. New creation stays disabled until a real category catalog contract is available; users never type internal category IDs. The demo posting form remains separate.
+- The app now includes login, validated stored-session entry, OWNER/WORKER routing, email/SMS verification, role-specific signup, and code-based password reset. Existing encrypted session storage and refresh infrastructure are reused. Social login awaits provider/callback registration.
+- Job creation uses the authenticated owner's profile ID/business location, prepares the actual required creation fields behind a repository. New creation stays disabled until a real category catalog contract is available; users never type internal category IDs.
 - Creation returns a real job ID; payment-order and payment order queries keep order creation, deposit status, and server-confirmed publication separate. The app preserves the created ID for recovery and does not automatically retry a non-idempotent creation request.
 - No public category-list endpoint was found. A confirmed category selection contract is needed before creation can be enabled. Toss checkout and callback/approval execution await confirmed test client configuration; no payment is executed by the new UI.
-- The #19 integration branch now includes the friend's #21 checkpoint `8f8f2d5` together with GPS, settlements, and past postings. Combined live/demo verification passes 76 tests. Native emulator QA confirms actual WORKER login, stored-session restart, authenticated empty-work/profile views, and logout persisting across restart.
+- The #19 integration branch now includes the friend's #21 checkpoint `8f8f2d5` together with GPS, settlements, and past postings. Combined verification passes 76 tests. Native emulator QA confirms actual WORKER login, stored-session restart, authenticated empty-work/profile views, and logout persisting across restart.
 - This does not establish successful live signup, owner creation, assigned-work check-in, or payment. See `docs/agent/friend-progress.md` for the friend's original checkpoint and `docs/agent/work-handoff.md` for integration verification and remaining dependencies.
 
 ## 2026-11-02 integration checkpoint
 
 - Main integration branch: `feature/#19-api-integration`; durable recovery state: `docs/agent/work-handoff.md`. Original develop is preserved. Friend auth/job branch is already included through `8f8f2d5`.
 - Connected: notification REST/read; contact change/withdrawal asynchronous commands; real review lists/write; work cancellation agreement; owner/worker WSS-STOMP chat/sync/read; worker terminal work/participant settlement history; first-run onboarding; Naver SDK/configuration/GPS search/address-derived pins/detail/workplace maps; publication calendar/time/location inputs.
-- Current verification: live/demo 98 tests per mode, lint and debug APK passed. A passing build does not verify real map tiles, two-account chat, populated matching/check-in/settlement or payment. Four backend test accounts/roles were checked; business lists are empty. No credentials are recorded here.
+- Current verification: 98 tests, lint and debug APK passed. A passing build does not verify real map tiles, two-account chat, populated matching/check-in/settlement or payment. Four backend test accounts/roles were checked; business lists are empty. No credentials are recorded here.
 - Ignored local map key and actual emulator tiles were confirmed during subsequent QA. Remaining external prerequisites and corresponding frontend work: `docs/human-setup-guide.md` and `docs/integration-readiness-audit.md`. In particular category catalog, Toss checkout/callback, social OAuth, push delivery/device registration, continuous worker tracking, trust summary/contracts and live profile photo upload are incomplete.
 - Resume automation: same chat, Nov 3 00:45 KST, one run. It inspects dirty work/logs/latest checkpoint before continuing, so a quota interruption requires no manual status handoff.
 
 ## 2026-11-03 follow-up
+
+Debug builds now show a copyable diagnostic report on authentication failures (login, signup, verification and reset): UTC time, build version, server host, HTTP method/path/status, an allowlisted server code, and the error response body with a warning that it may contain personal data. Request headers, query parameters, request bodies and credentials are excluded. Release builds do not expose the report. End-to-end authentication still requires real verified accounts.
 
 Backend 212b81d adds the hierarchical public category catalog. Owner publication now fetches/selects real IDs with retry and malformed-ID checks; the deployed route still returns 400, so catalog/publication E2E awaits deployment confirmation. A provided Toss test public key is configured locally via toss.clientKey/BuildConfig with a test-only guard. Checkout/callback/confirm execution still awaits agreed return URLs and paired backend test settings. No keys are recorded in tracked files.
 
@@ -146,4 +148,4 @@ Backend 212b81d adds the hierarchical public category catalog. Owner publication
 
 - Owner 공고관리 now defaults to current postings and separates past history. Pending payment cards on home/management open publication state by selected job ID; manual ID entry was removed.
 - The shared posting form reuses the registered business address/coordinates, groups inputs, uses calendar/30-minute time selection, and explains invalid wage/count/schedule/deadline values. Owner my-page no longer duplicates the chat tab.
-- Demo publication now adds the created posting to the shared owner store, including its empty applicant board. Production publication/payment success still requires authenticated server verification.
+- Production publication/payment success still requires authenticated server verification.

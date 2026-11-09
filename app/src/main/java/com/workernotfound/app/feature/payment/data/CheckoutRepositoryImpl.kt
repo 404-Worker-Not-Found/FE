@@ -27,7 +27,7 @@ class ConfirmCheckoutDto(val paymentKey: String, val amount: BigDecimal) {
 class CheckoutRepositoryImpl @Inject constructor(private val jobs: JobPublicationApiService,
     private val api: CheckoutApi, private val backend: BackendAccess) : CheckoutRepository {
     override suspend fun prepare(jobId: Long): Checkout {
-        check(!BuildConfig.USE_DEMO_DATA && BuildConfig.TOSS_CLIENT_KEY.startsWith("test_ck_"))
+        check(BuildConfig.TOSS_CLIENT_KEY.startsWith("test_ck_"))
         backend.requireSession()
         val (job, order) = currentOrder(jobId)
         check(job.jobStatus == "PAYMENT_PENDING" && order.status == "READY")
@@ -35,7 +35,6 @@ class CheckoutRepositoryImpl @Inject constructor(private val jobs: JobPublicatio
         return Checkout(jobId, order.orderId, order.jobVersion, order.amount, BuildConfig.TOSS_CLIENT_KEY, UUID.randomUUID().toString())
     }
     override suspend fun confirm(checkout: Checkout, receipt: CheckoutReceipt) {
-        check(!BuildConfig.USE_DEMO_DATA)
         backend.requireSession()
         val (_, order) = currentOrder(checkout.jobId)
         validateCheckoutIdentity(checkout, receipt, order)

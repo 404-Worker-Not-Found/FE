@@ -4,7 +4,7 @@ package com.workernotfound.app.feature.owner.domain.model
 
 /**
  * An applicant card on the owner applicant list (UI spec 2-3: 지원자 카드).
- * [profileImageUrl] is null in mock data; the UI falls back to an initial avatar.
+ * [profileImageUrl] may be null; the UI falls back to an initial avatar.
  */
 data class Applicant(
     val id: String,

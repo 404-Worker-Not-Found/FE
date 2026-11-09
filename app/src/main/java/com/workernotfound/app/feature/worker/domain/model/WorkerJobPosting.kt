@@ -5,7 +5,7 @@ package com.workernotfound.app.feature.worker.domain.model
  *
  * The home shows two groups of the same shape: urgent openings (with a remaining
  * time) and recommended openings. [hourlyWage] is the displayed wage (base + the
- * system-added surcharge already combined for the demo).
+ * system-added surcharge combined).
  */
 data class WorkerJobPosting(
     val id: String,

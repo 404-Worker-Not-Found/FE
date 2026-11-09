@@ -40,7 +40,7 @@ class AuthViewModel @Inject constructor(
     }
     fun edit(field: AuthField, value: String) {
         if (state.value.busy) return
-        state.update { it.copy(fields = it.fields + (field to value), message = null, error = null,
+        state.update { it.copy(fields = it.fields + (field to value), message = null, error = null, diagnostic = null,
             emailVerified = if (field == AuthField.EMAIL) false else it.emailVerified,
             smsVerified = if (field == AuthField.PHONE) false else it.smsVerified) }
     }
@@ -96,11 +96,14 @@ class AuthViewModel @Inject constructor(
     }
     private fun runAction(action: suspend () -> Unit) {
         if (state.value.busy) return
-        state.update { it.copy(busy = true, error = null, message = null) }
+        state.update { it.copy(busy = true, error = null, message = null, diagnostic = null) }
         viewModelScope.launch {
             try { action() }
             catch (e: CancellationException) { throw e }
-            catch (e: Exception) { state.update { it.copy(error = backend.message(e), checkingSession = false) } }
+            catch (e: Exception) {
+                val report = backend.diagnostic(e)?.let { "화면: ${state.value.page}\n$it" }
+                state.update { it.copy(error = backend.message(e), diagnostic = report, checkingSession = false) }
+            }
             finally { state.update { it.copy(busy = false) } }
         }
     }

@@ -2,7 +2,6 @@
 <resources>
     <string name="profile_unavailable_field">미제공</string>
     <string name="profile_settings_unavailable">알림 수신 설정은 아직 지원되지 않습니다.</string>
-    <string name="profile_photo_unavailable">프로필 사진 저장은 아직 지원되지 않습니다.</string>
     <string name="profile_logout">로그아웃</string>
     <string name="profile_withdraw_unavailable">회원 탈퇴는 아직 연결되지 않았습니다.</string>
     <string name="profile_trust_link">나의 신뢰도 보기  ›</string>

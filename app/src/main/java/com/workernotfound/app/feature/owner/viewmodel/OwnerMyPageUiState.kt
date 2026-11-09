@@ -16,7 +16,6 @@ data class OwnerMyPageUiState(
     val hasPhotoSaveError: Boolean = false,
     val isSavingNotification: Boolean = false,
     val hasNotificationSaveError: Boolean = false,
-    val isWithdrawDialogVisible: Boolean = false,
 )
 
 /** Which notification channel a toggle controls (UI spec 4-1 알림 설정). */

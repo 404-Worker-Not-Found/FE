@@ -22,11 +22,11 @@
 
 ## 검증
 
-- live: ./docs/scripts/verify.sh 통과. demo: lintDebug/testDebugUnitTest/assembleDebug 통과. 각 104 tests, failures/errors 0.
+- ./docs/scripts/verify.sh 통과. 104 tests, failures/errors 0.
 - MockWebServer 공개 승인 경로/body, 금액·주문·버전·통화 mismatch, callback origin/path/nonce/중복 query/paymentKey 검증을 추가했다. 로그/진단 문자열에 키를 포함하지 않는다.
 - emulator-5556에서 기존 실제 공고 #5를 조회하고 44,080원 주문으로 Toss 테스트 신용/체크카드 선택 화면까지 열리는 것을 확인했다. 테스트 표시가 있는 실제 provider 화면이다.
 - 카드 정보 입력·약관 동의·최종 결제·실제 서버 confirm 및 OPEN 전환은 대신 실행하지 않았다. 사용자에게 테스트 결제의 나머지 단계를 넘겼다. 두 번째 에뮬레이터에 결제창을 열어 두었다.
-- build/presentation/server.apk와 demo.apk를 갱신했고 두 에뮬레이터에도 서버 실행본을 갱신했다. 앱 설치 시 열려 있던 화면 상태는 다시 확인해야 한다.
+- build/presentation의 APK를 갱신했고 두 에뮬레이터에도 설치했다. 앱 설치 시 열려 있던 화면 상태는 다시 확인해야 한다.
 
 ## 근거
 

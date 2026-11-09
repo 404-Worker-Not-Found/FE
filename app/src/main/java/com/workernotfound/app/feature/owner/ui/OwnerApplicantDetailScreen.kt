@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
@@ -222,7 +221,7 @@ private fun ConfirmBar(detail: ApplicantDetail, isConfirming: Boolean, onConfirm
         detail.applicant.isMatched -> "매칭 완료"
         !detail.canConfirmMatch -> "매칭할 수 없는 공고예요"
         isConfirming -> "매칭 확정 중..."
-        else -> if (BuildConfig.USE_DEMO_DATA) "매칭 확정" else androidx.compose.ui.res.stringResource(R.string.backend_send_proposal)
+        else -> androidx.compose.ui.res.stringResource(R.string.backend_send_proposal)
     }
     AppPrimaryButton(
         text = label,
@@ -247,8 +246,8 @@ private fun ApplicantDetailDialogs(
     val matchedWorkId = uiState.matchedWorkId
     when {
         uiState.isConfirmDialogVisible -> OwnerDialog(
-            title = if (BuildConfig.USE_DEMO_DATA) "매칭 확정" else androidx.compose.ui.res.stringResource(R.string.backend_send_proposal),
-            message = if (BuildConfig.USE_DEMO_DATA) "${name} 님과 매칭을 확정할까요?\n확정하면 알바생에게 매칭 알림이 발송돼요." else androidx.compose.ui.res.stringResource(R.string.backend_proposal_confirm),
+            title = androidx.compose.ui.res.stringResource(R.string.backend_send_proposal),
+            message = androidx.compose.ui.res.stringResource(R.string.backend_proposal_confirm),
             confirmText = "확정",
             onConfirm = onConfirm,
             dismissText = "취소",

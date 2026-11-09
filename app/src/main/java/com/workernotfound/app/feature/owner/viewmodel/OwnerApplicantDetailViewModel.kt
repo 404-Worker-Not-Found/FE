@@ -3,7 +3,6 @@ package com.workernotfound.app.feature.owner.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.owner.domain.repository.OwnerApplicantRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -59,12 +58,9 @@ class OwnerApplicantDetailViewModel @Inject constructor(
         if (_uiState.value.isConfirming) return
         _uiState.update { it.copy(isConfirmDialogVisible = false, isConfirming = true) }
         viewModelScope.launch {
-            runCatching {
-                if (BuildConfig.USE_DEMO_DATA) repository.confirmMatch(postingId, applicantId)
-                else { repository.proposeMatch(postingId, applicantId); null }
-            }
-                .onSuccess { workId ->
-                    _uiState.update { it.copy(isConfirming = false, matchedWorkId = workId, isProposalSent = !BuildConfig.USE_DEMO_DATA) }
+            runCatching { repository.proposeMatch(postingId, applicantId) }
+                .onSuccess {
+                    _uiState.update { it.copy(isConfirming = false, isProposalSent = true) }
                     load()
                 }
                 .onFailure { t ->

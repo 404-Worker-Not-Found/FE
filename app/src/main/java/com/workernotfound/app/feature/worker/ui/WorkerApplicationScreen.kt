@@ -51,7 +51,7 @@ fun WorkerApplicationScreen(
     viewModel: WorkerApplicationViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    com.workernotfound.app.core.ui.RefreshWhileResumed(!com.workernotfound.app.BuildConfig.USE_DEMO_DATA, viewModel::poll)
+    com.workernotfound.app.core.ui.RefreshWhileResumed(true, viewModel::poll)
     WorkerApplicationContent(
         uiState = uiState,
         onBack = onBack,

@@ -92,7 +92,7 @@ private fun WorkerWorkContent(
                 Text(stringResource(R.string.worker_applications))
             }
             TextButton(onClick = onTrustClick, modifier = Modifier.weight(1f)) {
-                Text(stringResource(if (com.workernotfound.app.BuildConfig.USE_DEMO_DATA) R.string.worker_trust_history else R.string.attendance_title))
+                Text(stringResource(R.string.attendance_title))
             }
         }
         when {
@@ -126,7 +126,7 @@ private fun WorkerWorkContent(
 @Composable
 private fun WorkCard(work: WorkSchedule, onCancellation: (String) -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
-        if (!com.workernotfound.app.BuildConfig.USE_DEMO_DATA) TextButton({ onCancellation(work.id) }) { Text(stringResource(R.string.cancellation_title)) }
+        TextButton({ onCancellation(work.id) }) { Text(stringResource(R.string.cancellation_title)) }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = work.storeName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)

@@ -3,7 +3,6 @@ package com.workernotfound.app.feature.worker.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.worker.domain.repository.WorkerApplicationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,7 +50,7 @@ class WorkerMatchResultViewModel @Inject constructor(
                             isLoading = false,
                             application = app,
                             outcome = if (it.application?.matchingId != app.matchingId) RematchOutcome.PENDING else it.outcome,
-                            remainingSeconds = if (app.hasRematchOffer) app.proposalExpiresInSeconds ?: if (BuildConfig.USE_DEMO_DATA) REMATCH_LIMIT_SECONDS else 0 else 0,
+                            remainingSeconds = if (app.hasRematchOffer) app.proposalExpiresInSeconds ?: 0 else 0,
                         )
                     }
                     if (app.hasRematchOffer) startCountdown()
@@ -88,10 +87,6 @@ class WorkerMatchResultViewModel @Inject constructor(
 
     private fun respond(accept: Boolean) {
         if (isResponding) return
-        if (BuildConfig.USE_DEMO_DATA) {
-            _uiState.update { it.copy(outcome = if (accept) RematchOutcome.ACCEPTED else RematchOutcome.REJECTED) }
-            return
-        }
         isResponding = true
         loading?.cancel()
         countdown?.cancel()
@@ -104,9 +99,5 @@ class WorkerMatchResultViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = false, errorMessage = backend.message(error)) }
             } finally { isResponding = false }
         }
-    }
-
-    private companion object {
-        const val REMATCH_LIMIT_SECONDS = 5 * 60L
     }
 }

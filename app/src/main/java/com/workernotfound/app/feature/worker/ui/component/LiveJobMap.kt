@@ -68,8 +68,6 @@ fun LiveJobMap(jobs: List<WorkerJobPosting>, selectedId: String?, onSelect: (Str
     val points = state.points + if (latitude != null && longitude != null)
         listOf(MapPoint("current-location", latitude, longitude, currentLabel)) else emptyList()
     Column(modifier.fillMaxSize()) {
-        Text(stringResource(R.string.map_address_approximate), color = AppColors.TextSub,
-            modifier = Modifier.padding(horizontal = AppDimens.screenPadding))
         if (state.loading) Text(stringResource(R.string.map_locations_loading), color = AppColors.TextSub)
         if (state.missing) Text(stringResource(R.string.map_locations_missing), color = AppColors.TextSub)
         AppMap(points, Modifier.fillMaxWidth().weight(1f), onMarker = { id -> if (id != "current-location") onSelect(id) })

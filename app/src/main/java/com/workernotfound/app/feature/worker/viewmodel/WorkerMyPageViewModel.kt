@@ -2,7 +2,6 @@ package com.workernotfound.app.feature.worker.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.workernotfound.app.BuildConfig
 import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.auth.domain.AuthRepository
 import com.workernotfound.app.feature.mypage.domain.ProfileNamePolicy
@@ -25,7 +24,6 @@ data class WorkerMyPageUiState(
     val isSaving: Boolean = false,
     val hasNameSaveError: Boolean = false,
     val isLoggedOut: Boolean = false,
-    val isWithdrawDialogVisible: Boolean = false,
 )
 
 enum class WorkerNotificationChannel { PUSH, EMAIL, SMS }
@@ -51,7 +49,7 @@ class WorkerMyPageViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 repository.load()
-                // A cached demo value may equal the existing StateFlow value and not emit again.
+                // The loaded value may equal the existing StateFlow value and not emit again.
                 state.update { it.copy(profile = repository.profile.value) }
             }
             catch (error: Exception) { report(error) }
@@ -104,7 +102,7 @@ class WorkerMyPageViewModel @Inject constructor(
         state.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
             try {
-                if (!BuildConfig.USE_DEMO_DATA) auth.logout()
+                auth.logout()
                 state.update { it.copy(isLoggedOut = true) }
             } catch (error: Exception) { report(error) }
             finally { state.update { it.copy(isSaving = false) } }
@@ -115,6 +113,4 @@ class WorkerMyPageViewModel @Inject constructor(
         if (error is CancellationException) throw error
         state.update { it.copy(errorMessage = backend.message(error)) }
     }
-    fun showWithdrawDialog() = state.update { it.copy(isWithdrawDialogVisible = true) }
-    fun dismissWithdrawDialog() = state.update { it.copy(isWithdrawDialogVisible = false) }
 }

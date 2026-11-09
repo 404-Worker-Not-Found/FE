@@ -30,7 +30,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.res.stringResource
 import com.workernotfound.app.R
-import com.workernotfound.app.BuildConfig
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,7 +51,6 @@ import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
 import com.workernotfound.app.core.designsystem.component.SectionLabel
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
 import com.workernotfound.app.feature.worker.ui.component.JobFilterSheet
-import com.workernotfound.app.feature.worker.ui.component.WorkerJobMapView
 import com.workernotfound.app.feature.worker.ui.component.WorkerRecommendedJobCard
 import com.workernotfound.app.feature.worker.ui.component.WorkerUrgentJobCard
 import com.workernotfound.app.feature.worker.viewmodel.JobViewMode
@@ -103,13 +101,11 @@ private fun WorkerJobSearchContent(
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(AppDimens.screenPadding)) {
-            if (!BuildConfig.USE_DEMO_DATA) {
-                TextButton(onLocate, enabled = !uiState.locating) {
-                    Text(stringResource(if (uiState.locating) R.string.map_locating else R.string.map_use_current))
-                }
-                if (uiState.locationError) Text(stringResource(R.string.map_address_failed), color = AppColors.Danger)
-                if (uiState.filter.latitude != null) Text(stringResource(R.string.map_current_used), color = AppColors.TextSub)
+            TextButton(onLocate, enabled = !uiState.locating) {
+                Text(stringResource(if (uiState.locating) R.string.map_locating else R.string.map_use_current))
             }
+            if (uiState.locationError) Text(stringResource(R.string.map_address_failed), color = AppColors.Danger)
+            if (uiState.filter.latitude != null) Text(stringResource(R.string.map_current_used), color = AppColors.TextSub)
             SearchBarRow(filterActive = uiState.filter.isActive, onOpenFilter = onOpenFilter)
             Spacer(Modifier.height(12.dp))
             ModeRow(
@@ -257,17 +253,12 @@ private fun MapView(
 ) {
     val jobs: List<WorkerJobPosting> = uiState.urgentJobs + uiState.recommendedJobs
     var selectedId by remember { mutableStateOf<String?>(null) }
-    if (!BuildConfig.USE_DEMO_DATA) {
-        com.workernotfound.app.feature.worker.ui.component.LiveJobMap(
-            jobs = jobs, selectedId = selectedId, onSelect = { selectedId = it },
-            latitude = uiState.filter.latitude, longitude = uiState.filter.longitude,
-            onJobClick = onJobClick, onApply = onApply)
-        return
-    }
-    WorkerJobMapView(
+    com.workernotfound.app.feature.worker.ui.component.LiveJobMap(
         jobs = jobs,
-        selectedJobId = selectedId,
-        onSelectPin = { selectedId = it },
+        selectedId = selectedId,
+        onSelect = { selectedId = it },
+        latitude = uiState.filter.latitude,
+        longitude = uiState.filter.longitude,
         onJobClick = onJobClick,
         onApply = onApply,
     )
