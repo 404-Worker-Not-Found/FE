@@ -21,4 +21,13 @@
     <string name="account_invalid_code">인증번호가 올바르지 않거나 만료되었습니다. 번호를 다시 확인하거나 재발송해 주세요.</string>
     <string name="account_name_label">이름</string>
     <string name="account_contact_label">연락처</string>
+    <string name="account_section_info">기본 정보</string>
+    <string name="account_section_change">연락처 변경</string>
+    <string name="account_tab_phone">휴대폰 번호</string>
+    <string name="account_tab_email">이메일</string>
+    <string name="account_new_phone">새 휴대폰 번호 (숫자만)</string>
+    <string name="account_new_email">새 이메일 주소</string>
+    <string name="account_session_notice_short">변경하거나 탈퇴하면 다시 로그인해야 할 수 있어요.</string>
+    <string name="account_withdraw_caption">탈퇴 전 진행 중인 근무와 정산을 확인해 주세요.</string>
+    <string name="account_request_title">요청 처리 상태</string>
 </resources>

@@ -8,7 +8,19 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.workernotfound.app.core.designsystem.AppTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -77,16 +89,41 @@ private fun WorkerAttendanceContent(
     onSettings: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val canRefresh = !state.isLoading && state.busyWorkId == null
+    // 빈 상태·첫 로딩은 화면 가운데에 둔다 (다른 화면의 빈 상태와 같은 위치).
+    if (state.works.isEmpty() && state.problem == null) {
+        Box(modifier.fillMaxSize().padding(AppDimens.screenPadding), contentAlignment = Alignment.Center) {
+            when {
+                state.isLoading -> CircularProgressIndicator(color = AppTheme.role.accent)
+                else -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = state.errorMessage ?: stringResource(R.string.attendance_no_works),
+                        color = if (state.errorMessage != null) AppColors.Danger else AppColors.TextSub,
+                        fontSize = 15.sp,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    TextButton(onClick = onRefresh, enabled = canRefresh) {
+                        Text(stringResource(R.string.attendance_refresh))
+                    }
+                }
+            }
+        }
+        return
+    }
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(AppDimens.screenPadding),
         verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
     ) {
         item {
-            TextButton(onClick = onRefresh, enabled = !state.isLoading && state.busyWorkId == null) {
-                Text(stringResource(R.string.attendance_refresh))
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                if (state.isLoading) CircularProgressIndicator(color = AppTheme.role.accent, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = onRefresh, enabled = canRefresh) {
+                    Text(stringResource(R.string.attendance_refresh))
+                }
             }
-            if (state.isLoading) CircularProgressIndicator()
             state.errorMessage?.let { Text(it, color = AppColors.Danger) }
             state.problem?.let { problem ->
                 Text(stringResource(attendanceProblemResource(problem)), color = AppColors.Danger)

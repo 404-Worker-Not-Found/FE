@@ -84,9 +84,7 @@ fun WorkerRootScreen(navController: NavHostController, savedState: SavedStateHan
             else -> WorkerMyPageScreen(
                 onTrustClick = { navController.navigate(AppRoute.WORKER_TRUST) },
                 onLogout = { navController.popBackStack(AppRoute.ROLE_SWITCHER, inclusive = false) },
-                onAccountSettings = { navController.navigate(AppRoute.WORKER_ACCOUNT) },
-                onWithdraw = { navController.navigate(AppRoute.WORKER_ACCOUNT_WITHDRAW) },
-                modifier = contentModifier,
+                onAccountSettings = { navController.navigate(AppRoute.WORKER_ACCOUNT) },                modifier = contentModifier,
             )
         }
     }

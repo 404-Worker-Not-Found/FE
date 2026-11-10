@@ -51,7 +51,11 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             }
         }
         composable(AppRoute.CHAT_JOB_DETAIL, arguments = listOf(navArgument("jobId") { type = NavType.StringType })) {
-            com.workernotfound.app.feature.worker.ui.ChatPostingScreen(onBack = { navController.popBackStack() })
+            // Shared by both roles: follow the chat room it was opened from (owner_chat_room vs worker_chat_room).
+            val fromOwner = navController.previousBackStackEntry?.destination?.route?.startsWith("owner_") == true
+            WorkerNotFoundTheme(role = if (fromOwner) AppRole.OWNER else AppRole.WORKER) {
+                com.workernotfound.app.feature.worker.ui.ChatPostingScreen(onBack = { navController.popBackStack() })
+            }
         }
         composable(AppRoute.OWNER_CHATS) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
@@ -82,9 +86,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             }
         }
         listOf(AppRoute.OWNER_ACCOUNT to AppRole.OWNER, AppRoute.WORKER_ACCOUNT to AppRole.WORKER).forEach { (route, role) ->
-            composable("$route?withdraw={withdraw}", arguments = listOf(navArgument("withdraw") {
-                type = NavType.BoolType; defaultValue = false
-            })) {
+            composable(route) {
                 WorkerNotFoundTheme(role = role) {
                     com.workernotfound.app.feature.account.ui.AccountScreen(
                         onBack = { navController.popBackStack() },

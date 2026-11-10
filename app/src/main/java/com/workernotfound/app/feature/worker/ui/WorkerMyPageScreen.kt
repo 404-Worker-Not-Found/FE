@@ -60,7 +60,6 @@ fun WorkerMyPageScreen(
     modifier: Modifier = Modifier,
     viewModel: WorkerMyPageViewModel = hiltViewModel(),
     onAccountSettings: () -> Unit = {},
-    onWithdraw: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     androidx.lifecycle.compose.LifecycleResumeEffect(viewModel) { viewModel.load(); onPauseOrDispose { } }
@@ -112,8 +111,6 @@ fun WorkerMyPageScreen(
             ActionRow(stringResource(R.string.account_title), AppColors.TextMain, onClick = onAccountSettings)
             Spacer(Modifier.height(10.dp)); Divider(color = AppColors.Border); Spacer(Modifier.height(10.dp))
             ActionRow(stringResource(R.string.profile_logout), AppColors.TextMain, onClick = viewModel::logout)
-            Spacer(Modifier.height(10.dp)); Divider(color = AppColors.Border); Spacer(Modifier.height(10.dp))
-            ActionRow(stringResource(R.string.worker_mypage_withdraw), AppColors.Danger, onClick = onWithdraw)
         }
     }
 

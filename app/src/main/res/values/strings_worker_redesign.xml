@@ -3,8 +3,8 @@
     <!-- 3-1 홈 -->
     <string name="worker_home_greeting_name">%1$s님 👋</string>
     <string name="worker_home_available_title">즉시 지원 가능</string>
-    <string name="worker_home_available_description">모집 중 · 마감 전 · 내 활동 반경 %1$dkm 안의 공고만 보여줘요</string>
-    <string name="worker_home_available_description_unknown">모집 중 · 마감 전 · 내 활동 반경 안의 공고만 보여줘요</string>
+    <string name="worker_home_available_description">마감 전 · 내 반경 %1$dkm 이내 공고만</string>
+    <string name="worker_home_available_description_unknown">마감 전 · 내 활동 반경 이내 공고만</string>
     <string name="worker_home_recommended">추천 공고</string>
     <string name="worker_home_recommended_empty">조건에 맞는 추천 공고가 없어요. 공고 탐색에서 전체 공고를 볼 수 있어요.</string>
     <string name="worker_home_available_empty">지금 바로 지원할 수 있는 공고가 없어요.</string>
@@ -67,7 +67,6 @@
     <string name="worker_mypage_trust_score">%1$d점 · %2$s</string>
     <string name="worker_mypage_trust_unavailable">점수 준비 중</string>
     <string name="worker_mypage_notification_unavailable">서버에 알림 수신 설정 API가 없어 아직 변경할 수 없어요.</string>
-    <string name="worker_mypage_withdraw">회원 탈퇴</string>
 
     <!-- 4-2 나의 신뢰도 -->
     <string name="trust_title">나의 신뢰도</string>
