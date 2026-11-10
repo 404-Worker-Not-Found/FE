@@ -9,6 +9,18 @@ class PhoneCodeDto(val phoneNumber: String, val verificationCode: String)
 class PasswordResetDto(val email: String, val verificationCode: String, val newPassword: String)
 class VerificationDto(val verified: Boolean)
 class LocationDto(val address: String, val latitude: BigDecimal, val longitude: BigDecimal)
+
+/**
+ * member-service LocationRequest accepts at most 7 fraction digits (@Digits(fraction = 7), ~1cm).
+ * Geocoder/map coordinates often carry more, and auth-service reports that rejection as a generic 502.
+ */
+internal const val SERVER_COORDINATE_SCALE = 7
+
+internal fun signupLocation(address: String, latitude: BigDecimal, longitude: BigDecimal) = LocationDto(
+    address,
+    latitude.setScale(SERVER_COORDINATE_SCALE, java.math.RoundingMode.HALF_UP),
+    longitude.setScale(SERVER_COORDINATE_SCALE, java.math.RoundingMode.HALF_UP),
+)
 class AvailableTimeDto(val dayOfWeek: String, val startTime: String, val endTime: String)
 class OwnerSignupDto(
     val name: String, val email: String, val password: String, val phoneNumber: String,

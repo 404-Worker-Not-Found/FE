@@ -65,4 +65,26 @@ class RegistrationContractTest {
             assertEquals("MONDAY", worker["availableTimes"].asJsonArray[0].asJsonObject["dayOfWeek"].asString)
         } finally { server.shutdown() }
     }
+
+    /** member-service rejects more than 7 fraction digits; auth-service then answers a generic 502. */
+    @Test fun signupCoordinatesAreSentWithAtMostSevenFractionDigits() = runBlocking {
+        val server = MockWebServer()
+        server.start()
+        try {
+            val api = Retrofit.Builder().baseUrl(server.url("/"))
+                .addConverterFactory(GsonConverterFactory.create()).build().create(AuthApiService::class.java)
+            // Typical Double coordinates from Geocoder/map taps.
+            val location = signupLocation("서울", 37.556123399999995.toBigDecimal(), 126.92345678912345.toBigDecimal())
+            server.enqueue(MockResponse().setBody("""{"success":true,"data":{"memberId":17,"role":"OWNER","tokenResponse":{"accessToken":"a","refreshToken":"r"}}}"""))
+            api.signupOwner(OwnerSignupDto("점주", "owner@example.com", "synthetic-password", "01000000000", "device", "0000000000", "가게", "카페", location))
+            val sent = JsonParser.parseString(server.takeRequest().body.readUtf8()).asJsonObject["storeLocation"].asJsonObject
+            assertEquals("37.5561234", sent["latitude"].asBigDecimal.toPlainString())
+            assertEquals("126.9234568", sent["longitude"].asBigDecimal.toPlainString())
+            assertTrue(sent["latitude"].asBigDecimal.scale() <= 7 && sent["longitude"].asBigDecimal.scale() <= 7)
+            // Integer-degree values stay plain decimals, never scientific notation.
+            val whole = signupLocation("서울", "37".toBigDecimal(), "127".toBigDecimal())
+            assertEquals("127.0000000", whole.longitude.toPlainString())
+            assertEquals(whole.longitude.toString(), whole.longitude.toPlainString())
+        } finally { server.shutdown() }
+    }
 }

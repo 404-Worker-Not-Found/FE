@@ -27,7 +27,7 @@ class RegistrationRepositoryImpl @Inject constructor(
         if (!api.resetPassword(PasswordResetDto(email, code, password)).success) throw ApiException("RESET_FAILED")
     }
     override suspend fun signup(form: SignupForm): AuthSession = withContext(Dispatchers.IO) {
-        val location = LocationDto(form.address, form.latitude, form.longitude)
+        val location = signupLocation(form.address, form.latitude, form.longitude)
         val result = when (form.role) {
             "OWNER" -> api.signupOwner(OwnerSignupDto(form.name, form.email, form.password, form.phone,
                 store.deviceId(), form.businessNumber, form.storeName, form.businessType, location))
