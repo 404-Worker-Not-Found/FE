@@ -21,6 +21,17 @@ data class MemberProfileDto(
     val phoneNumber: String?,
     val role: String,
     val ownerProfile: OwnerBusinessProfileDto?,
+    val workerProfile: WorkerPreferenceDto? = null,
 )
+/** member-service WorkerProfileResponse: preferences entered at worker signup. */
+data class WorkerPreferenceDto(
+    val desiredHourlyWage: Int?,
+    val activityRadiusKm: Int?,
+    val baseLocation: WorkerBaseLocationDto?,
+    val preferredBusinessTypes: List<String>?,
+    val availableTimes: List<WorkerAvailableTimeDto>?,
+)
+data class WorkerBaseLocationDto(val address: String?, val latitude: Double?, val longitude: Double?)
+data class WorkerAvailableTimeDto(val dayOfWeek: String?, val startTime: String?, val endTime: String?)
 data class OwnerBusinessProfileDto(val storeName: String, val storeLocation: ProfileStoreLocationDto? = null)
 data class ProfileStoreLocationDto(val address: String?)

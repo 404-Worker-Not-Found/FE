@@ -7,6 +7,10 @@ import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.worker.domain.model.ApplyStatus
 import com.workernotfound.app.feature.worker.domain.repository.WorkerApplicationRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerJobRepository
+import com.workernotfound.app.feature.worker.domain.repository.WorkerJobFeedRepository
+import com.workernotfound.app.feature.worker.domain.model.JobEligibility
+import com.workernotfound.app.feature.worker.domain.model.WorkerJobDetail
+import com.workernotfound.app.feature.worker.domain.model.availability
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -23,6 +27,7 @@ class WorkerJobDetailViewModel @Inject constructor(
     private val applications: WorkerApplicationRepository,
     private val backend: BackendAccess,
     private val repository: WorkerJobRepository,
+    private val feed: WorkerJobFeedRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -45,7 +50,7 @@ class WorkerJobDetailViewModel @Inject constructor(
         loadJob?.cancel()
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         loadJob = viewModelScope.launch {
-            runCatching { repository.getJobDetail(jobId) }
+            runCatching { enrich(repository.getJobDetail(jobId)) }
                 .onSuccess { detail ->
                     _uiState.update {
                         it.copy(
@@ -66,6 +71,19 @@ class WorkerJobDetailViewModel @Inject constructor(
                     }
                 }
         }
+    }
+
+    /** Adds the fields the detail API lacks from the search card the worker opened, plus their radius. */
+    private suspend fun enrich(detail: WorkerJobDetail): WorkerJobDetail {
+        val card = repository.cachedCard(jobId)
+        val preference = try { feed.preference() } catch (e: CancellationException) { throw e } catch (_: Exception) { null }
+        return detail.copy(
+            isUrgent = card?.isUrgent ?: detail.isUrgent,
+            distanceKm = card?.distanceKm,
+            activityRadiusKm = preference?.activityRadiusKm,
+            availability = JobEligibility.availability(card, preference),
+            applyStatus = card?.applyStatus ?: detail.applyStatus,
+        )
     }
 
     /** Tick the work-start countdown once per second (UI spec 3-3: 남은 시간). */

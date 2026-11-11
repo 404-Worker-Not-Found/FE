@@ -51,7 +51,11 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             }
         }
         composable(AppRoute.CHAT_JOB_DETAIL, arguments = listOf(navArgument("jobId") { type = NavType.StringType })) {
-            com.workernotfound.app.feature.worker.ui.ChatPostingScreen(onBack = { navController.popBackStack() })
+            // Shared by both roles: follow the chat room it was opened from (owner_chat_room vs worker_chat_room).
+            val fromOwner = navController.previousBackStackEntry?.destination?.route?.startsWith("owner_") == true
+            WorkerNotFoundTheme(role = if (fromOwner) AppRole.OWNER else AppRole.WORKER) {
+                com.workernotfound.app.feature.worker.ui.ChatPostingScreen(onBack = { navController.popBackStack() })
+            }
         }
         composable(AppRoute.OWNER_CHATS) {
             WorkerNotFoundTheme(role = AppRole.OWNER) {
@@ -220,9 +224,14 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             }
         }
 
-        composable(AppRoute.WORKER_ROOT) {
+        composable(AppRoute.WORKER_ROOT) { entry ->
             WorkerNotFoundTheme(role = AppRole.WORKER) {
-                WorkerRootScreen(navController = navController)
+                WorkerRootScreen(navController = navController, savedState = entry.savedStateHandle)
+            }
+        }
+        composable(AppRoute.WORKER_ATTENDANCE) {
+            WorkerNotFoundTheme(role = AppRole.WORKER) {
+                com.workernotfound.app.feature.worker.ui.WorkerAttendanceScreen(onBack = { navController.popBackStack() })
             }
         }
         composable(
@@ -249,7 +258,11 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 WorkerMatchResultScreen(
                     onBack = { navController.popBackStack() },
                     onGoChat = { roomId -> navController.navigate(AppRoute.workerChatRoom(roomId)) },
-                    onHome = { navController.popBackStack(AppRoute.WORKER_ROOT, inclusive = false) },
+                    onHome = {
+                        runCatching { navController.getBackStackEntry(AppRoute.WORKER_ROOT) }.getOrNull()
+                            ?.savedStateHandle?.set(AppRoute.WORKER_TAB_KEY, AppRoute.WORKER_TAB_HOME)
+                        navController.popBackStack(AppRoute.WORKER_ROOT, inclusive = false)
+                    },
                 )
             }
         }

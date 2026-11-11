@@ -14,8 +14,9 @@ interface ReviewApi {
 data class PendingTargetDto(val workId: Long, val jobPostId: Long, val revieweeMemberId: Long,
     val workDate: String, val completedAt: String, val writableUntil: String)
 data class PendingPageDto(val works: List<PendingTargetDto>, val page: Int, val size: Int, val totalCount: Long)
-data class ReceivedReviewDto(val reviewId: Long, val reviewerRole: String, val rating: Int, val comment: String?, val createdAt: String) {
-    fun toDomain() = ReceivedReview(reviewId, reviewerRole, rating, comment, createdAt)
+data class ReceivedReviewDto(val reviewId: Long, val reviewerRole: String, val rating: Int, val comment: String?, val createdAt: String,
+    val workId: Long? = null) {
+    fun toDomain() = ReceivedReview(reviewId, reviewerRole, rating, comment, createdAt, workId)
 }
 data class ReceivedPageDto(val memberId: Long, val reviewCount: Long, val averageRating: BigDecimal?,
     val reviews: List<ReceivedReviewDto>, val page: Int, val size: Int, val totalCount: Long)

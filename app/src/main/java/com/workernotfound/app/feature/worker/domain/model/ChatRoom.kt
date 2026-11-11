@@ -12,6 +12,8 @@ data class ChatRoom(
     val jobId: String? = null,
     val counterpartId: Long? = null,
     val counterpartName: String? = null,
+    /** True when the signed-in member is the store owner of this room. */
+    val viewerIsOwner: Boolean = false,
 )
 
 /** One message inside a chat room. [fromMe] = 알바생 본인이 보낸 메시지. */

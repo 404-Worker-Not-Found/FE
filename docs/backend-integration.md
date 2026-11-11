@@ -129,3 +129,12 @@ BE 최신 `e24145f`의 auth/signup/verification/password-reset 및 job/payment c
 - 통합 verify.sh 통과: 76 tests, 실패/오류 0. 친구의 Windows 환경에서 권한 때문에 실패했던 기존 카메라 symlink 테스트도 이 환경에서는 통과했다. 테스트를 삭제하거나 비활성화하지 않았다.
 - 실제 Android 에뮬레이터에서 WORKER 로그인→홈 진입→프로세스 종료/재시작 후 자동 로그인→근무 관리→출근 패널의 빈 근무 상태→본인 프로필→서버 로그아웃→프로세스 재시작 후 로그인 화면 유지를 확인했다. 계정/토큰 값을 기록하지 않았다.
 - 점주 실계정, 회원가입/문자 인증, 실제 GPS 출근 성공, 공고 생성/결제/게시 성공은 이 결과에 포함하지 않는다. 새 공고 저장은 카테고리 계약이 없어 계속 차단하며 Toss 실행 연결도 미완이다.
+
+## 2026-11-09 알바생 화면 UI 개선 (fix/worker-screen-ui)
+
+- 홈·탐색의 추천 공고와 '즉시 지원 가능'은 `GET /api/members/me`의 workerProfile(활동 반경·기준 위치·희망 업종·희망 시급·가능 시간)과 검색 카드(status·remainingMinutes·distanceKm)로 앱에서 판정한다. 공고별 모집 반경과 추천 API는 서버에 없어 알바생 활동 반경을 사용한다.
+- 거리는 기기의 마지막 위치, 없으면 등록한 기준 위치로 `workerLat/workerLng`를 보내 서버 distanceKm를 받는다. 검색 API에 키워드 파라미터가 없어 가게·업종명은 받은 결과에서 거르고, 동네는 Geocoder로 좌표를 찾아 그 위치로 다시 조회한다.
+- 공고 상세 응답에는 긴급도·거리·마감·좌표가 없어 직전 검색 카드 값을 쓴다. 알림 등 카드 없이 열면 긴급 배지·지원 가능 판정은 표시하지 않는다. 가산 시급은 extraWage 합계만 있어 긴급/시간대로 나누지 않는다.
+- 신뢰도 화면의 근무·노쇼 횟수, 리뷰 평균, 최근 리뷰(workId로 가게명 연결), 최근 근무 이력(평점·실제 정산액)은 실제 데이터다. 신뢰 점수·등급·노쇼 위험도는 matching-service 내부에만 있어 '준비 중'으로 표시한다.
+- 알림 수신 설정(Push/이메일/SMS) API와 프로필 사진 저장 API가 없어 토글은 비활성, 아바타는 이니셜만 표시한다. BE에 FCM 기기 토큰 API(`PUT /api/notifications/me/device-tokens`)는 생겼지만 앱에 Firebase 설정(google-services.json)이 없어 미연결이다.
+- 지도(탐색 지도 탭·상세 미니맵)는 코드가 연결돼 있으나 `local.properties`의 `naver.mapClientId`가 없으면 '지도 설정 안 됨'으로 표시된다.

@@ -1,5 +1,6 @@
 package com.workernotfound.app.core.ui
 
+import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -24,6 +25,28 @@ object KoreanDateTime {
     fun time(raw: String): String = parse(raw)?.format(timeFormat) ?: raw
 
     fun dateTime(raw: String): String = parse(raw)?.format(dateTimeFormat) ?: raw
+
+    /** Work date shared by every worker screen: `2026.06.17 (수)`. Accepts `yyyy-MM-dd` or a timestamp. */
+    fun workDate(raw: String): String {
+        val date = runCatching { LocalDate.parse(raw) }.getOrNull() ?: date(raw) ?: return raw
+        return date.format(workDateFormat)
+    }
+
+    /** Recent moment relative to Korean today: `오늘 14:32`, `어제 14:05`, otherwise `6.15 (월) 14:05`. */
+    fun relative(raw: String, clock: Clock = Clock.systemUTC()): String {
+        val value = parse(raw) ?: return raw
+        val today = LocalDate.now(clock.withZone(seoul))
+        val time = value.format(clockFormat)
+        return when (value.toLocalDate()) {
+            today -> "오늘 $time"
+            today.minusDays(1) -> "어제 $time"
+            else -> "${value.format(shortDayFormat)} $time"
+        }
+    }
+
+    private val workDateFormat = DateTimeFormatter.ofPattern("yyyy.MM.dd (E)", locale)
+    private val shortDayFormat = DateTimeFormatter.ofPattern("M.d (E)", locale)
+    private val clockFormat = DateTimeFormatter.ofPattern("HH:mm", locale)
 
     private fun parse(raw: String): ZonedDateTime? {
         if (raw.isBlank()) return null

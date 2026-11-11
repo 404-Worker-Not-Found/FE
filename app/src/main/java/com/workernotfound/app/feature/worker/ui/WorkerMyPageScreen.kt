@@ -93,19 +93,22 @@ fun WorkerMyPageScreen(
         )
 
         uiState.errorMessage?.let { Text(it, color = AppColors.Danger) }
-        ProfileCard(profile = profile, onTrustClick = onTrustClick, onPhotoSelected = viewModel::updatePhoto)
+        ProfileCard(profile = profile, onTrustClick = onTrustClick)
 
         AppCard(modifier = Modifier.fillMaxWidth()) {
             Text(text = "알림 설정", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.TextSub)
             Spacer(Modifier.height(8.dp))
-            if (profile.isPushEnabled == null) Text(stringResource(R.string.profile_settings_unavailable), color = AppColors.TextSub)
-            else ToggleRow("Push 알림", profile.isPushEnabled) { viewModel.setNotification(WorkerNotificationChannel.PUSH, it) }
-            profile.isEmailEnabled?.let { checked -> ToggleRow("이메일 알림", checked) { viewModel.setNotification(WorkerNotificationChannel.EMAIL, it) } }
-            profile.isSmsEnabled?.let { checked -> ToggleRow("SMS 알림", checked) { viewModel.setNotification(WorkerNotificationChannel.SMS, it) } }
+            // Push/이메일/SMS 수신 설정 API가 없어 서버 값이 없을 때는 바꿀 수 없는 상태로 표시한다.
+            NotificationRow("Push 알림", profile.isPushEnabled) { viewModel.setNotification(WorkerNotificationChannel.PUSH, it) }
+            NotificationRow("이메일 알림", profile.isEmailEnabled) { viewModel.setNotification(WorkerNotificationChannel.EMAIL, it) }
+            NotificationRow("SMS 알림", profile.isSmsEnabled) { viewModel.setNotification(WorkerNotificationChannel.SMS, it) }
+            if (profile.isPushEnabled == null || profile.isEmailEnabled == null || profile.isSmsEnabled == null) {
+                Text(stringResource(R.string.worker_mypage_notification_unavailable), color = AppColors.TextSub, fontSize = 12.sp)
+            }
         }
 
         AppCard(modifier = Modifier.fillMaxWidth()) {
-            TextButton(onAccountSettings) { Text(stringResource(R.string.account_title)) }
+            ActionRow(stringResource(R.string.account_title), AppColors.TextMain, onClick = onAccountSettings)
             Spacer(Modifier.height(10.dp)); Divider(color = AppColors.Border); Spacer(Modifier.height(10.dp))
             ActionRow(stringResource(R.string.profile_logout), AppColors.TextMain, onClick = viewModel::logout)
         }
@@ -120,17 +123,15 @@ fun WorkerMyPageScreen(
 }
 
 @Composable
-private fun ProfileCard(profile: WorkerProfile, onTrustClick: () -> Unit, onPhotoSelected: (String) -> Unit) {
+private fun ProfileCard(profile: WorkerProfile, onTrustClick: () -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            // 프로필 사진 저장 API가 없어 상단에는 이니셜 아바타만 둔다.
             Box(
                 modifier = Modifier.size(52.dp).background(AppColors.WorkerLight, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                if (profile.profileImageUri != null) AsyncImage(
-                    model = profile.profileImageUri, contentDescription = null,
-                    contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(CircleShape),
-                ) else Text(text = profile.name.take(1), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppColors.WorkerEmphasis)
+                Text(text = (profile.name.firstOrNull { it.isLetterOrDigit() } ?: profile.name.firstOrNull() ?: ' ').toString(), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppColors.WorkerEmphasis)
             }
             Spacer(Modifier.size(12.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -148,9 +149,15 @@ private fun ProfileCard(profile: WorkerProfile, onTrustClick: () -> Unit, onPhot
                 .padding(14.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "⭐ 나의 신뢰도", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColors.WorkerEmphasis)
+                Text(text = "⭐ " + stringResource(R.string.worker_mypage_trust), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColors.WorkerEmphasis)
                 Spacer(Modifier.weight(1f))
-                Text(text = stringResource(R.string.profile_trust_link), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.WorkerEmphasis)
+                // 신뢰 점수·등급 공개 API가 생기면 worker_mypage_trust_score("{점수}점 · {등급}")로 표시한다.
+                Text(
+                    text = stringResource(R.string.worker_mypage_trust_unavailable) + "  ›",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.WorkerEmphasis,
+                )
             }
         }
     }
@@ -162,6 +169,16 @@ private fun InfoRow(label: String, value: String) {
         Text(text = label, fontSize = 13.sp, color = AppColors.TextSub)
         Spacer(Modifier.weight(1f))
         Text(text = value, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = AppColors.TextMain)
+    }
+}
+
+@Composable
+private fun NotificationRow(label: String, checked: Boolean?, onChange: (Boolean) -> Unit) {
+    if (checked != null) { ToggleRow(label, checked, onChange); return }
+    Row(modifier = Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(text = label, fontSize = 14.sp, color = AppColors.TextMain)
+        Spacer(Modifier.weight(1f))
+        Switch(checked = false, onCheckedChange = null, enabled = false)
     }
 }
 

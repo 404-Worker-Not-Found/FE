@@ -88,7 +88,8 @@ class WorkerChatRepositoryImpl @Inject constructor(private val backend: BackendA
         val counterpart = room.counterpart(self)
         val name = if (self == room.ownerMemberId && counterpart != null) workerName(room.jobPostId, counterpart) else null
         return ChatRoom(room.chatRoomId.toString(), job.storeName, job.categoryName, latest?.content.orEmpty(), latest?.createdAt.orEmpty(),
-            room.otherReadPosition?.lastReadMessageId, room.unreadCount, room.jobPostId.toString(), counterpart, name)
+            room.otherReadPosition?.lastReadMessageId, room.unreadCount, room.jobPostId.toString(), counterpart, name,
+            viewerIsOwner = self != null && self == room.ownerMemberId)
     }
 
     private suspend fun workerName(jobId: Long, workerId: Long): String? {

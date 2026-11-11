@@ -17,6 +17,13 @@ data class WorkerJobPosting(
     val isUrgent: Boolean,
     val deadlineText: String? = null,
     val applyStatus: ApplyStatus = ApplyStatus.AVAILABLE,
+    /** Raw server values used for eligibility/recommendation rules. */
+    val distanceKm: Double? = null,
+    val remainingMinutes: Long = 0,
+    val status: String = JobEligibility.STATUS_OPEN,
+    val workDate: String = "",
+    val startTime: String = "",
+    val endTime: String = "",
 )
 
 /** Instant-apply state for a posting (UI spec 3-1: 성공 시 지원 완료 상태 표시). */

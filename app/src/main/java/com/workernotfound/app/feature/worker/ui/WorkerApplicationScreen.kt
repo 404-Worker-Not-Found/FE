@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
+import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
 import com.workernotfound.app.core.designsystem.AppRadius
@@ -126,8 +128,8 @@ private fun ApplicationCard(
     onMatchClick: () -> Unit,
     onRequestCancel: () -> Unit,
 ) {
-    // 매칭완료 또는 재매칭 제안 건은 탭 시 매칭 결과(3-5)로 이동
-    val navigable = app.status == ApplicationStatus.MATCHED || app.hasRematchOffer
+    // 매칭완료 건은 카드, 유효한 매칭 제안은 배너를 눌러 매칭 결과(3-5)로 이동
+    val navigable = app.status == ApplicationStatus.MATCHED
     val cardModifier = Modifier
         .fillMaxWidth()
         .then(if (navigable) Modifier.clickable(onClick = onMatchClick) else Modifier)
@@ -138,7 +140,7 @@ private fun ApplicationCard(
                 Text(text = app.storeName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = "${app.category} · ${app.workDate}",
+                    text = stringResource(R.string.worker_application_meta, app.category, app.workDate),
                     color = AppColors.TextSub,
                     fontSize = 12.sp,
                 )
@@ -146,11 +148,19 @@ private fun ApplicationCard(
             StatusBadge(status = app.status.toBadge())
         }
         Spacer(Modifier.height(10.dp))
-        Text(text = "${app.workTimeRange} · 지원 ${app.appliedAtText}", color = AppColors.TextSub, fontSize = 12.sp)
+        Text(
+            text = stringResource(
+                R.string.worker_application_meta,
+                app.workTimeRange,
+                stringResource(R.string.worker_application_applied_at, app.appliedAtText),
+            ),
+            color = AppColors.TextSub,
+            fontSize = 12.sp,
+        )
 
         if (app.hasRematchOffer) {
             Spacer(Modifier.height(10.dp))
-            RematchOfferRow()
+            RematchOfferRow(expiresInSeconds = app.proposalExpiresInSeconds ?: 0, onClick = onMatchClick)
         }
         if (app.canCancel) {
             Spacer(Modifier.height(10.dp))
@@ -162,15 +172,17 @@ private fun ApplicationCard(
 }
 
 @Composable
-private fun RematchOfferRow() {
+private fun RematchOfferRow(expiresInSeconds: Long, onClick: () -> Unit) {
+    val minutes = (expiresInSeconds + 59) / 60
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(AppColors.DangerBg, RoundedCornerShape(AppRadius.inner))
+            .clickable(onClick = onClick)
             .padding(vertical = 10.dp, horizontal = 12.dp),
     ) {
         Text(
-            text = "🔔 재매칭 기회가 도착했어요 · 눌러서 확인",
+            text = stringResource(R.string.worker_rematch_banner, if (minutes >= 1) "${minutes}분" else "1분 미만"),
             color = AppColors.Danger,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
