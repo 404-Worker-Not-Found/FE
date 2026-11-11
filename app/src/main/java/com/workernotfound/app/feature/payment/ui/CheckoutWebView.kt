@@ -28,7 +28,6 @@ internal fun CheckoutWebView(checkout: Checkout, onResult: (CheckoutReturn) -> U
     val result by rememberUpdatedState(onResult)
     val invalid by rememberUpdatedState(onInvalid)
     var finished by remember(checkout.nonce) { mutableStateOf(false) }
-    val startLabel = stringResource(R.string.checkout_start_amount, checkout.amount.toPlainString())
     val description = stringResource(R.string.checkout_order_name, checkout.jobId)
     val unavailable = stringResource(R.string.checkout_app_unavailable)
     var externalError by remember { mutableStateOf(false) }
@@ -78,7 +77,7 @@ internal fun CheckoutWebView(checkout: Checkout, onResult: (CheckoutReturn) -> U
                     catch (_: SecurityException) { externalError = true }
                 }
             }
-            loadDataWithBaseURL("$CHECKOUT_ORIGIN/payment/index.html", checkoutHtml(checkout, startLabel, description), "text/html", "UTF-8", null)
+            loadDataWithBaseURL("$CHECKOUT_ORIGIN/payment/index.html", checkoutHtml(checkout, description), "text/html", "UTF-8", null)
         }
     }
     DisposableEffect(webView) { onDispose { webView.stopLoading(); webView.removeAllViews(); webView.destroy() } }
@@ -100,17 +99,16 @@ internal val PAYMENT_SCHEMES = setOf("supertoss", "ispmobile", "kakaotalk", "kak
     "shinhan-sr-ansimclick", "smshinhanansimclick", "com.wooricard.wcard", "newsmartpib", "citispay", "citicardappkr", "citimobileapp",
     "cloudpay", "hanawalletmembers", "hdcardappcardansimclick", "smhyundaiansimclick", "shinsegaeeasypayment", "payco", "lpayapp")
 
-internal fun checkoutHtml(checkout: Checkout, label: String, description: String): String {
+internal fun checkoutHtml(checkout: Checkout, description: String): String {
     val gson = Gson()
     val options = gson.toJson(mapOf("method" to "CARD", "amount" to mapOf("currency" to "KRW", "value" to checkout.amount),
         "orderId" to checkout.orderId, "orderName" to description, "successUrl" to checkout.successUrl, "failUrl" to checkout.failUrl))
     return """<!doctype html><html lang="ko"><head><meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="https://js.tosspayments.com/v2/standard"></script></head>
-        <body><button id="pay" style="width:100%;padding:20px;font-size:18px"></button><script>
-        const button=document.getElementById('pay');button.textContent=${gson.toJson(label)};
-        button.onclick=async()=>{button.disabled=true;try{
+        <body><script>
+        window.addEventListener('load', async () => {try{
           const toss=TossPayments(${gson.toJson(checkout.clientKey)});
           await toss.payment({customerKey:TossPayments.ANONYMOUS}).requestPayment($options);
-        }catch(e){window.location.replace(${gson.toJson(checkout.failUrl)});}finally{button.disabled=false;}};
+        }catch(e){window.location.replace(${gson.toJson(checkout.failUrl)});}}, {once:true});
         </script></body></html>""".trimIndent()
 }
