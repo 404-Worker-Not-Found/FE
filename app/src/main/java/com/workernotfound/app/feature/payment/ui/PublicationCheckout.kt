@@ -18,12 +18,22 @@ fun PublicationCheckout(jobId: Long, payment: PublicationPayment?, enabled: Bool
     val viewModel: CheckoutViewModel = hiltViewModel(key = "checkout-$jobId")
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val updated by rememberUpdatedState(onUpdated)
+    var checkoutMode by remember(jobId) { mutableStateOf(CheckoutMode.MOBILE) }
     LaunchedEffect(state.revision) { if (state.revision > 0) updated() }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
         Text(stringResource(R.string.checkout_test_notice), color = AppColors.TextSub)
         if (payment?.jobStatus == "PAYMENT_PENDING" && payment.creationStatus == "CREATED" &&
             payment.orderStatus == "READY" && !payment.changePending && !state.retryConfirmation) {
-            AppPrimaryButton(stringResource(R.string.checkout_open), { viewModel.open(jobId) }, enabled = enabled && !state.busy)
+            AppPrimaryButton(stringResource(R.string.checkout_open), {
+                checkoutMode = CheckoutMode.MOBILE
+                viewModel.open(jobId)
+            }, enabled = enabled && !state.busy)
+            OutlinedButton(onClick = {
+                checkoutMode = CheckoutMode.QR
+                viewModel.open(jobId)
+            }, modifier = Modifier.fillMaxWidth(), enabled = enabled && !state.busy) {
+                Text(stringResource(R.string.checkout_qr_open))
+            }
         }
         if (state.busy) { CircularProgressIndicator(); Text(stringResource(R.string.checkout_processing)) }
         if (state.failed) Text(stringResource(R.string.checkout_canceled), color = AppColors.TextSub)
@@ -33,5 +43,5 @@ fun PublicationCheckout(jobId: Long, payment: PublicationPayment?, enabled: Bool
             TextButton(viewModel::retry, enabled = !state.busy) { Text(stringResource(R.string.checkout_retry)) }
         }
     }
-    state.checkout?.let { CheckoutWebView(it, viewModel::result, viewModel::cancel, viewModel::invalid) }
+    state.checkout?.let { CheckoutWebView(it, checkoutMode, viewModel::result, viewModel::cancel, viewModel::invalid) }
 }

@@ -1,8 +1,11 @@
 package com.workernotfound.app.feature.payment
 
+import com.google.gson.Gson
 import com.workernotfound.app.feature.payment.domain.*
 import com.workernotfound.app.feature.payment.data.*
 import com.workernotfound.app.feature.job.data.remote.PaymentOrderDto
+import com.workernotfound.app.feature.payment.ui.CheckoutMode
+import com.workernotfound.app.feature.payment.ui.checkoutHtml
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -31,5 +34,17 @@ class CheckoutTest {
         }
         assertFalse(checkout.toString().contains(checkout.clientKey))
         assertFalse(receipt.toString().contains(receipt.paymentKey))
+    }
+    @Test fun `QR checkout keeps the same order and callback while selecting the PC window`() {
+        val mobile = checkoutHtml(checkout, "Pay", "Job deposit", CheckoutMode.MOBILE)
+        val qr = checkoutHtml(checkout, "Pay", "Job deposit", CheckoutMode.QR)
+        listOf(mobile, qr).forEach { html ->
+            assertTrue(html.contains("\"orderId\":\"order-5\""))
+            assertTrue(html.contains("\"value\":44080.00"))
+            assertTrue(html.contains(Gson().toJson(checkout.successUrl)))
+            assertTrue(html.contains(Gson().toJson(checkout.failUrl)))
+        }
+        assertFalse(mobile.contains("windowTarget"))
+        assertTrue(qr.contains("\"windowTarget\":\"self\""))
     }
 }

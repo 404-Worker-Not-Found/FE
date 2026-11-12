@@ -20,9 +20,11 @@ import com.workernotfound.app.core.designsystem.component.AppTopBar
 import com.workernotfound.app.feature.payment.domain.*
 import java.io.ByteArrayInputStream
 
+internal enum class CheckoutMode { MOBILE, QR }
+
 @SuppressLint("SetJavaScriptEnabled") // Toss SDK requires JS; no native JS bridge or auth headers are exposed.
 @Composable
-internal fun CheckoutWebView(checkout: Checkout, onResult: (CheckoutReturn) -> Unit,
+internal fun CheckoutWebView(checkout: Checkout, mode: CheckoutMode, onResult: (CheckoutReturn) -> Unit,
     onCancel: () -> Unit, onInvalid: () -> Unit) {
     val context = LocalContext.current
     val result by rememberUpdatedState(onResult)
@@ -32,9 +34,15 @@ internal fun CheckoutWebView(checkout: Checkout, onResult: (CheckoutReturn) -> U
     val description = stringResource(R.string.checkout_order_name, checkout.jobId)
     val unavailable = stringResource(R.string.checkout_app_unavailable)
     var externalError by remember { mutableStateOf(false) }
-    val webView = remember(checkout.nonce) {
+    val webView = remember(checkout.nonce, mode) {
         WebView(context).apply {
             settings.javaScriptEnabled = true
+            if (mode == CheckoutMode.QR) {
+                // Toss provides the QR in its PC card authentication flow.
+                settings.userAgentString = DESKTOP_CHECKOUT_USER_AGENT
+                settings.useWideViewPort = true
+                settings.loadWithOverviewMode = true
+            }
             settings.domStorageEnabled = true
             settings.allowFileAccess = false
             settings.allowContentAccess = false
@@ -78,7 +86,7 @@ internal fun CheckoutWebView(checkout: Checkout, onResult: (CheckoutReturn) -> U
                     catch (_: SecurityException) { externalError = true }
                 }
             }
-            loadDataWithBaseURL("$CHECKOUT_ORIGIN/payment/index.html", checkoutHtml(checkout, startLabel, description), "text/html", "UTF-8", null)
+            loadDataWithBaseURL("$CHECKOUT_ORIGIN/payment/index.html", checkoutHtml(checkout, startLabel, description, mode), "text/html", "UTF-8", null)
         }
     }
     DisposableEffect(webView) { onDispose { webView.stopLoading(); webView.removeAllViews(); webView.destroy() } }
@@ -88,22 +96,34 @@ internal fun CheckoutWebView(checkout: Checkout, onResult: (CheckoutReturn) -> U
                 AppTopBar(stringResource(R.string.checkout_title), onBack = onCancel)
                 Text(stringResource(R.string.checkout_test_notice), color = AppColors.TextSub,
                     modifier = Modifier.padding(AppDimens.screenPadding))
+                if (mode == CheckoutMode.QR) Text(stringResource(R.string.checkout_qr_notice), color = AppColors.TextSub,
+                    modifier = Modifier.padding(horizontal = AppDimens.screenPadding))
                 if (externalError) Text(unavailable, color = AppColors.Danger)
                 AndroidView(factory = { webView }, modifier = Modifier.fillMaxWidth().weight(1f))
             }
         }
     }
 }
+internal const val DESKTOP_CHECKOUT_USER_AGENT =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 internal val PAYMENT_SCHEMES = setOf("supertoss", "ispmobile", "kakaotalk", "kakaobank", "kb-acp", "liivbank", "newliiv", "kbbank",
     "nhappcardansimclick", "nhallonepayansimclick", "nonghyupcardansimclick", "lottesmartpay", "lotteappcard",
     "mpocket.online.ansimclick", "mpocket.ansimclick.cert", "vguardstart", "samsungpay", "monimopay", "monimopayauth",
     "shinhan-sr-ansimclick", "smshinhanansimclick", "com.wooricard.wcard", "newsmartpib", "citispay", "citicardappkr", "citimobileapp",
     "cloudpay", "hanawalletmembers", "hdcardappcardansimclick", "smhyundaiansimclick", "shinsegaeeasypayment", "payco", "lpayapp")
 
-internal fun checkoutHtml(checkout: Checkout, label: String, description: String): String {
+internal fun checkoutHtml(checkout: Checkout, label: String, description: String, mode: CheckoutMode): String {
     val gson = Gson()
-    val options = gson.toJson(mapOf("method" to "CARD", "amount" to mapOf("currency" to "KRW", "value" to checkout.amount),
-        "orderId" to checkout.orderId, "orderName" to description, "successUrl" to checkout.successUrl, "failUrl" to checkout.failUrl))
+    val request = buildMap<String, Any> {
+        put("method", "CARD")
+        put("amount", mapOf("currency" to "KRW", "value" to checkout.amount))
+        put("orderId", checkout.orderId)
+        put("orderName", description)
+        put("successUrl", checkout.successUrl)
+        put("failUrl", checkout.failUrl)
+        if (mode == CheckoutMode.QR) put("windowTarget", "self")
+    }
+    val options = gson.toJson(request)
     return """<!doctype html><html lang="ko"><head><meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="https://js.tosspayments.com/v2/standard"></script></head>
         <body><button id="pay" style="width:100%;padding:20px;font-size:18px"></button><script>

@@ -1,6 +1,8 @@
 <resources>
     <string name="checkout_title">공고 예치금 테스트 결제</string>
     <string name="checkout_open">테스트 결제창 열기</string>
+    <string name="checkout_qr_open">다른 휴대폰으로 QR 결제</string>
+    <string name="checkout_qr_notice">카드사를 선택한 뒤 표시되는 QR을 다른 휴대폰의 카드 앱으로 스캔하세요. 결제가 끝날 때까지 이 화면을 닫지 마세요.</string>
     <string name="checkout_test_notice">테스트 결제입니다. 결제 후 서버 승인과 모집 공개 상태를 확인합니다.</string>
     <string name="checkout_start_amount">%1$s원 테스트 결제 진행</string>
     <string name="checkout_order_name">공고 #%1$d 근무 예치금</string>
