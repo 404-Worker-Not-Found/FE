@@ -34,22 +34,29 @@ internal fun CheckoutWebView(checkout: Checkout, mode: CheckoutMode, onResult: (
     val description = stringResource(R.string.checkout_order_name, checkout.jobId)
     val unavailable = stringResource(R.string.checkout_app_unavailable)
     var externalError by remember { mutableStateOf(false) }
-    val webView = remember(checkout.nonce, mode) {
-        WebView(context).apply {
-            settings.javaScriptEnabled = true
-            if (mode == CheckoutMode.QR) {
-                // Toss provides the QR in its PC card authentication flow.
-                settings.userAgentString = DESKTOP_CHECKOUT_USER_AGENT
-                settings.useWideViewPort = true
-                settings.loadWithOverviewMode = true
-            }
-            settings.domStorageEnabled = true
-            settings.allowFileAccess = false
-            settings.allowContentAccess = false
-            settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
-            settings.setSupportMultipleWindows(false)
-            CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
-            webViewClient = object : WebViewClient() {
+    // PC (QR) card authentication opens a popup window; it is shown as a layer over the checkout page.
+    var popup by remember(checkout.nonce, mode) { mutableStateOf<WebView?>(null) }
+    fun WebView.applyCheckoutSettings() {
+        settings.javaScriptEnabled = true
+        if (mode == CheckoutMode.QR) {
+            // Toss provides the QR in its PC card authentication flow.
+            settings.userAgentString = DESKTOP_CHECKOUT_USER_AGENT
+            settings.useWideViewPort = true
+            settings.loadWithOverviewMode = true
+        }
+        settings.domStorageEnabled = true
+        settings.allowFileAccess = false
+        settings.allowContentAccess = false
+        settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+        settings.setSupportMultipleWindows(mode == CheckoutMode.QR)
+        settings.javaScriptCanOpenWindowsAutomatically = mode == CheckoutMode.QR
+        CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
+    }
+    fun closePopup() {
+        popup?.let { it.stopLoading(); it.destroy() }
+        popup = null
+    }
+    fun checkoutClient(): WebViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                     val uri = request.url
                     if (uri.host == "appassets.androidplatform.net") {
@@ -62,6 +69,8 @@ internal fun CheckoutWebView(checkout: Checkout, mode: CheckoutMode, onResult: (
                         return true
                     }
                     if (uri.scheme == "https") return false
+                    // Popups start blank before Toss writes the card authentication page into them.
+                    if (uri.scheme == "about" && uri.schemeSpecificPart == "blank") return false
                     if (request.isForMainFrame) openPaymentApp(uri)
                     return true
                 }
@@ -85,11 +94,33 @@ internal fun CheckoutWebView(checkout: Checkout, mode: CheckoutMode, onResult: (
                     catch (_: java.net.URISyntaxException) { externalError = true }
                     catch (_: SecurityException) { externalError = true }
                 }
+    }
+    val chromeClient = object : WebChromeClient() {
+        override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: android.os.Message): Boolean {
+            if (mode != CheckoutMode.QR) return false
+            closePopup()
+            val parentChrome = this
+            val child = WebView(context).apply {
+                applyCheckoutSettings()
+                webViewClient = checkoutClient()
+                webChromeClient = parentChrome
             }
+            popup = child
+            (resultMsg.obj as WebView.WebViewTransport).webView = child
+            resultMsg.sendToTarget()
+            return true
+        }
+        override fun onCloseWindow(window: WebView) { if (window == popup) closePopup() }
+    }
+    val webView = remember(checkout.nonce, mode) {
+        WebView(context).apply {
+            applyCheckoutSettings()
+            webViewClient = checkoutClient()
+            webChromeClient = chromeClient
             loadDataWithBaseURL("$CHECKOUT_ORIGIN/payment/index.html", checkoutHtml(checkout, startLabel, description, mode), "text/html", "UTF-8", null)
         }
     }
-    DisposableEffect(webView) { onDispose { webView.stopLoading(); webView.removeAllViews(); webView.destroy() } }
+    DisposableEffect(webView) { onDispose { closePopup(); webView.stopLoading(); webView.removeAllViews(); webView.destroy() } }
     Dialog(onDismissRequest = onCancel, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(modifier = Modifier.fillMaxSize()) {
             Column(Modifier.safeDrawingPadding()) {
@@ -99,7 +130,12 @@ internal fun CheckoutWebView(checkout: Checkout, mode: CheckoutMode, onResult: (
                 if (mode == CheckoutMode.QR) Text(stringResource(R.string.checkout_qr_notice), color = AppColors.TextSub,
                     modifier = Modifier.padding(horizontal = AppDimens.screenPadding))
                 if (externalError) Text(unavailable, color = AppColors.Danger)
-                AndroidView(factory = { webView }, modifier = Modifier.fillMaxWidth().weight(1f))
+                Box(Modifier.fillMaxWidth().weight(1f)) {
+                    AndroidView(factory = { webView }, modifier = Modifier.fillMaxSize())
+                    popup?.let { child ->
+                        key(child) { AndroidView(factory = { child }, modifier = Modifier.fillMaxSize()) }
+                    }
+                }
             }
         }
     }

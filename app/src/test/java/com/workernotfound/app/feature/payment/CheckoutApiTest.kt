@@ -26,4 +26,22 @@ class CheckoutApiTest {
             assertNull(request.getHeader("Authorization"))
         } finally { server.shutdown() }
     }
+
+    /** Server rejects fractional digits (GLOBAL-400-002); order amounts arrive as e.g. 22000.00. */
+    @Test fun `confirm sends a whole KRW amount even when the order amount has a scale`(): Unit = runBlocking {
+        val server = MockWebServer(); server.start()
+        try {
+            val api = Retrofit.Builder().baseUrl(server.url("/"))
+                .addConverterFactory(GsonConverterFactory.create()).build().create(CheckoutApi::class.java)
+            server.enqueue(MockResponse().setBody("""{"success":true,"data":{"orderId":"order-16","jobPostId":16,"jobVersion":1,"amount":22000.00,"currency":"KRW","status":"DEPOSITED"}}"""))
+            val receipt = com.workernotfound.app.feature.payment.domain.CheckoutReceipt("order-16", "22000.00".toBigDecimal(), "tgen_test_key")
+            api.confirm("order-16", confirmRequest(receipt))
+            val raw = server.takeRequest().body.readUtf8()
+            assertEquals("22000", JsonParser.parseString(raw).asJsonObject["amount"].asBigDecimal.toPlainString())
+            assertFalse(raw.contains("22000.00"))
+            assertThrows(ArithmeticException::class.java) {
+                confirmRequest(com.workernotfound.app.feature.payment.domain.CheckoutReceipt("o", "100.50".toBigDecimal(), "k"))
+            }
+        } finally { server.shutdown() }
+    }
 }

@@ -21,6 +21,13 @@ interface CheckoutApi {
     @POST("api/payments/orders/{orderId}/confirm")
     suspend fun confirm(@Path("orderId") orderId: String, @Body request: ConfirmCheckoutDto): ApiResponse<PaymentOrderDto>
 }
+/**
+ * payment-service ConfirmOrderRequest requires a whole KRW amount (@Digits fraction = 0), while order
+ * responses carry a scale (e.g. 22000.00). Send it without the fraction; a real fraction is rejected here.
+ */
+internal fun confirmRequest(receipt: CheckoutReceipt) =
+    ConfirmCheckoutDto(receipt.paymentKey, receipt.amount.setScale(0, java.math.RoundingMode.UNNECESSARY))
+
 class ConfirmCheckoutDto(val paymentKey: String, val amount: BigDecimal) {
     override fun toString() = "ConfirmCheckoutDto()"
 }
@@ -40,7 +47,7 @@ class CheckoutRepositoryImpl @Inject constructor(private val jobs: JobPublicatio
         validateCheckoutIdentity(checkout, receipt, order)
         if (order.status == "DEPOSITED") return
         check(order.status in setOf("READY", "CONFIRMING"))
-        val accepted = api.confirm(order.orderId, ConfirmCheckoutDto(receipt.paymentKey, receipt.amount)).requireData()
+        val accepted = api.confirm(order.orderId, confirmRequest(receipt)).requireData()
         validateCheckoutIdentity(checkout, receipt, accepted)
         check(accepted.status in setOf("DEPOSITED", "CONFIRMING"))
     }
