@@ -34,9 +34,15 @@ class WorkerHomeViewModel @Inject constructor(
         loadJobs()
     }
 
-    fun loadJobs() {
+    /** Reload when the tab is shown again or pulled; keeps the current list visible meanwhile. */
+    fun refresh() {
+        if (loading?.isActive == true) return
+        loadJobs(silent = true)
+    }
+
+    fun loadJobs(silent: Boolean = false) {
         loading?.cancel()
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { if (silent) it.copy(isRefreshing = true) else it.copy(isLoading = true, errorMessage = null) }
         loading = viewModelScope.launch {
             try {
                 val result = feed.load()
@@ -44,6 +50,8 @@ class WorkerHomeViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
+                        isRefreshing = false,
+                        errorMessage = null,
                         workerName = result.preference?.name,
                         activityRadiusKm = result.preference?.activityRadiusKm,
                         origin = result.origin,
@@ -54,7 +62,7 @@ class WorkerHomeViewModel @Inject constructor(
                 }
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
-                _uiState.update { it.copy(isLoading = false, errorMessage = backend.message(error)) }
+                _uiState.update { it.copy(isLoading = false, isRefreshing = false, errorMessage = backend.message(error)) }
             }
         }
     }

@@ -14,6 +14,7 @@ enum class SearchMode { NONE, STORE, AREA, NO_RESULT }
 
 data class WorkerJobSearchUiState(
     val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false,
     val locating: Boolean = false,
     val locationError: Boolean = false,
     val viewMode: JobViewMode = JobViewMode.LIST,

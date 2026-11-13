@@ -11,6 +11,7 @@ import com.workernotfound.app.feature.worker.domain.repository.SearchOrigin
  */
 data class WorkerHomeUiState(
     val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false,
     val workerName: String? = null,
     val activityRadiusKm: Int? = null,
     val origin: SearchOrigin = SearchOrigin.NONE,

@@ -79,6 +79,11 @@ fun WorkerJobSearchScreen(
     val requestLocation = {
         permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
     }
+    // Reload whenever the tab is shown again or a detail screen returns here (new OPEN postings appear).
+    androidx.lifecycle.compose.LifecycleResumeEffect(viewModel) {
+        viewModel.refresh()
+        onPauseOrDispose { }
+    }
 
     if (uiState.isFilterSheetOpen) {
         JobFilterSheet(
@@ -101,6 +106,7 @@ fun WorkerJobSearchScreen(
         onJobClick = onJobClick,
         onApply = viewModel::applyTo,
         onRetry = viewModel::retry,
+        onRefresh = viewModel::refresh,
         onLocate = requestLocation,
         modifier = modifier,
     )
@@ -117,6 +123,7 @@ private fun WorkerJobSearchContent(
     onJobClick: (String) -> Unit,
     onApply: (String) -> Unit,
     onRetry: () -> Unit,
+    onRefresh: () -> Unit,
     onLocate: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -142,7 +149,15 @@ private fun WorkerJobSearchContent(
         when {
             uiState.isLoading -> LoadingBox()
             uiState.errorMessage != null -> ErrorBox(uiState.errorMessage, onRetry)
-            uiState.viewMode == JobViewMode.LIST -> JobList(uiState, onJobClick, onApply)
+            // Pull-to-refresh only on the list; on the map a downward drag must pan the map.
+            uiState.viewMode == JobViewMode.LIST -> {
+                @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+                androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+                    isRefreshing = uiState.isRefreshing,
+                    onRefresh = onRefresh,
+                    modifier = Modifier.fillMaxSize(),
+                ) { JobList(uiState, onJobClick, onApply) }
+            }
             else -> MapView(uiState, onJobClick, onApply, onLocate)
         }
     }

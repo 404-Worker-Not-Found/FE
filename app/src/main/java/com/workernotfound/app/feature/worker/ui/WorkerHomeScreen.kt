@@ -1,6 +1,7 @@
 package com.workernotfound.app.feature.worker.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,13 +59,19 @@ fun WorkerHomeScreen(
     viewModel: WorkerHomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // Reload whenever the tab is shown again or the app/detail screen returns here (new OPEN postings appear).
+    androidx.lifecycle.compose.LifecycleResumeEffect(viewModel) {
+        viewModel.refresh()
+        onPauseOrDispose { }
+    }
     WorkerHomeContent(
         uiState = uiState,
         onToggleAvailable = viewModel::toggleAvailableOnly,
         onJobClick = onJobClick,
         onNotificationsClick = onNotificationsClick,
         onApply = viewModel::applyTo,
-        onRetry = viewModel::loadJobs,
+        onRetry = { viewModel.loadJobs() },
+        onRefresh = viewModel::refresh,
         modifier = modifier,
     )
 }
@@ -77,6 +84,7 @@ private fun WorkerHomeContent(
     onNotificationsClick: () -> Unit,
     onApply: (String) -> Unit,
     onRetry: () -> Unit,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -101,19 +109,32 @@ private fun WorkerHomeContent(
             }
         }
 
-        when {
-            uiState.isLoading -> LoadingBox()
-            uiState.errorMessage != null -> ErrorBox(uiState.errorMessage, onRetry)
-            uiState.isAvailableOnly && uiState.applicableJobs.isEmpty() -> EmptyText(R.string.worker_home_available_empty)
-            !uiState.isAvailableOnly && uiState.urgentJobs.isEmpty() && uiState.recommendedJobs.isEmpty() ->
-                EmptyText(R.string.worker_home_recommended_empty)
-            else -> JobLists(
-                uiState = uiState,
-                onJobClick = onJobClick,
-                onApply = onApply,
-            )
+        @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+        androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            when {
+                uiState.isLoading -> LoadingBox()
+                uiState.errorMessage != null -> ErrorBox(uiState.errorMessage, onRetry)
+                uiState.isAvailableOnly && uiState.applicableJobs.isEmpty() -> ScrollableEmpty(R.string.worker_home_available_empty)
+                !uiState.isAvailableOnly && uiState.urgentJobs.isEmpty() && uiState.recommendedJobs.isEmpty() ->
+                    ScrollableEmpty(R.string.worker_home_recommended_empty)
+                else -> JobLists(
+                    uiState = uiState,
+                    onJobClick = onJobClick,
+                    onApply = onApply,
+                )
+            }
         }
     }
+}
+
+/** Empty state that can still be pulled down to refresh. */
+@Composable
+private fun ScrollableEmpty(@StringRes text: Int) {
+    Column(Modifier.fillMaxSize().verticalScroll(androidx.compose.foundation.rememberScrollState())) { EmptyText(text) }
 }
 
 @Composable

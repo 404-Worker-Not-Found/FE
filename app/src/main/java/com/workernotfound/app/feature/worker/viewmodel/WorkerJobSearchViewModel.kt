@@ -52,7 +52,7 @@ class WorkerJobSearchViewModel @Inject constructor(
             return
         }
         searchJob?.cancel()
-        _uiState.update { it.copy(isLoading = true, errorMessage = null, submittedQuery = text) }
+        _uiState.update { it.copy(isLoading = true, isRefreshing = false, errorMessage = null, submittedQuery = text) }
         searchJob = viewModelScope.launch {
             try {
                 val area = if (addresses.available()) addresses.find(text).firstOrNull() else null
@@ -101,7 +101,8 @@ class WorkerJobSearchViewModel @Inject constructor(
 
     private fun search(filter: JobFilter) {
         searchJob?.cancel()
-        _uiState.update { it.copy(isLoading = true, errorMessage = null, filter = filter) }
+        // A new search cancels any refresh in flight.
+        _uiState.update { it.copy(isLoading = true, isRefreshing = false, errorMessage = null, filter = filter) }
         searchJob = viewModelScope.launch {
             try {
                 val keepStore = _uiState.value.searchMode == SearchMode.STORE
@@ -109,6 +110,24 @@ class WorkerJobSearchViewModel @Inject constructor(
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
                 _uiState.update { it.copy(isLoading = false, errorMessage = backend.message(error)) }
+            }
+        }
+    }
+
+    /**
+     * Reload when the tab is shown again or pulled: same filter, same search text/area, list stays visible.
+     * Skipped while another search is still running.
+     */
+    fun refresh() {
+        if (searchJob?.isActive == true) return
+        val state = _uiState.value
+        _uiState.update { it.copy(isRefreshing = true) }
+        searchJob = viewModelScope.launch {
+            try {
+                applyResult(feed.load(state.filter), state.filter, state.searchMode)
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(isRefreshing = false, errorMessage = backend.message(error)) }
             }
         }
     }
@@ -121,6 +140,8 @@ class WorkerJobSearchViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 isLoading = false,
+                isRefreshing = false,
+                errorMessage = null,
                 jobs = result.jobs,
                 preference = result.preference,
                 origin = result.origin,
