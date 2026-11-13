@@ -22,8 +22,7 @@ class WorkerJobMapper @Inject constructor(@ApplicationContext private val contex
         distanceText = dto.distanceKm?.let { if (it < 1) "${(it * 1000).toInt()}m" else String.format(Locale.KOREA, "%.1fkm", it) }
             ?: context.getString(R.string.backend_distance_unknown),
         isUrgent = dto.isUrgent,
-        deadlineText = if (dto.remainingMinutes > 0) context.getString(R.string.backend_deadline_minutes, dto.remainingMinutes)
-            else context.getString(R.string.backend_deadline_closed),
+        deadlineText = deadlineText(context, dto.remainingMinutes),
         distanceKm = dto.distanceKm?.takeIf { it.isFinite() && it >= 0 },
         remainingMinutes = dto.remainingMinutes,
         status = dto.status,
@@ -41,6 +40,20 @@ class WorkerJobMapper @Inject constructor(@ApplicationContext private val contex
         applicantCount = dto.applicantCount, matchScore = null, isUrgent = false,
     )
 }
+
+/** 마감까지 남은 시간: `마감 39시간 34분 전`, 정각이면 `마감 2시간 전`, 1시간 미만이면 `마감 45분 전`. */
+private fun deadlineText(context: Context, remainingMinutes: Long): String {
+    val (hours, minutes) = deadlineParts(remainingMinutes) ?: return context.getString(R.string.backend_deadline_closed)
+    return when {
+        hours == 0L -> context.getString(R.string.backend_deadline_minutes, minutes)
+        minutes == 0L -> context.getString(R.string.worker_deadline_hours, hours)
+        else -> context.getString(R.string.worker_deadline_hours_minutes, hours, minutes)
+    }
+}
+
+/** (hours, minutes) left before the application deadline, or null once it has passed. */
+internal fun deadlineParts(remainingMinutes: Long): Pair<Long, Long>? =
+    if (remainingMinutes <= 0) null else remainingMinutes / 60 to remainingMinutes % 60
 
 /** Backend uses Korea local date/time, independent of the device's timezone. */
 internal fun startsInSeconds(date: String, time: String, clock: Clock = Clock.systemUTC()): Long {
