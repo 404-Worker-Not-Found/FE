@@ -48,4 +48,7 @@
     <string name="auth_sun">일요일</string>
     <string name="auth_business_type_loading">업종 불러오는 중</string>
     <string name="auth_business_type_retry">업종 목록을 불러오지 못했어요. 다시 불러오기</string>
+    <string name="auth_login_tagline">급할 때 바로 찾는 우리 동네 알바</string>
+    <string name="auth_password_show">비밀번호 보기</string>
+    <string name="auth_password_hide">비밀번호 숨기기</string>
 </resources>
