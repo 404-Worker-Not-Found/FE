@@ -51,4 +51,6 @@
     <string name="owner_postings_past">지난 공고</string>
     <string name="owner_postings_empty">진행 중인 공고가 없어요. 새 공고를 등록해 보세요.</string>
     <string name="owner_postings_retry">다시 시도</string>
+    <string name="owner_postings_create_action">+ 공고 등록</string>
+    <string name="owner_postings_current_count">현재 공고 %1$d</string>
 </resources>

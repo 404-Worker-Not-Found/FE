@@ -95,7 +95,8 @@ private fun TrustGaugeCard(summary: TrustSummary) {
                 stringResource(R.string.trust_score_unavailable),
                 fontSize = 12.sp,
                 color = AppColors.TextSub,
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
         }
         Spacer(Modifier.height(16.dp))

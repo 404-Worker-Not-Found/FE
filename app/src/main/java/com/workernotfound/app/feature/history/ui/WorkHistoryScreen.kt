@@ -124,7 +124,7 @@ private fun HistoryCard(entry: WorkHistoryEntry, onJob: () -> Unit) {
                 "WORK_TERMINATED" -> Text(stringResource(R.string.settlement_work_terminated), fontSize = 12.sp, color = AppColors.Warning)
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.End) {
             com.workernotfound.app.core.designsystem.component.AppSmallButton(stringResource(R.string.history_open_job), onJob)
         }
     }
