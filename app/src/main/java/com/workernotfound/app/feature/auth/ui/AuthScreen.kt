@@ -24,6 +24,17 @@ import com.workernotfound.app.feature.auth.domain.AuthSession
 import com.workernotfound.app.feature.auth.viewmodel.*
 import com.workernotfound.app.feature.job.ui.component.TimePickerField
 import java.time.DayOfWeek
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun AuthScreen(onAuthenticated: (AuthSession) -> Unit, viewModel: AuthViewModel = hiltViewModel()) {
@@ -47,6 +58,11 @@ private fun AuthContent(
 ) {
     val clipboard = LocalClipboardManager.current
     var copied by remember(state.diagnostic) { mutableStateOf(false) }
+    if (state.page == AuthPage.LOGIN) {
+        LoginContent(state, edit, page, submit,
+            copied = copied, onCopy = { report -> clipboard.setText(AnnotatedString(report)); copied = true })
+        return
+    }
     Column(Modifier.fillMaxSize().background(AppTheme.role.screenBackground).safeDrawingPadding()
         .imePadding().verticalScroll(rememberScrollState()).padding(AppDimens.screenPadding),
         verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
@@ -192,4 +208,104 @@ private fun BusinessTypeField(state: AuthUiState, edit: (AuthField, String) -> U
         }
         if (state.businessTypesFailed) TextButton(retry, enabled = !state.busy) { Text(stringResource(R.string.auth_business_type_retry)) }
     }
+}
+
+/** 로그인: 작은 로고·앱 이름, 입력 두 칸, 로그인·회원가입 버튼만 둔 단순한 구성. */
+@Composable
+private fun LoginContent(
+    state: AuthUiState, edit: (AuthField, String) -> Unit, page: (AuthPage) -> Unit, submit: () -> Unit,
+    copied: Boolean, onCopy: (String) -> Unit,
+) {
+    Column(
+        Modifier.fillMaxSize().background(AppTheme.role.screenBackground).safeDrawingPadding()
+            .imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 16.dp),
+    ) {
+        Spacer(Modifier.height(72.dp))
+        BrandLogo()
+        Spacer(Modifier.height(20.dp))
+        Text(stringResource(R.string.app_name), fontSize = 26.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
+        Spacer(Modifier.height(4.dp))
+        Text(stringResource(R.string.auth_login_tagline), fontSize = 14.sp, color = AppColors.TextSub)
+        Spacer(Modifier.height(40.dp))
+        if (state.checkingSession) {
+            CircularProgressIndicator(color = AppTheme.role.accent)
+            return@Column
+        }
+        LoginField(AuthField.EMAIL, state, edit)
+        Spacer(Modifier.height(10.dp))
+        LoginField(AuthField.PASSWORD, state, edit, onDone = {
+            if (state.emailValid && state[AuthField.PASSWORD].isNotBlank() && !state.busy) submit()
+        })
+        state.message?.let { Spacer(Modifier.height(8.dp)); Text(stringResource(it), fontSize = 13.sp, color = AppColors.TextSub) }
+        state.error?.let { Spacer(Modifier.height(8.dp)); Text(it, fontSize = 13.sp, color = AppColors.Danger) }
+        state.diagnostic?.let { report ->
+            Spacer(Modifier.height(8.dp))
+            com.workernotfound.app.core.designsystem.component.AppSmallButton(
+                stringResource(if (copied) R.string.auth_error_copied else R.string.auth_copy_error), { onCopy(report) },
+                color = AppColors.TextSub)
+            Text(report, style = MaterialTheme.typography.bodySmall, color = AppColors.TextSub)
+        }
+        Spacer(Modifier.height(24.dp))
+        if (state.busy) {
+            Box(Modifier.fillMaxWidth().height(52.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = AppTheme.role.accent, modifier = Modifier.size(28.dp))
+            }
+        } else {
+            AppPrimaryButton(stringResource(R.string.auth_login), onClick = submit,
+                enabled = state.emailValid && state[AuthField.PASSWORD].isNotBlank())
+        }
+        Spacer(Modifier.height(10.dp))
+        com.workernotfound.app.core.designsystem.component.AppSecondaryButton(
+            stringResource(R.string.auth_signup), { page(AuthPage.SIGNUP) }, enabled = !state.busy)
+        Spacer(Modifier.height(8.dp))
+        // 비밀번호 재설정은 테두리 없이 조용한 보조 동작으로 둔다.
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            TextButton(onClick = { page(AuthPage.RESET) }, enabled = !state.busy) {
+                Text(stringResource(R.string.auth_reset), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = AppColors.TextSub)
+            }
+        }
+    }
+}
+
+/** 앱 아이콘과 같은 주황 원 + 번개. */
+@Composable
+private fun BrandLogo() {
+    Box(Modifier.size(56.dp).background(AppColors.Primary, RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
+        Icon(painterResource(R.drawable.ic_launcher_foreground), contentDescription = null, tint = Color.White,
+            modifier = Modifier.size(56.dp))
+    }
+}
+
+@Composable
+private fun LoginField(
+    field: AuthField, state: AuthUiState, edit: (AuthField, String) -> Unit, onDone: (() -> Unit)? = null,
+) {
+    val secret = field == AuthField.PASSWORD
+    var visible by remember { mutableStateOf(false) }
+    OutlinedTextField(
+        value = state[field], onValueChange = { edit(field, it) }, modifier = Modifier.fillMaxWidth(),
+        enabled = !state.busy, singleLine = true,
+        placeholder = { Text(stringResource(fieldLabel(field)), color = AppColors.TextPlaceholder) },
+        trailingIcon = if (secret) {
+            {
+                IconButton(onClick = { visible = !visible }) {
+                    Icon(if (visible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                        contentDescription = stringResource(if (visible) R.string.auth_password_hide else R.string.auth_password_show),
+                        tint = AppColors.TextSub)
+                }
+            }
+        } else null,
+        visualTransformation = if (secret && !visible) PasswordVisualTransformation() else VisualTransformation.None,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = if (secret) KeyboardType.Password else KeyboardType.Email,
+            imeAction = if (onDone != null) ImeAction.Done else ImeAction.Next,
+        ),
+        keyboardActions = KeyboardActions(onDone = { onDone?.invoke() }),
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = AppTheme.role.accent, unfocusedBorderColor = AppColors.Border,
+            focusedContainerColor = AppColors.CardSurface, unfocusedContainerColor = AppColors.CardSurface,
+            cursorColor = AppTheme.role.accent,
+        ),
+    )
 }
