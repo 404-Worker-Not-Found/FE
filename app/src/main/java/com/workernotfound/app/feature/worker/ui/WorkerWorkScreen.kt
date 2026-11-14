@@ -1,5 +1,6 @@
 package com.workernotfound.app.feature.worker.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,8 +10,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -21,6 +22,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -29,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -51,8 +54,14 @@ import com.workernotfound.app.core.designsystem.component.StatusBadge
 import com.workernotfound.app.core.ui.KoreanDateTime
 import com.workernotfound.app.feature.worker.domain.model.WorkSchedule
 import com.workernotfound.app.feature.worker.domain.model.WorkStatus
+import com.workernotfound.app.feature.worker.domain.model.WorkerApplication
+import com.workernotfound.app.feature.worker.domain.model.ApplicationStatus
 import com.workernotfound.app.feature.worker.viewmodel.WorkerWorkUiState
 import com.workernotfound.app.feature.worker.viewmodel.WorkerWorkViewModel
+import com.workernotfound.app.feature.worker.viewmodel.WorkerApplicationUiState
+import com.workernotfound.app.feature.worker.viewmodel.WorkerApplicationViewModel
+import com.workernotfound.app.core.ui.RefreshWhileResumed
+import java.time.Clock
 
 @Composable
 fun WorkerWorkScreen(
@@ -60,9 +69,14 @@ fun WorkerWorkScreen(
     onApplicationsClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkerWorkViewModel = hiltViewModel(),
+    applicationViewModel: WorkerApplicationViewModel = hiltViewModel(),
     onCancellation: (String) -> Unit = {},
+    onMatchClick: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val applicationState by applicationViewModel.uiState.collectAsStateWithLifecycle()
+    RefreshWhileResumed(true, applicationViewModel::poll)
+    RefreshWhileResumed(true, viewModel::poll)
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner, viewModel) {
         val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) viewModel.load() }
@@ -70,52 +84,146 @@ fun WorkerWorkScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
     WorkerWorkContent(
-        uiState = uiState, onRetry = viewModel::load, onAttendanceClick = onAttendanceClick,
+        uiState = uiState, applicationState = applicationState,
+        onRetry = viewModel::load, onApplicationsRetry = applicationViewModel::load,
+        onRequestCancel = applicationViewModel::requestCancel,
+        onMatchClick = onMatchClick, onAttendanceClick = onAttendanceClick,
         onApplicationsClick = onApplicationsClick, modifier = modifier,
         onCancellation = onCancellation,
     )
+    if (applicationState.pendingCancelId != null) {
+        CancelConfirmDialog(
+            onConfirm = applicationViewModel::confirmCancel,
+            onDismiss = applicationViewModel::dismissCancel,
+        )
+    }
 }
 
 @Composable
 private fun WorkerWorkContent(
     uiState: WorkerWorkUiState,
+    applicationState: WorkerApplicationUiState,
     onRetry: () -> Unit,
+    onApplicationsRetry: () -> Unit,
+    onRequestCancel: (String) -> Unit,
+    onMatchClick: (String) -> Unit,
     onAttendanceClick: () -> Unit,
     onApplicationsClick: () -> Unit,
     onCancellation: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val now = Clock.systemUTC().instant()
+    val shownApplications = applicationState.applications.filterNot {
+        it.status == ApplicationStatus.MATCHED && it.workEndsAt.isAfter(now)
+    }
     Column(modifier = modifier.fillMaxSize()) {
         WorkHeader(onApplicationsClick = onApplicationsClick, onAttendanceClick = onAttendanceClick)
-        when {
-            uiState.errorMessage != null && !uiState.isLoading -> Column(
-                modifier = Modifier.fillMaxSize().padding(AppDimens.screenPadding),
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(uiState.errorMessage ?: stringResource(R.string.worker_schedule_load_error), color = AppColors.TextSub)
-                AppPrimaryButton(text = stringResource(R.string.worker_retry), onClick = onRetry)
-            }
-            uiState.isLoading -> LoadingBox()
-            uiState.scheduled.isEmpty() && uiState.inProgress.isEmpty() -> EmptyBox()
-            else -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = AppDimens.screenPadding,
-                    end = AppDimens.screenPadding,
-                    bottom = AppDimens.screenPadding,
-                ),
-                verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
-            ) {
-                if (uiState.inProgress.isNotEmpty()) {
-                    item { SectionLabel(text = stringResource(R.string.worker_work_in_progress)) }
-                    items(items = uiState.inProgress, key = { it.id }) { WorkCard(it, onCancellation) }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = AppDimens.screenPadding,
+                end = AppDimens.screenPadding,
+                bottom = AppDimens.screenPadding,
+            ),
+            verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap),
+        ) {
+            when {
+                uiState.isLoading -> item { SectionLoading() }
+                uiState.errorMessage != null -> item {
+                    SectionError(uiState.errorMessage, onRetry)
                 }
-                if (uiState.scheduled.isNotEmpty()) {
+                else -> {
+                    if (uiState.inProgress.isNotEmpty()) {
+                        item { SectionLabel(text = stringResource(R.string.worker_work_in_progress)) }
+                        items(items = uiState.inProgress, key = { "work-${it.id}" }) { WorkCard(it, onCancellation) }
+                    }
                     item { SectionLabel(text = stringResource(R.string.worker_work_scheduled)) }
-                    items(items = uiState.scheduled, key = { it.id }) { WorkCard(it, onCancellation) }
+                    if (uiState.scheduled.isEmpty()) item { SectionEmpty(R.string.worker_work_empty) }
+                    items(items = uiState.scheduled, key = { "work-${it.id}" }) { WorkCard(it, onCancellation) }
+                }
+            }
+            item { SectionLabel(text = stringResource(R.string.worker_work_applied)) }
+            when {
+                applicationState.isLoading -> item { SectionLoading() }
+                applicationState.errorMessage != null -> item {
+                    SectionError(applicationState.errorMessage, onApplicationsRetry)
+                }
+                shownApplications.isEmpty() -> item { SectionEmpty(R.string.worker_work_applied_empty) }
+                else -> items(items = shownApplications, key = { "application-${it.id}" }) { app ->
+                    WorkApplicationCard(
+                        app = app,
+                        workEnded = !app.workEndsAt.isAfter(now),
+                        onMatchClick = { onMatchClick(app.id) },
+                        onRequestCancel = { onRequestCancel(app.id) },
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun WorkApplicationCard(
+    app: WorkerApplication,
+    workEnded: Boolean,
+    onMatchClick: () -> Unit,
+    onRequestCancel: () -> Unit,
+) {
+    val navigable = app.status == ApplicationStatus.MATCHED || app.hasRematchOffer
+    val modifier = Modifier.fillMaxWidth().heightIn(min = 116.dp)
+        .then(if (navigable) Modifier.clickable(onClick = onMatchClick) else Modifier)
+    AppCard(modifier = modifier) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(app.storeName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
+                Spacer(Modifier.height(2.dp))
+                Text(stringResource(R.string.worker_application_meta, app.category, app.workDate),
+                    fontSize = 12.sp, color = AppColors.TextSub)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    if (app.hasRematchOffer) stringResource(R.string.worker_rematch_banner,
+                        app.proposalExpiresInSeconds?.let { "${(it + 59) / 60}분" } ?: "1분 미만")
+                    else stringResource(R.string.worker_application_meta, app.workTimeRange,
+                        stringResource(R.string.worker_application_applied_at, app.appliedAtText)),
+                    fontSize = 12.sp,
+                    color = if (app.hasRematchOffer) AppColors.Danger else AppColors.TextSub,
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                when {
+                    app.status == ApplicationStatus.APPLYING -> AppBadge(
+                        stringResource(R.string.worker_application_submitted), AppColors.WorkerLight, AppColors.WorkerEmphasis)
+                    app.status == ApplicationStatus.MATCHED && workEnded -> AppBadge(
+                        stringResource(R.string.worker_application_work_completed), AppColors.SuccessBg, AppColors.Success)
+                    else -> StatusBadge(app.status.toBadge())
+                }
+                if (app.canCancel) {
+                    TextButton(onClick = onRequestCancel) {
+                        Text(stringResource(R.string.worker_application_cancel), color = AppColors.TextSub, fontSize = 12.sp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionLoading() {
+    Box(Modifier.fillMaxWidth().padding(AppDimens.screenPadding), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator(color = AppTheme.role.accent)
+    }
+}
+
+@Composable
+private fun SectionEmpty(@StringRes text: Int) {
+    Text(stringResource(text), color = AppColors.TextSub, modifier = Modifier.padding(vertical = AppDimens.cardGap))
+}
+
+@Composable
+private fun SectionError(message: String, onRetry: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
+        Text(message, color = AppColors.Danger)
+        AppPrimaryButton(text = stringResource(R.string.worker_retry), onClick = onRetry)
     }
 }
 
@@ -154,10 +262,9 @@ private fun WorkHeader(onApplicationsClick: () -> Unit, onAttendanceClick: () ->
     }
 }
 
-/** 가게명·상태 → 날짜·근무시간·시급 순. 근무 취소·합의는 카드 메뉴에 둔다. */
+/** 가게명·상태 → 날짜·근무시간·시급 → 근무 취소·합의 순. */
 @Composable
 private fun WorkCard(work: WorkSchedule, onCancellation: (String) -> Unit) {
-    var menuOpen by remember { mutableStateOf(false) }
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -168,17 +275,6 @@ private fun WorkCard(work: WorkSchedule, onCancellation: (String) -> Unit) {
                 modifier = Modifier.weight(1f),
             )
             WorkStatusBadge(work)
-            Box {
-                IconButton(onClick = { menuOpen = true }, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.worker_work_card_menu), tint = AppColors.TextSub)
-                }
-                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.cancellation_title)) },
-                        onClick = { menuOpen = false; onCancellation(work.id) },
-                    )
-                }
-            }
         }
         Spacer(Modifier.height(6.dp))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -197,6 +293,11 @@ private fun WorkCard(work: WorkSchedule, onCancellation: (String) -> Unit) {
         }
         Spacer(Modifier.height(2.dp))
         Text(text = work.category, color = AppColors.TextPlaceholder, fontSize = 12.sp)
+        Spacer(Modifier.height(12.dp))
+        AppPrimaryButton(
+            text = stringResource(R.string.cancellation_title),
+            onClick = { onCancellation(work.id) },
+        )
     }
 }
 
@@ -215,19 +316,5 @@ private fun WorkStatusBadge(work: WorkSchedule) {
             contentColor = AppColors.Success,
         )
         else -> StatusBadge(status = AppStatus.WORKING)
-    }
-}
-
-@Composable
-private fun LoadingBox() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = AppTheme.role.accent)
-    }
-}
-
-@Composable
-private fun EmptyBox() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "예정된 근무가 없어요.", color = AppColors.TextSub)
     }
 }

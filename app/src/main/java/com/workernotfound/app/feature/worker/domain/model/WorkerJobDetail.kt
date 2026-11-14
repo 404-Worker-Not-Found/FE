@@ -22,6 +22,7 @@ data class WorkerJobDetail(
     val matchScore: Int?,
     val isUrgent: Boolean,
     val applyStatus: ApplyStatus = ApplyStatus.AVAILABLE,
+    val applicationId: String? = null,
     val extraWage: Int = 0,
     val activityRadiusKm: Int? = null,
     val availability: ApplyAvailability = ApplyAvailability.UNKNOWN,

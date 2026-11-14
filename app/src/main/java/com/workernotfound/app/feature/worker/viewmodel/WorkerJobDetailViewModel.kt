@@ -77,12 +77,14 @@ class WorkerJobDetailViewModel @Inject constructor(
     private suspend fun enrich(detail: WorkerJobDetail): WorkerJobDetail {
         val card = repository.cachedCard(jobId)
         val preference = try { feed.preference() } catch (e: CancellationException) { throw e } catch (_: Exception) { null }
+        val application = applications.applyStatusesByJobId()[jobId]
         return detail.copy(
             isUrgent = card?.isUrgent ?: detail.isUrgent,
             distanceKm = card?.distanceKm,
             activityRadiusKm = preference?.activityRadiusKm,
             availability = JobEligibility.availability(card, preference),
-            applyStatus = card?.applyStatus ?: detail.applyStatus,
+            applyStatus = application?.status ?: detail.applyStatus,
+            applicationId = application?.applicationId,
         )
     }
 
@@ -99,6 +101,8 @@ class WorkerJobDetailViewModel @Inject constructor(
 
     /** 즉시 지원 (UI spec 3-3: 필수). */
     fun apply() {
+        if (_uiState.value.isApplying || _uiState.value.detail?.applyStatus != ApplyStatus.AVAILABLE) return
+        _uiState.update { it.copy(isApplying = true) }
         viewModelScope.launch {
             try {
                 applications.apply(this@WorkerJobDetailViewModel.jobId)
@@ -109,6 +113,37 @@ class WorkerJobDetailViewModel @Inject constructor(
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
                 _uiState.update { it.copy(errorMessage = backend.message(error)) }
+            } finally {
+                _uiState.update { it.copy(isApplying = false) }
+            }
+        }
+    }
+
+    fun requestCancel() {
+        val detail = _uiState.value.detail ?: return
+        if (detail.applyStatus != ApplyStatus.APPLIED || detail.applicationId == null) return
+        _uiState.update { it.copy(pendingCancel = true, cancelErrorMessage = null) }
+    }
+
+    fun dismissCancel() = _uiState.update { it.copy(pendingCancel = false) }
+
+    fun confirmCancel() {
+        val detail = _uiState.value.detail ?: return
+        val applicationId = detail.applicationId ?: return
+        if (!_uiState.value.pendingCancel || _uiState.value.isCancelling) return
+        _uiState.update { it.copy(isCancelling = true) }
+        viewModelScope.launch {
+            try {
+                applications.cancel(applicationId)
+                _uiState.update { state -> state.copy(
+                    detail = state.detail?.copy(applyStatus = ApplyStatus.REAPPLICATION_NOT_ALLOWED),
+                    pendingCancel = false, cancelErrorMessage = null,
+                ) }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(pendingCancel = false, cancelErrorMessage = backend.message(error)) }
+            } finally {
+                _uiState.update { it.copy(isCancelling = false) }
             }
         }
     }

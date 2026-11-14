@@ -62,6 +62,9 @@ fun WorkerJobDetailScreen(
         uiState = uiState,
         onBack = onBack,
         onApply = viewModel::apply,
+        onRequestCancel = viewModel::requestCancel,
+        onConfirmCancel = viewModel::confirmCancel,
+        onDismissCancel = viewModel::dismissCancel,
         onRetry = viewModel::load,
         modifier = modifier,
     )
@@ -72,6 +75,9 @@ private fun WorkerJobDetailContent(
     uiState: WorkerJobDetailUiState,
     onBack: () -> Unit,
     onApply: () -> Unit,
+    onRequestCancel: () -> Unit,
+    onConfirmCancel: () -> Unit,
+    onDismissCancel: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -88,9 +94,16 @@ private fun WorkerJobDetailContent(
             uiState.detail != null -> LoadedDetail(
                 detail = uiState.detail,
                 remainingSeconds = uiState.remainingSeconds,
+                isApplying = uiState.isApplying,
+                isCancelling = uiState.isCancelling,
+                cancelErrorMessage = uiState.cancelErrorMessage,
                 onApply = onApply,
+                onRequestCancel = onRequestCancel,
             )
         }
+    }
+    if (uiState.pendingCancel) {
+        CancelConfirmDialog(onConfirm = onConfirmCancel, onDismiss = onDismissCancel)
     }
 }
 
@@ -111,7 +124,11 @@ private fun DetailTopBar(onBack: () -> Unit) {
 private fun LoadedDetail(
     detail: WorkerJobDetail,
     remainingSeconds: Long,
+    isApplying: Boolean,
+    isCancelling: Boolean,
+    cancelErrorMessage: String?,
     onApply: () -> Unit,
+    onRequestCancel: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -128,7 +145,8 @@ private fun LoadedDetail(
             DescriptionCard(detail)
             ApplicantStatusCard(detail)
         }
-        BottomApplyBar(detail = detail, onApply = onApply)
+        BottomApplyBar(detail = detail, isApplying = isApplying, isCancelling = isCancelling,
+            cancelErrorMessage = cancelErrorMessage, onApply = onApply, onRequestCancel = onRequestCancel)
     }
 }
 
@@ -272,8 +290,16 @@ private fun StatChip(label: String, value: String, modifier: Modifier = Modifier
 }
 
 @Composable
-private fun BottomApplyBar(detail: WorkerJobDetail, onApply: () -> Unit) {
+private fun BottomApplyBar(
+    detail: WorkerJobDetail,
+    isApplying: Boolean,
+    isCancelling: Boolean,
+    cancelErrorMessage: String?,
+    onApply: () -> Unit,
+    onRequestCancel: () -> Unit,
+) {
     val applied = detail.applyStatus == ApplyStatus.APPLIED
+    val reapplicationBlocked = detail.applyStatus == ApplyStatus.REAPPLICATION_NOT_ALLOWED
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -282,19 +308,23 @@ private fun BottomApplyBar(detail: WorkerJobDetail, onApply: () -> Unit) {
             .padding(AppDimens.screenPadding),
     ) {
         AvailabilityRow(detail = detail)
+        cancelErrorMessage?.let { Text(it, color = AppColors.Danger, fontSize = 13.sp) }
         Spacer(Modifier.height(10.dp))
         AppPrimaryButton(
             text = stringResource(
                 when {
-                    applied -> R.string.worker_detail_applied
+                    applied -> R.string.worker_application_cancel
+                    reapplicationBlocked -> R.string.worker_apply_again_unavailable
+                    isApplying -> R.string.worker_apply_progress
                     detail.availability == ApplyAvailability.CLOSED -> R.string.worker_detail_closed_button
                     detail.availability == ApplyAvailability.OUT_OF_RADIUS -> R.string.worker_detail_out_of_radius
                     else -> R.string.worker_detail_apply
                 },
             ),
-            onClick = onApply,
-            enabled = !applied && detail.availability != ApplyAvailability.CLOSED &&
-                detail.availability != ApplyAvailability.OUT_OF_RADIUS,
+            onClick = if (applied) onRequestCancel else onApply,
+            enabled = !isApplying && !isCancelling && !reapplicationBlocked &&
+                (applied || detail.availability != ApplyAvailability.CLOSED &&
+                    detail.availability != ApplyAvailability.OUT_OF_RADIUS),
         )
     }
 }
@@ -302,12 +332,14 @@ private fun BottomApplyBar(detail: WorkerJobDetail, onApply: () -> Unit) {
 @Composable
 private fun AvailabilityRow(detail: WorkerJobDetail) {
     val availability = detail.availability
-    val bg = when (availability) {
+    val applied = detail.applyStatus == ApplyStatus.APPLIED
+    val reapplicationBlocked = detail.applyStatus == ApplyStatus.REAPPLICATION_NOT_ALLOWED
+    val bg = if (reapplicationBlocked) AppColors.Border else if (applied) AppColors.SuccessBg else when (availability) {
         ApplyAvailability.AVAILABLE -> AppColors.SuccessBg
         ApplyAvailability.OUT_OF_RADIUS, ApplyAvailability.CLOSED -> AppColors.DangerBg
         ApplyAvailability.UNKNOWN -> AppColors.Border
     }
-    val color = when (availability) {
+    val color = if (reapplicationBlocked) AppColors.TextSub else if (applied) AppColors.Success else when (availability) {
         ApplyAvailability.AVAILABLE -> AppColors.Success
         ApplyAvailability.OUT_OF_RADIUS, ApplyAvailability.CLOSED -> AppColors.Danger
         ApplyAvailability.UNKNOWN -> AppColors.TextSub
@@ -316,6 +348,8 @@ private fun AvailabilityRow(detail: WorkerJobDetail) {
         detail.activityRadiusKm?.let { stringResource(R.string.worker_detail_radius_text, formatDistance(distance), it) }
     }
     val text = when {
+        applied -> stringResource(R.string.worker_detail_already_applied)
+        reapplicationBlocked -> stringResource(R.string.worker_detail_reapplication_unavailable)
         availability == ApplyAvailability.CLOSED -> stringResource(R.string.worker_detail_closed)
         radiusText == null -> stringResource(R.string.worker_detail_unknown_eligibility)
         availability == ApplyAvailability.AVAILABLE -> stringResource(R.string.worker_detail_eligible, radiusText)

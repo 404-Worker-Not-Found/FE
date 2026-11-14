@@ -1,6 +1,5 @@
 package com.workernotfound.app.feature.worker.viewmodel
 
-import com.workernotfound.app.feature.worker.domain.model.JobEligibility
 import com.workernotfound.app.feature.worker.domain.model.JobFilter
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
 import com.workernotfound.app.feature.worker.domain.model.WorkerPreference
@@ -19,6 +18,7 @@ data class WorkerJobSearchUiState(
     val locationError: Boolean = false,
     val viewMode: JobViewMode = JobViewMode.LIST,
     val jobs: List<WorkerJobPosting> = emptyList(),
+    val applyingJobIds: Set<String> = emptySet(),
     val preference: WorkerPreference? = null,
     val origin: SearchOrigin = SearchOrigin.NONE,
     val originLatitude: Double? = null,
@@ -34,10 +34,6 @@ data class WorkerJobSearchUiState(
     val visibleJobs: List<WorkerJobPosting>
         get() = if (searchMode == SearchMode.STORE) jobs.filter { it.matchesText(submittedQuery) } else jobs
     val urgentJobs: List<WorkerJobPosting> get() = visibleJobs.filter { it.isUrgent }
-    val recommendedJobs: List<WorkerJobPosting>
-        get() = visibleJobs.filter { !it.isUrgent && JobEligibility.isRecommended(it, preference) }
-    val otherJobs: List<WorkerJobPosting>
-        get() = visibleJobs.filter { !it.isUrgent && !JobEligibility.isRecommended(it, preference) }
     val totalCount: Int get() = visibleJobs.size
     val usesCurrentLocation: Boolean get() = filter.latitude != null && searchMode != SearchMode.AREA
 }

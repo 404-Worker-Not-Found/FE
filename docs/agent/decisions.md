@@ -517,3 +517,39 @@ Reason:
 
 Implication for agents:
 - Do not reintroduce free-text business type input or a second business type question in posting. Never guess a category ID when the match is ambiguous.
+
+## 2026-11-14 - Show all worker job search results
+
+Decision:
+- The worker home and search list show all server job search results in an "전체 공고" section, including urgent and already applied postings. Do not filter this section by the worker's preferred business type, wage, time, or activity radius.
+- Keep the separate urgent highlight and the opt-in "즉시 지원 가능" toggle. The toggle applies open, deadline, not-applied, and activity-radius checks.
+
+Reason:
+- The user requested that every job appear in the former recommendation section without personal preference conditions.
+
+Implication for agents:
+- Preserve the server search result in the default worker list. Apply only explicit search filters or the availability toggle, and show server-backed application status on each card.
+
+## 2026-11-14 - Do not offer reapplication after cancellation
+
+Decision:
+- A worker can submit only once for a job posting. The matching backend returns `REAPPLICATION_NOT_ALLOWED` (HTTP 409) when a canceled or terminal application is submitted again.
+- Show those postings in worker job lists, but label their action `재지원 불가` and disable it. Keep active `APPLIED` applications labeled `지원완료` on job cards.
+
+Reason:
+- The user encountered a conflict screen after the frontend incorrectly treated a canceled application as available for a new submission. The backend service and its `rejectsReapplicationAfterCancellation` test confirm the rule.
+
+Implication for agents:
+- Include canceled and terminal server application records when deriving job apply status. Do not offer another POST for the same worker and job unless the backend contract changes.
+
+## 2026-11-14 - Make cancellation consequences explicit and separate confirmed work
+
+Decision:
+- On an actively applied job detail, show `지원 취소` and confirm with the warning that reapplication is impossible. Use the same warning in work management and application status.
+- In work management, label an active application `지원됨`. Show matched shifts before their end time only in the work section; show matched applications after their end time in the applied section as `출근 완료`.
+
+Reason:
+- The user requested a clear cancellation choice and one location for each matched shift.
+
+Implication for agents:
+- Use the server application ID for cancellation and the job/work schedule in Asia/Seoul for end-time classification. Keep canceled and rejected applications in the applied history.

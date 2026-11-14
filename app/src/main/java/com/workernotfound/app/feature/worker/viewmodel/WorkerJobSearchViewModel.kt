@@ -171,6 +171,9 @@ class WorkerJobSearchViewModel @Inject constructor(
 
     /** 즉시 지원 (UI spec 3-2: 성공 시 지원 완료 상태). */
     fun applyTo(jobId: String) {
+        if (jobId in _uiState.value.applyingJobIds ||
+            _uiState.value.jobs.none { it.id == jobId && it.applyStatus == ApplyStatus.AVAILABLE }) return
+        _uiState.update { it.copy(applyingJobIds = it.applyingJobIds + jobId) }
         viewModelScope.launch {
             try {
                 applications.apply(jobId)
@@ -180,6 +183,8 @@ class WorkerJobSearchViewModel @Inject constructor(
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
                 _uiState.update { it.copy(errorMessage = backend.message(error)) }
+            } finally {
+                _uiState.update { it.copy(applyingJobIds = it.applyingJobIds - jobId) }
             }
         }
     }

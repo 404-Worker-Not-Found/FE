@@ -93,8 +93,10 @@ private fun WorkerMatchResultContent(
             uiState.isLoading -> LoadingBox()
             uiState.errorMessage != null -> InfoBox(uiState.errorMessage, onBack)
             app == null -> InfoBox("매칭 정보를 불러오지 못했어요.", onBack)
-            app.status == ApplicationStatus.MATCHED || uiState.outcome == RematchOutcome.ACCEPTED ->
+            app.status == ApplicationStatus.MATCHED ->
                 MatchSuccessView(app = app, onGoChat = { app.chatRoomId?.let(onGoChat) }, onHome = onHome)
+            uiState.outcome == RematchOutcome.ACCEPTED ->
+                InfoBox(stringResource(R.string.worker_match_confirmation_pending), onBack)
             app.hasRematchOffer && uiState.outcome == RematchOutcome.PENDING ->
                 RematchWaitingView(
                     app = app,
@@ -252,7 +254,7 @@ private fun InfoBox(message: String, onHome: () -> Unit) {
     ) {
         Text(text = message, color = AppColors.TextSub, textAlign = TextAlign.Center)
         Spacer(Modifier.height(12.dp))
-        AppPrimaryButton(text = "홈으로", onClick = onHome)
+        AppPrimaryButton(text = stringResource(R.string.worker_match_back), onClick = onHome)
     }
 }
 

@@ -123,7 +123,7 @@ private fun ApplicationList(
 }
 
 @Composable
-private fun ApplicationCard(
+internal fun ApplicationCard(
     app: WorkerApplication,
     onMatchClick: () -> Unit,
     onRequestCancel: () -> Unit,
@@ -165,7 +165,7 @@ private fun ApplicationCard(
         if (app.canCancel) {
             Spacer(Modifier.height(10.dp))
             TextButton(onClick = onRequestCancel) {
-                Text(text = "지원 취소", color = AppColors.TextSub, fontSize = 13.sp)
+                Text(text = stringResource(R.string.worker_application_cancel), color = AppColors.TextSub, fontSize = 13.sp)
             }
         }
     }
@@ -190,7 +190,7 @@ private fun RematchOfferRow(expiresInSeconds: Long, onClick: () -> Unit) {
     }
 }
 
-private fun ApplicationStatus.toBadge(): AppStatus = when (this) {
+internal fun ApplicationStatus.toBadge(): AppStatus = when (this) {
     ApplicationStatus.APPLYING -> AppStatus.APPLYING
     ApplicationStatus.MATCHING -> AppStatus.MATCHING
     ApplicationStatus.MATCHED -> AppStatus.MATCHED
@@ -199,15 +199,15 @@ private fun ApplicationStatus.toBadge(): AppStatus = when (this) {
 }
 
 @Composable
-private fun CancelConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+internal fun CancelConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = AppColors.CardSurface,
-        title = { Text(text = "지원 취소", fontWeight = FontWeight.Bold, color = AppColors.TextMain) },
-        text = { Text(text = "이 공고 지원을 취소할까요?", color = AppColors.TextSub) },
+        title = { Text(text = stringResource(R.string.worker_application_cancel), fontWeight = FontWeight.Bold, color = AppColors.TextMain) },
+        text = { Text(text = stringResource(R.string.worker_application_cancel_warning), color = AppColors.TextSub) },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text(text = "지원 취소", color = AppColors.Danger, fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.worker_application_cancel), color = AppColors.Danger, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {

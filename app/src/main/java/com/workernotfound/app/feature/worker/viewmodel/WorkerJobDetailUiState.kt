@@ -9,6 +9,10 @@ import com.workernotfound.app.feature.worker.domain.model.WorkerJobDetail
 data class WorkerJobDetailUiState(
     val isLoading: Boolean = true,
     val detail: WorkerJobDetail? = null,
+    val isApplying: Boolean = false,
+    val pendingCancel: Boolean = false,
+    val isCancelling: Boolean = false,
+    val cancelErrorMessage: String? = null,
     val remainingSeconds: Long = 0,
     val errorMessage: String? = null,
 )

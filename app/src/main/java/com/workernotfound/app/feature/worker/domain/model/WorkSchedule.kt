@@ -1,5 +1,7 @@
 package com.workernotfound.app.feature.worker.domain.model
 
+import java.time.Instant
+
 /** A worker's scheduled/ongoing work shift (UI spec 3-6 근무 관리). */
 data class WorkSchedule(
     val id: String,
@@ -7,6 +9,7 @@ data class WorkSchedule(
     val category: String,
     val workDate: String,
     val timeRange: String,
+    val workEndsAt: Instant,
     val hourlyWage: Int,
     val status: WorkStatus,
     val jobId: String? = null,

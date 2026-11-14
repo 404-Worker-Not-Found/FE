@@ -73,6 +73,7 @@ fun WorkerRootScreen(navController: NavHostController, savedState: SavedStateHan
             )
             2 -> WorkerWorkScreen(
                 onCancellation = { navController.navigate(AppRoute.workerCancellation(it)) },
+                onMatchClick = { navController.navigate(AppRoute.workerMatchResult(it)) },
                 modifier = contentModifier,
                 onAttendanceClick = { navController.navigate(AppRoute.WORKER_ATTENDANCE) },
                 onApplicationsClick = { navController.navigate(AppRoute.WORKER_APPLICATIONS) },

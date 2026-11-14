@@ -27,4 +27,4 @@ data class WorkerJobPosting(
 )
 
 /** Instant-apply state for a posting (UI spec 3-1: 성공 시 지원 완료 상태 표시). */
-enum class ApplyStatus { AVAILABLE, APPLIED }
+enum class ApplyStatus { AVAILABLE, APPLIED, REAPPLICATION_NOT_ALLOWED }

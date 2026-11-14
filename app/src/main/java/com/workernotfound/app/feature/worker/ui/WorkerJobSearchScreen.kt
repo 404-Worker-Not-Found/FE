@@ -302,12 +302,12 @@ private fun JobList(
                     job = job,
                     onClick = { onJobClick(job.id) },
                     onApply = { onApply(job.id) },
+                    isApplying = job.id in uiState.applyingJobIds,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
-        jobSection(R.string.worker_home_recommended, uiState.recommendedJobs, onJobClick, onApply)
-        jobSection(R.string.worker_search_others, uiState.otherJobs, onJobClick, onApply)
+        jobSection(R.string.worker_home_recommended, uiState.visibleJobs, uiState.applyingJobIds, onJobClick, onApply)
         if (uiState.totalCount == 0) {
             item {
                 Text(
@@ -323,13 +323,15 @@ private fun JobList(
 private fun androidx.compose.foundation.lazy.LazyListScope.jobSection(
     title: Int,
     jobs: List<WorkerJobPosting>,
+    applyingJobIds: Set<String>,
     onJobClick: (String) -> Unit,
     onApply: (String) -> Unit,
 ) {
     if (jobs.isEmpty()) return
     item(key = "section-$title") { SectionLabel(text = stringResource(title)) }
-    items(items = jobs, key = { it.id }) { job ->
-        WorkerRecommendedJobCard(job = job, onClick = { onJobClick(job.id) }, onApply = { onApply(job.id) })
+    items(items = jobs, key = { "all-${it.id}" }) { job ->
+        WorkerRecommendedJobCard(job = job, onClick = { onJobClick(job.id) }, onApply = { onApply(job.id) },
+            isApplying = job.id in applyingJobIds)
     }
 }
 
@@ -350,6 +352,7 @@ private fun MapView(
             longitude = uiState.originLongitude,
             onJobClick = onJobClick,
             onApply = onApply,
+            applyingJobIds = uiState.applyingJobIds,
         )
         Row(
             modifier = Modifier

@@ -49,19 +49,6 @@ class JobEligibilityTest {
         assertNull(JobEligibility.withinRadius(job(), preference.copy(activityRadiusKm = null)))
     }
 
-    @Test fun recommendedMatchesTypeWageAndAvailableTime() {
-        assertTrue(JobEligibility.isRecommended(job(), preference))
-        assertFalse(JobEligibility.isRecommended(job(category = "편의점"), preference))
-        assertFalse(JobEligibility.isRecommended(job(wage = 10500), preference))
-        assertFalse(JobEligibility.isRecommended(job(start = "17:00", end = "20:00"), preference))
-        assertFalse(JobEligibility.isRecommended(job(), null))
-    }
-
-    @Test fun emptyPreferencesDoNotRestrictRecommendation() {
-        val open = preference.copy(desiredHourlyWage = null, preferredBusinessTypes = emptyList(), availableTimes = emptyList())
-        assertTrue(JobEligibility.isRecommended(job(category = "편의점", wage = 10320, start = "22:00", end = "02:00"), open))
-    }
-
     @Test fun detailAvailabilityFromCard() {
         assertEquals(ApplyAvailability.UNKNOWN, JobEligibility.availability(null, preference))
         assertEquals(ApplyAvailability.CLOSED, JobEligibility.availability(job(remaining = 0), preference))

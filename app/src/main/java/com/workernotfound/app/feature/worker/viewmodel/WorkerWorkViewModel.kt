@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Clock
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,15 +31,19 @@ class WorkerWorkViewModel @Inject constructor(
         load()
     }
 
-    fun load() {
+    fun load() = load(silent = false)
+    fun poll() = load(silent = true)
+
+    private fun load(silent: Boolean) {
         if (loadJob?.isActive == true) return
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { it.copy(isLoading = if (silent) it.isLoading else true, errorMessage = null) }
         loadJob = viewModelScope.launch {
             runCatching { repository.getWorks() }
                 .onSuccess { works ->
                     val (inProgress, scheduled) = works.partition { it.status == WorkStatus.IN_PROGRESS }
+                    val now = Clock.systemUTC().instant()
                     _uiState.update {
-                        it.copy(isLoading = false, scheduled = scheduled, inProgress = inProgress)
+                        it.copy(isLoading = false, scheduled = scheduled.filter { work -> work.workEndsAt.isAfter(now) }, inProgress = inProgress)
                     }
                 }
                 .onFailure { t ->

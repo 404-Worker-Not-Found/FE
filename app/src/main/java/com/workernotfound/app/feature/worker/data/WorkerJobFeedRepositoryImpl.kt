@@ -7,11 +7,13 @@ import com.workernotfound.app.feature.mypage.data.remote.MemberProfileApiService
 import com.workernotfound.app.feature.mypage.data.remote.MemberProfileDto
 import com.workernotfound.app.feature.worker.domain.model.AvailableTime
 import com.workernotfound.app.feature.worker.domain.model.JobFilter
+import com.workernotfound.app.feature.worker.domain.model.ApplyStatus
 import com.workernotfound.app.feature.worker.domain.model.WorkerPreference
 import com.workernotfound.app.feature.worker.domain.repository.SearchOrigin
 import com.workernotfound.app.feature.worker.domain.repository.WorkerJobFeed
 import com.workernotfound.app.feature.worker.domain.repository.WorkerJobFeedRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerJobRepository
+import com.workernotfound.app.feature.worker.domain.repository.WorkerApplicationRepository
 import java.time.DayOfWeek
 import java.time.LocalTime
 import javax.inject.Inject
@@ -29,6 +31,7 @@ class WorkerJobFeedRepositoryImpl @Inject constructor(
     private val positions: DeviceLocationProvider,
     private val backend: BackendAccess,
     private val sessions: SessionStore,
+    private val applications: WorkerApplicationRepository,
 ) : WorkerJobFeedRepository {
     private val lock = Mutex()
     private var cached: Pair<Long, WorkerPreference>? = null
@@ -53,7 +56,11 @@ class WorkerJobFeedRepositoryImpl @Inject constructor(
             else -> SearchOrigin.NONE to filter
         }
         val result = jobs.searchJobs(located)
-        return WorkerJobFeed(preference, origin, located.latitude, located.longitude, result.jobs)
+        val applyStatuses = applications.applyStatusesByJobId()
+        val postings = result.jobs.map { job ->
+            job.copy(applyStatus = applyStatuses[job.id]?.status ?: ApplyStatus.AVAILABLE)
+        }
+        return WorkerJobFeed(preference, origin, located.latitude, located.longitude, postings)
     }
 }
 

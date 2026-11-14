@@ -42,6 +42,7 @@ fun WorkerUrgentJobCard(
     onClick: () -> Unit,
     onApply: () -> Unit,
     modifier: Modifier = Modifier,
+    isApplying: Boolean = false,
 ) {
     AppCard(modifier = modifier.width(240.dp).clickable(onClick = onClick)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -66,7 +67,7 @@ fun WorkerUrgentJobCard(
                 Text(text = job.distanceText, color = AppColors.TextSub, fontSize = 11.sp)
             }
             Spacer(Modifier.weight(1f))
-            WorkerApplyButton(status = job.applyStatus, onClick = onApply)
+            WorkerApplyButton(status = job.applyStatus, onClick = onApply, isApplying = isApplying)
         }
     }
 }
@@ -81,6 +82,7 @@ fun WorkerRecommendedJobCard(
     onClick: () -> Unit,
     onApply: () -> Unit,
     modifier: Modifier = Modifier,
+    isApplying: Boolean = false,
 ) {
     AppCard(modifier = modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -96,7 +98,7 @@ fun WorkerRecommendedJobCard(
                 WageText(job.hourlyWage)
             }
             Spacer(Modifier.width(12.dp))
-            WorkerApplyButton(status = job.applyStatus, onClick = onApply)
+            WorkerApplyButton(status = job.applyStatus, onClick = onApply, isApplying = isApplying)
         }
     }
 }

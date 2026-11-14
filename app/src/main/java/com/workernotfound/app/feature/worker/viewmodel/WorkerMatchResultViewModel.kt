@@ -80,7 +80,7 @@ class WorkerMatchResultViewModel @Inject constructor(
         }
     }
 
-    /** 재매칭 수락 → 즉시 새 근무자로 매칭 확정 (UI spec 3-5). */
+    /** The accept response confirms the proposal; final match waits for the server's SELECTED status. */
     private var isResponding = false
     fun accept() = respond(accept = true)
     fun reject() = respond(accept = false)

@@ -5,7 +5,7 @@ import com.workernotfound.app.feature.worker.domain.model.JobFilter
 import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
 import com.workernotfound.app.feature.worker.domain.model.WorkerPreference
 
-/** Job list shared by 홈 (3-1) and 공고 탐색 (3-2), with the worker preference that classifies it. */
+/** Job list shared by 홈 (3-1) and 공고 탐색 (3-2), with worker preferences for the availability toggle. */
 interface WorkerJobFeedRepository {
     /**
      * Searches with [filter]. When the filter has no coordinates, distance is measured from the
@@ -27,7 +27,5 @@ data class WorkerJobFeed(
     val jobs: List<WorkerJobPosting>,
 ) {
     val urgent: List<WorkerJobPosting> get() = jobs.filter { it.isUrgent }
-    val recommended: List<WorkerJobPosting> get() = jobs.filter { !it.isUrgent && JobEligibility.isRecommended(it, preference) }
-    val others: List<WorkerJobPosting> get() = jobs.filter { !it.isUrgent && !JobEligibility.isRecommended(it, preference) }
     val applicable: List<WorkerJobPosting> get() = jobs.filter { JobEligibility.isApplicable(it, preference) }
 }

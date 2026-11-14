@@ -10,8 +10,11 @@ import com.workernotfound.app.feature.worker.data.remote.WorkerApplicationApiSer
 import com.workernotfound.app.feature.worker.data.remote.WorkerChatApiService
 import com.workernotfound.app.feature.worker.data.remote.WorkerJobApiService
 import com.workernotfound.app.feature.worker.domain.model.ApplicationStatus
+import com.workernotfound.app.feature.worker.domain.model.ApplyStatus
 import com.workernotfound.app.feature.worker.domain.model.WorkerApplication
+import com.workernotfound.app.feature.worker.domain.model.workShiftEndsAt
 import com.workernotfound.app.feature.worker.domain.repository.WorkerApplicationRepository
+import com.workernotfound.app.feature.worker.domain.repository.JobApplicationState
 import javax.inject.Inject
 
 /** Application/matching repository (UI spec 3-4, 3-5). */
@@ -37,7 +40,8 @@ class WorkerApplicationRepositoryImpl @Inject constructor(private val backend: B
 
     override suspend fun cancel(applicationId: String) {
         backend.requireSession()
-        api.cancel(applicationId.toLong()).requireData()
+        val response = api.cancel(applicationId.toLong()).requireData()
+        if (response.status != "CANCELED") throw ApiException("APPLICATION_CANCELLATION_NOT_CONFIRMED")
     }
 
     override suspend fun getApplications(): List<WorkerApplication> {
@@ -57,6 +61,25 @@ class WorkerApplicationRepositoryImpl @Inject constructor(private val backend: B
         backend.requireSession()
         val app = api.detail(id.toLong()).requireData()
         return map(app, allMatchings().firstOrNull { it.applicationId == app.applicationId }, includeChat = true)
+    }
+
+    override suspend fun applyStatusesByJobId(): Map<String, JobApplicationState> {
+        backend.requireSession()
+        val statuses = mutableMapOf<String, JobApplicationState>()
+        var page = 0
+        do {
+            val result = api.list(page).requireData()
+            result.applications.forEach { app ->
+                val status = if (app.status == "APPLIED") {
+                    ApplyStatus.APPLIED
+                } else {
+                    ApplyStatus.REAPPLICATION_NOT_ALLOWED
+                }
+                statuses[app.jobPostId.toString()] = JobApplicationState(app.applicationId.toString(), status)
+            }
+            page++
+        } while (page < result.totalPages)
+        return statuses
     }
 
     private suspend fun allMatchings(): List<MatchingResponseDto> {
@@ -84,9 +107,10 @@ class WorkerApplicationRepositoryImpl @Inject constructor(private val backend: B
         val job = jobs.detail(app.jobPostId).requireData()
         val expiresIn = matching?.expiresAt?.let { expiresInSeconds(it) }
         return WorkerApplication(
-            id = app.applicationId.toString(), storeName = job.storeName, category = job.categoryName,
+            id = app.applicationId.toString(), jobId = app.jobPostId.toString(), storeName = job.storeName, category = job.categoryName,
             appliedAtText = KoreanDateTime.relative(app.appliedAt), status = applicationStatus(app.status, matching?.status),
             workDate = KoreanDateTime.workDate(job.workDate), workTimeRange = "${job.startTime.take(5)} ~ ${job.endTime.take(5)}",
+            workEndsAt = workShiftEndsAt(job.workDate, job.startTime, job.endTime),
             address = job.address, hourlyWage = job.baseHourlyWage + job.extraWage,
             matchScore = matching?.totalScore?.let { kotlin.math.round(it).toInt() },
             hasRematchOffer = isValidOffer(app.status, matching?.status, expiresIn), matchingId = matching?.matchingId?.toString(),

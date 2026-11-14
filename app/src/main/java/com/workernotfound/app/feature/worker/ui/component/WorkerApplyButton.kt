@@ -16,6 +16,8 @@ import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppRadius
 import com.workernotfound.app.core.designsystem.AppTheme
 import com.workernotfound.app.feature.worker.domain.model.ApplyStatus
+import com.workernotfound.app.R
+import androidx.compose.ui.res.stringResource
 
 /**
  * Compact pill button for instant apply inside a job card (UI spec 3-1: 즉시 지원).
@@ -26,23 +28,29 @@ fun WorkerApplyButton(
     status: ApplyStatus,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isApplying: Boolean = false,
 ) {
-    val applied = status == ApplyStatus.APPLIED
+    val blocked = status != ApplyStatus.AVAILABLE
     Button(
         onClick = onClick,
-        enabled = !applied,
+        enabled = !blocked && !isApplying,
         modifier = modifier.height(34.dp),
         shape = RoundedCornerShape(AppRadius.pill),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = AppTheme.role.accent,
             contentColor = Color.White,
-            disabledContainerColor = AppColors.SuccessBg,
-            disabledContentColor = AppColors.Success,
+            disabledContainerColor = if (status == ApplyStatus.APPLIED) AppColors.SuccessBg else AppColors.Border,
+            disabledContentColor = if (status == ApplyStatus.APPLIED) AppColors.Success else AppColors.TextSub,
         ),
     ) {
         Text(
-            text = if (applied) "지원완료" else "즉시지원",
+            text = stringResource(when {
+                status == ApplyStatus.APPLIED -> R.string.worker_apply_done
+                status == ApplyStatus.REAPPLICATION_NOT_ALLOWED -> R.string.worker_apply_again_unavailable
+                isApplying -> R.string.worker_apply_progress
+                else -> R.string.worker_apply_now
+            }),
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
         )

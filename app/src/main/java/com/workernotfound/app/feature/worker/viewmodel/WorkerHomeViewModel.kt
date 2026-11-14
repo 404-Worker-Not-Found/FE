@@ -56,7 +56,7 @@ class WorkerHomeViewModel @Inject constructor(
                         activityRadiusKm = result.preference?.activityRadiusKm,
                         origin = result.origin,
                         urgentJobs = result.urgent,
-                        recommendedJobs = result.recommended,
+                        allJobs = result.jobs,
                         applicableJobs = result.applicable,
                     )
                 }
@@ -74,13 +74,16 @@ class WorkerHomeViewModel @Inject constructor(
 
     /** 즉시 지원: mark the posting as applied after the server accepts it. */
     fun applyTo(jobId: String) {
+        if (jobId in _uiState.value.applyingJobIds ||
+            _uiState.value.allJobs.none { it.id == jobId && it.applyStatus == ApplyStatus.AVAILABLE }) return
+        _uiState.update { it.copy(applyingJobIds = it.applyingJobIds + jobId) }
         viewModelScope.launch {
             try {
                 applications.apply(jobId)
                 _uiState.update { state ->
                     state.copy(
                         urgentJobs = state.urgentJobs.markApplied(jobId),
-                        recommendedJobs = state.recommendedJobs.markApplied(jobId),
+                        allJobs = state.allJobs.markApplied(jobId),
                         // An applied posting is no longer "immediately applicable".
                         applicableJobs = state.applicableJobs.markApplied(jobId)
                             .filter { JobEligibility.isApplicable(it, preference) },
@@ -89,6 +92,8 @@ class WorkerHomeViewModel @Inject constructor(
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
                 _uiState.update { it.copy(errorMessage = backend.message(error)) }
+            } finally {
+                _uiState.update { it.copy(applyingJobIds = it.applyingJobIds - jobId) }
             }
         }
     }

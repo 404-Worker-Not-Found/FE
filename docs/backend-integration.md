@@ -29,12 +29,13 @@ BE `e24145f`는 기존 웹 프론트 전제를 수정해 `FRONTEND_ORIGIN` 의�
 
 | 현재 화면 | 실제 연결 | 상태/제약 |
 |---|---|---|
-| 알바생 홈 3-1 | `GET /api/jobs/search`, `POST /api/applications` | 긴급은 `type=URGENT`, 별도 추천 API가 없어 일반 공고 영역에 비긴급 공고 표시. 지원은 세션 필요 |
+| 알바생 홈 3-1 | `GET /api/jobs/search`, `GET/POST /api/applications` | 긴급 강조 영역과 전체 공고 영역에 서버 검색 결과 표시. 지원 여부는 서버 지원 목록으로 동기화 |
 | 공고 탐색 3-2 | `GET /api/jobs/search`, 지원 | 페이지 전체 조회, 시급/시간/긴급 서버 필터. 업종명은 확인된 서버 seed 이름을 표시하고 categoryName으로 필터링. 위치 미연결 상태에서 거리 필터를 좁히면 명시적 오류 |
 | 공고 상세 3-3 | `GET /api/jobs/{id}`, 지원 | baseHourlyWage+extraWage 표시. 미제공 거리·반경·점수·지원자 수를 발명하지 않음 |
 | 지원 현황 3-4 | `GET /api/applications`, `GET /api/jobs/{id}`, `PATCH /api/applications/{id}/cancel` | 지원 ID와 공고 ID 구분. 서버 수락 후 상태 갱신. 타이머 매칭 시뮬레이션 없음. WebSocket 미연결 |
+| 동일 공고 재지원 | `POST /api/applications`, `GET /api/applications` | 백엔드는 취소·종료된 지원의 재접수를 `REAPPLICATION_NOT_ALLOWED`(409)로 거절. 앱은 모든 기존 지원 상태를 확인해 버튼을 비활성화 |
 | 매칭 결과 3-5 | 지원·매칭 목록/상세, `PATCH /api/matchings/{id}/accept`·`decline`, 실제 방 조회 | PENDING 제안의 서버 expiresAt 사용. 수락 응답 CONFIRMED 확인. SELECTED는 최종 confirmation saga 이후 확정 상태. 방 목록의 matchingId로 실제 chatRoomId 조회 |
-| 알바생 근무 목록 3-6 | `GET /api/works/me`, 공고 상세 조합 | 예정/진행 상태 표시. GPS 출근은 독립 출근 패널에 연결. 근무 취소 API UI는 후속 |
+| 알바생 근무 목록 3-6 | `GET /api/works/me`, `GET /api/applications`, 공고 상세 조합 | 종료 전 매칭 완료 건은 근무 목록에만 표시하고 종료 후에는 지원 목록에 출근 완료로 표시. GPS 출근은 독립 출근 패널에 연결. 근무 취소 합의는 별도 화면 |
 | 채팅 목록/내역 | `GET /api/chat-rooms/me`, 방 상세, 메시지 내역, 공고 상세 | 모든 목록 페이지, 메시지 cursor 조회; 읽음·실시간 sync는 후속 |
 | 채팅 전송 | `POST /api/chat-rooms/me/{id}/messages` | clientMessageId 유지 재시도, 서버 수락한 메시지만 추가 |
 | 점주 홈 2-1 | `GET /api/jobs/me`, 공고 상세 | 실제 title, PAYMENT_PENDING/OPEN/MATCHING/CLOSED 및 funding-blocked 표시. 지원자 수 null은 미제공 |
@@ -49,7 +50,7 @@ BE `e24145f`는 기존 웹 프론트 전제를 수정해 `FRONTEND_ORIGIN` 의�
 
 사용자 지시에 따라 연동에서는 백엔드 계약을 우선한다. 구현하지 않은 화면을 임의로 먼저 만들지 않는다.
 
-- 근무 가능 토글과 개인화 추천 데이터가 공개 조회에 없어 긴급 공고 필터와 일반 공고로 표시한다. 개인 이름을 임의 이름으로 표시하지 않는다.
+- 개인화 추천 데이터가 공개 조회에 없어 전체 공고를 표시한다. '즉시 지원 가능' 토글에만 활동 반경·모집 상태·마감·미지원 조건을 적용한다. 개인 이름을 임의 이름으로 표시하지 않는다.
 - 공고 생성은 `title` 필수이며 공고 생성 직후 공개가 아니라 결제 대기/예치금 확정 후 공개 흐름이다. ‘등록 완료=모집 공개’ 가정을 제거했다. businessId와 categoryId를 임의의 고정 숫자로 보내지 않는다.
 - 업종 seed는 카페/음료, 일반음식점 등이다. 기존 UI의 카페/음식점 라벨과 달라 탐색 필터는 seed 이름으로 수정했다. 서버 카테고리 조회 API와 공고 생성용 ID 선택 계약은 후속이다.
 - 공고 상세에는 가산 합계 `extraWage`만 있다. 긴급/시간대별 가산으로 임의 분해하지 않는다. applicantCount는 실제 구현상 null이다. 거리·모집 반경·매칭 점수·공개 상태/긴급도도 상세 응답에 없으므로 해당 표시/제약은 후속이다.
@@ -132,7 +133,7 @@ BE 최신 `e24145f`의 auth/signup/verification/password-reset 및 job/payment c
 
 ## 2026-11-09 알바생 화면 UI 개선 (fix/worker-screen-ui)
 
-- 홈·탐색의 추천 공고와 '즉시 지원 가능'은 `GET /api/members/me`의 workerProfile(활동 반경·기준 위치·희망 업종·희망 시급·가능 시간)과 검색 카드(status·remainingMinutes·distanceKm)로 앱에서 판정한다. 공고별 모집 반경과 추천 API는 서버에 없어 알바생 활동 반경을 사용한다.
+- 홈·탐색의 전체 공고는 선호 업종·희망 시급·가능 시간으로 걸러내지 않는다. '즉시 지원 가능'은 `GET /api/members/me`의 활동 반경과 검색 카드(status·remainingMinutes·distanceKm), `GET /api/applications`의 지원 여부로 앱에서 판정한다. 공고별 모집 반경과 추천 API는 서버에 없어 알바생 활동 반경을 사용한다.
 - 거리는 기기의 마지막 위치, 없으면 등록한 기준 위치로 `workerLat/workerLng`를 보내 서버 distanceKm를 받는다. 검색 API에 키워드 파라미터가 없어 가게·업종명은 받은 결과에서 거르고, 동네는 Geocoder로 좌표를 찾아 그 위치로 다시 조회한다.
 - 공고 상세 응답에는 긴급도·거리·마감·좌표가 없어 직전 검색 카드 값을 쓴다. 알림 등 카드 없이 열면 긴급 배지·지원 가능 판정은 표시하지 않는다. 가산 시급은 extraWage 합계만 있어 긴급/시간대로 나누지 않는다.
 - 신뢰도 화면의 근무·노쇼 횟수, 리뷰 평균, 최근 리뷰(workId로 가게명 연결), 최근 근무 이력(평점·실제 정산액)은 실제 데이터다. 신뢰 점수·등급·노쇼 위험도는 matching-service 내부에만 있어 '준비 중'으로 표시한다.

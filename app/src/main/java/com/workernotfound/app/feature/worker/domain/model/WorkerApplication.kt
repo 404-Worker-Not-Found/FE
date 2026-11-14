@@ -1,5 +1,6 @@
 package com.workernotfound.app.feature.worker.domain.model
 
+import java.time.Instant
 
 
 /**
@@ -9,12 +10,14 @@ package com.workernotfound.app.feature.worker.domain.model
  */
 data class WorkerApplication(
     val id: String,
+    val jobId: String,
     val storeName: String,
     val category: String,
     val appliedAtText: String,
     val status: ApplicationStatus,
     val workDate: String,
     val workTimeRange: String,
+    val workEndsAt: Instant,
     val address: String,
     val hourlyWage: Int,
     val matchScore: Int?,

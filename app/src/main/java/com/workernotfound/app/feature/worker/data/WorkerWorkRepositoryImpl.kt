@@ -12,6 +12,7 @@ import com.workernotfound.app.feature.worker.data.remote.WorkerWorkApiService
 import com.workernotfound.app.feature.worker.data.remote.startsInSeconds
 import com.workernotfound.app.feature.worker.domain.model.WorkSchedule
 import com.workernotfound.app.feature.worker.domain.model.WorkStatus
+import com.workernotfound.app.feature.worker.domain.model.workShiftEndsAt
 import com.workernotfound.app.feature.worker.domain.repository.WorkerWorkRepository
 import javax.inject.Inject
 
@@ -45,6 +46,8 @@ class WorkerWorkRepositoryImpl @Inject constructor(private val backend: BackendA
                 all += WorkSchedule(
                     id = work.workId.toString(), jobId = work.jobPostId.toString(), address = job.address, storeName = job.storeName, category = job.categoryName,
                     workDate = work.workDate, timeRange = "${work.startTime.take(5)} ~ ${work.endTime.take(5)}",
+                    workEndsAt = workShiftEndsAt(work.workDate, work.startTime, work.endTime,
+                        ZoneId.of(policy.timeZone), work.endTimeNextDay),
                     hourlyWage = job.baseHourlyWage + job.extraWage,
                     // Stays 예정 until the server confirms check-in/start, even when the start is near.
                     status = workSection(work.status),

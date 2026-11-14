@@ -5,9 +5,15 @@
     <string name="worker_home_available_title">즉시 지원 가능</string>
     <string name="worker_home_available_description">마감 전 · 내 반경 %1$dkm 이내 공고만</string>
     <string name="worker_home_available_description_unknown">마감 전 · 내 활동 반경 이내 공고만</string>
-    <string name="worker_home_recommended">추천 공고</string>
-    <string name="worker_home_recommended_empty">조건에 맞는 추천 공고가 없어요. 공고 탐색에서 전체 공고를 볼 수 있어요.</string>
+    <string name="worker_home_recommended">전체 공고</string>
+    <string name="worker_home_recommended_empty">표시할 공고가 없어요.</string>
+    <string name="worker_match_confirmation_pending">제안을 수락했어요. 서버의 매칭 확정을 확인하고 있어요.</string>
+    <string name="worker_match_back">돌아가기</string>
     <string name="worker_home_available_empty">지금 바로 지원할 수 있는 공고가 없어요.</string>
+    <string name="worker_apply_now">즉시지원</string>
+    <string name="worker_apply_progress">지원 중…</string>
+    <string name="worker_apply_done">지원완료</string>
+    <string name="worker_apply_again_unavailable">재지원 불가</string>
     <string name="worker_origin_device">현재 위치 기준 거리</string>
     <string name="worker_origin_base">등록한 활동 지역 기준 거리</string>
     <string name="worker_origin_none">위치 정보가 없어 거리를 표시할 수 없어요</string>
@@ -41,11 +47,17 @@
     <string name="worker_detail_closed_button">모집 마감</string>
     <string name="worker_detail_apply">즉시 지원하기</string>
     <string name="worker_detail_applied">지원 완료</string>
+    <string name="worker_detail_already_applied">이미 지원한 공고예요.</string>
+    <string name="worker_detail_reapplication_unavailable">취소되거나 종료된 지원은 같은 공고에 다시 접수할 수 없어요.</string>
     <string name="worker_detail_map_missing">주소로 위치를 찾지 못했어요</string>
 
     <!-- 3-4 / 3-5 -->
     <string name="worker_application_meta">%1$s · %2$s</string>
     <string name="worker_application_applied_at">지원 %1$s</string>
+    <string name="worker_application_cancel">지원 취소</string>
+    <string name="worker_application_cancel_warning">지원을 취소하시겠습니까? 지원 취소 시 재지원은 불가합니다.</string>
+    <string name="worker_application_submitted">지원됨</string>
+    <string name="worker_application_work_completed">출근 완료</string>
     <string name="worker_rematch_banner">🔔 매칭 제안이 도착했어요 · %1$s 남음 ›</string>
     <string name="worker_go_home">홈으로</string>
 
@@ -57,6 +69,9 @@
     <string name="worker_work_card_menu">근무 메뉴</string>
     <string name="worker_work_attendance">출근 체크</string>
     <string name="worker_work_scheduled">예정 근무</string>
+    <string name="worker_work_empty">예정된 근무가 없어요.</string>
+    <string name="worker_work_applied">지원한 근무</string>
+    <string name="worker_work_applied_empty">지원한 근무가 없어요.</string>
     <string name="worker_work_in_progress">진행 중 근무</string>
     <string name="worker_work_badge_scheduled">예정</string>
     <string name="worker_work_badge_checked_in">출근 완료</string>

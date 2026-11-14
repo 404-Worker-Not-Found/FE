@@ -119,7 +119,7 @@ private fun WorkerHomeContent(
                 uiState.isLoading -> LoadingBox()
                 uiState.errorMessage != null -> ErrorBox(uiState.errorMessage, onRetry)
                 uiState.isAvailableOnly && uiState.applicableJobs.isEmpty() -> ScrollableEmpty(R.string.worker_home_available_empty)
-                !uiState.isAvailableOnly && uiState.urgentJobs.isEmpty() && uiState.recommendedJobs.isEmpty() ->
+                !uiState.isAvailableOnly && uiState.allJobs.isEmpty() ->
                     ScrollableEmpty(R.string.worker_home_recommended_empty)
                 else -> JobLists(
                     uiState = uiState,
@@ -228,6 +228,7 @@ private fun JobLists(
                     job = job,
                     onClick = { onJobClick(job.id) },
                     onApply = { onApply(job.id) },
+                    isApplying = job.id in uiState.applyingJobIds,
                     modifier = Modifier.padding(horizontal = AppDimens.screenPadding),
                 )
             }
@@ -249,6 +250,7 @@ private fun JobLists(
                             job = job,
                             onClick = { onJobClick(job.id) },
                             onApply = { onApply(job.id) },
+                            isApplying = job.id in uiState.applyingJobIds,
                         )
                     }
                 }
@@ -261,13 +263,14 @@ private fun JobLists(
                 modifier = Modifier.padding(horizontal = AppDimens.screenPadding),
             )
             Spacer(Modifier.height(8.dp))
-            if (uiState.recommendedJobs.isEmpty()) EmptyText(R.string.worker_home_recommended_empty)
+            if (uiState.allJobs.isEmpty()) EmptyText(R.string.worker_home_recommended_empty)
         }
-        items(items = uiState.recommendedJobs, key = { it.id }) { job ->
+        items(items = uiState.allJobs, key = { it.id }) { job ->
             WorkerRecommendedJobCard(
                 job = job,
                 onClick = { onJobClick(job.id) },
                 onApply = { onApply(job.id) },
+                isApplying = job.id in uiState.applyingJobIds,
                 modifier = Modifier.padding(horizontal = AppDimens.screenPadding),
             )
         }

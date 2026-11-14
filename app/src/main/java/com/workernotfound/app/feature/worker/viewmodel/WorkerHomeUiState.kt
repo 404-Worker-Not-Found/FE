@@ -17,7 +17,8 @@ data class WorkerHomeUiState(
     val origin: SearchOrigin = SearchOrigin.NONE,
     val isAvailableOnly: Boolean = false,
     val urgentJobs: List<WorkerJobPosting> = emptyList(),
-    val recommendedJobs: List<WorkerJobPosting> = emptyList(),
+    val allJobs: List<WorkerJobPosting> = emptyList(),
     val applicableJobs: List<WorkerJobPosting> = emptyList(),
+    val applyingJobIds: Set<String> = emptySet(),
     val errorMessage: String? = null,
 )

@@ -59,7 +59,7 @@ class JobMapViewModel @Inject constructor(private val jobs: WorkerJobRepository,
 @Composable
 fun LiveJobMap(jobs: List<WorkerJobPosting>, selectedId: String?, onSelect: (String) -> Unit,
     latitude: Double?, longitude: Double?, onJobClick: (String) -> Unit, onApply: (String) -> Unit,
-    modifier: Modifier = Modifier) {
+    modifier: Modifier = Modifier, applyingJobIds: Set<String> = emptySet()) {
     if (BuildConfig.NAVER_MAP_CLIENT_ID.isBlank()) { AppMap(emptyList(), modifier.fillMaxSize()); return }
     val viewModel: JobMapViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -73,7 +73,8 @@ fun LiveJobMap(jobs: List<WorkerJobPosting>, selectedId: String?, onSelect: (Str
         AppMap(points, Modifier.fillMaxWidth().weight(1f), onMarker = { id -> if (id != "current-location") onSelect(id) })
         jobs.firstOrNull { it.id == selectedId }?.let { selected ->
             WorkerRecommendedJobCard(selected, { onJobClick(selected.id) }, { onApply(selected.id) },
-                modifier = Modifier.fillMaxWidth().padding(AppDimens.screenPadding))
+                modifier = Modifier.fillMaxWidth().padding(AppDimens.screenPadding),
+                isApplying = selected.id in applyingJobIds)
         }
     }
 }
