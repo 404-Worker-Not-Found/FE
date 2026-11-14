@@ -1,5 +1,8 @@
 package com.workernotfound.app.feature.owner.ui
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -81,16 +84,28 @@ private fun OwnerHomeContent(
                 bottom = 8.dp,
             ),
         ) {
-            Text(
-                text = "사장님, 안녕하세요 👋",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = AppColors.TextMain,
-            )
-            Spacer(Modifier.height(12.dp))
-            androidx.compose.material3.TextButton(onClick = onNotificationsClick) {
-                Text(androidx.compose.ui.res.stringResource(R.string.notifications_title))
+            // Same header as the worker home: greeting on the left, notification bell on the right.
+            androidx.compose.foundation.layout.Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "사장님, 안녕하세요 👋",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.TextMain,
+                    modifier = Modifier.weight(1f),
+                )
+                androidx.compose.material3.Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Outlined.Notifications,
+                    contentDescription = androidx.compose.ui.res.stringResource(R.string.notifications_title),
+                    tint = AppColors.TextSub,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable(onClick = onNotificationsClick),
+                )
             }
+            Spacer(Modifier.height(12.dp))
             SummaryStrip(uiState.summary)
             Spacer(Modifier.height(12.dp))
             AppPrimaryButton(text = "⚡ 긴급 공고 등록", onClick = onCreatePosting)

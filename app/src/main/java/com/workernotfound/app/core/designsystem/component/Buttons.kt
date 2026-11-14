@@ -45,3 +45,46 @@ fun AppPrimaryButton(
         Text(text = text, fontWeight = FontWeight.Bold)
     }
 }
+
+/** Full-width outlined secondary action (e.g. 다시 시도, 거절, 홈으로) — pairs with [AppPrimaryButton]. */
+@Composable
+fun AppSecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    color: Color = AppTheme.role.accentPressed,
+) {
+    androidx.compose.material3.OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.fillMaxWidth().height(52.dp),
+        shape = RoundedCornerShape(AppRadius.button),
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (enabled) color else AppColors.Border),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = color, disabledContentColor = AppColors.TextPlaceholder),
+    ) {
+        Text(text = text, fontWeight = FontWeight.Bold)
+    }
+}
+
+/** Compact outlined pill for an action inside a card (e.g. 지원 취소, 위치 확인). */
+@Composable
+fun AppSmallButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    color: Color = AppTheme.role.accentPressed,
+) {
+    androidx.compose.material3.OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.height(36.dp),
+        shape = RoundedCornerShape(AppRadius.pill),
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (enabled) color else AppColors.Border),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = color, disabledContentColor = AppColors.TextPlaceholder),
+    ) {
+        Text(text = text, fontWeight = FontWeight.Bold, fontSize = androidx.compose.ui.unit.TextUnit(13f, androidx.compose.ui.unit.TextUnitType.Sp))
+    }
+}

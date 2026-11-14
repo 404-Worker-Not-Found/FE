@@ -1,6 +1,7 @@
 package com.workernotfound.app.feature.owner.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -118,12 +119,12 @@ private fun OwnerMyPageContent(
             if (uiState.hasPhotoSaveError || uiState.hasNotificationSaveError) Text(stringResource(R.string.profile_save_error), color = AppColors.Danger)
             uiState.errorMessage?.let { Text(it, color = AppColors.Danger) }
             ProfileCard(profile, onPhotoSelected)
-            profile.notificationSettings?.let { settings ->
-                NotificationCard(settings = settings, onToggle = onToggle, enabled = !uiState.isSavingNotification)
-            } ?: Text(stringResource(R.string.profile_settings_unavailable), color = AppColors.TextSub)
+            NotificationCard(settings = profile.notificationSettings, onToggle = onToggle, enabled = !uiState.isSavingNotification)
+            // Same as the worker my page: rows with ›, no plain text buttons.
             AppCard(modifier = Modifier.fillMaxWidth()) {
-                androidx.compose.material3.TextButton(onAccountSettings) { Text(stringResource(R.string.account_title)) }
-                androidx.compose.material3.TextButton(onReviews) { Text(stringResource(R.string.reviews_title)) }
+                ActionRow(label = stringResource(R.string.account_title), color = AppColors.TextMain, onClick = onAccountSettings)
+                CardDivider()
+                ActionRow(label = stringResource(R.string.reviews_title), color = AppColors.TextMain, onClick = onReviews)
                 CardDivider()
                 ActionRow(label = stringResource(R.string.profile_logout), color = AppColors.TextMain, onClick = onLogout)
             }
@@ -144,35 +145,40 @@ private fun ProfileCard(profile: OwnerProfile, onPhotoSelected: (String) -> Unit
             }
         }
         Spacer(Modifier.height(12.dp))
-        Text(
-            text = "🏪 ${profile.storeName}",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = AppTheme.role.accent,
-        )
-        profile.storeAddress?.let { Text(it, color = AppColors.TextSub, fontSize = 13.sp) }
-    }
-}
-
-@Composable
-private fun AccountCard(profile: OwnerProfile, onEditName: () -> Unit) {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
-        androidx.compose.material3.TextButton(onClick = onEditName, modifier = Modifier.fillMaxWidth()) {
-            OwnerInfoLine(label = stringResource(R.string.profile_edit_name), value = profile.name)
+        // Store tile in the same place/style as the worker's 나의 신뢰도 tile.
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(AppTheme.role.accentTint, androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                .padding(14.dp),
+        ) {
+            Text(
+                text = "🏪 ${profile.storeName}",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = AppTheme.role.accentPressed,
+            )
+            profile.storeAddress?.let {
+                Spacer(Modifier.height(2.dp))
+                Text(it, color = AppColors.TextSub, fontSize = 12.sp)
+            }
         }
-        CardDivider()
-        OwnerInfoLine(label = "연락처", value = profile.phone ?: stringResource(R.string.profile_unavailable_field))
     }
 }
 
+/** Always shown, like the worker page; without server settings the switches are disabled with a note. */
 @Composable
-private fun NotificationCard(settings: NotificationSettings, onToggle: (NotificationChannel, Boolean) -> Unit, enabled: Boolean) {
+private fun NotificationCard(settings: NotificationSettings?, onToggle: (NotificationChannel, Boolean) -> Unit, enabled: Boolean) {
+    val canEdit = settings != null && enabled
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Text(text = "알림 설정", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.TextSub)
         Spacer(Modifier.height(8.dp))
-        ToggleRow("Push 알림", settings.isPushEnabled, enabled) { onToggle(NotificationChannel.PUSH, it) }
-        ToggleRow("이메일 알림", settings.isEmailEnabled, enabled) { onToggle(NotificationChannel.EMAIL, it) }
-        ToggleRow("SMS 알림", settings.isSmsEnabled, enabled) { onToggle(NotificationChannel.SMS, it) }
+        ToggleRow("Push 알림", settings?.isPushEnabled ?: false, canEdit) { onToggle(NotificationChannel.PUSH, it) }
+        ToggleRow("이메일 알림", settings?.isEmailEnabled ?: false, canEdit) { onToggle(NotificationChannel.EMAIL, it) }
+        ToggleRow("SMS 알림", settings?.isSmsEnabled ?: false, canEdit) { onToggle(NotificationChannel.SMS, it) }
+        if (settings == null) {
+            Text(stringResource(R.string.worker_mypage_notification_unavailable), color = AppColors.TextSub, fontSize = 12.sp)
+        }
     }
 }
 

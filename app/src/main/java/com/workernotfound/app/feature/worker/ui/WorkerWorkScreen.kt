@@ -198,9 +198,9 @@ private fun WorkApplicationCard(
                     else -> StatusBadge(app.status.toBadge())
                 }
                 if (app.canCancel) {
-                    TextButton(onClick = onRequestCancel) {
-                        Text(stringResource(R.string.worker_application_cancel), color = AppColors.TextSub, fontSize = 12.sp)
-                    }
+                    Spacer(Modifier.height(8.dp))
+                    com.workernotfound.app.core.designsystem.component.AppSmallButton(
+                        stringResource(R.string.worker_application_cancel), onRequestCancel, color = AppColors.Danger)
                 }
             }
         }

@@ -63,7 +63,7 @@ fun ChatPostingScreen(onBack: () -> Unit, modifier: Modifier = Modifier,
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(requireNotNull(state.errorMessage), color = AppColors.Danger)
-                TextButton(viewModel::load) { Text(stringResource(R.string.chat_retry)) }
+                com.workernotfound.app.core.designsystem.component.AppSecondaryButton(stringResource(R.string.chat_retry), viewModel::load)
             }
             else -> state.detail?.let { job ->
                 Column(

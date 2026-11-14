@@ -71,7 +71,7 @@ fun WorkerTrustScreen(
             summary == null -> Column(Modifier.fillMaxSize().padding(AppDimens.screenPadding), verticalArrangement = Arrangement.Center) {
                 Text(stringResource(R.string.trust_load_error), color = AppColors.TextSub)
                 uiState.errorMessage?.let { Text(it, fontSize = 12.sp, color = AppColors.TextSub) }
-                TextButton(onClick = viewModel::load) { Text(stringResource(R.string.worker_retry)) }
+                com.workernotfound.app.core.designsystem.component.AppSecondaryButton(stringResource(R.string.worker_retry), viewModel::load)
             }
             else -> Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(AppDimens.screenPadding),
@@ -217,7 +217,7 @@ private data class RiskStyle(val bg: Color, val color: Color, val label: String,
 private fun SectionHeader(title: String, onViewAll: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         SectionLabel(text = title, modifier = Modifier.weight(1f))
-        TextButton(onClick = onViewAll) { Text(stringResource(R.string.trust_view_all), fontSize = 12.sp) }
+        com.workernotfound.app.core.designsystem.component.AppSmallButton(stringResource(R.string.trust_view_all).removeSuffix(" ›"), onViewAll)
     }
 }
 

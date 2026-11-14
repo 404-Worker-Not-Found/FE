@@ -164,9 +164,8 @@ internal fun ApplicationCard(
         }
         if (app.canCancel) {
             Spacer(Modifier.height(10.dp))
-            TextButton(onClick = onRequestCancel) {
-                Text(text = stringResource(R.string.worker_application_cancel), color = AppColors.TextSub, fontSize = 13.sp)
-            }
+            com.workernotfound.app.core.designsystem.component.AppSmallButton(
+                stringResource(R.string.worker_application_cancel), onRequestCancel, color = AppColors.Danger)
         }
     }
 }
