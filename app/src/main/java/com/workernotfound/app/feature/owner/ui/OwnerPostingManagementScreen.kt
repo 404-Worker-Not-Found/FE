@@ -14,7 +14,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.workernotfound.app.R
 import com.workernotfound.app.core.designsystem.AppColors
 import com.workernotfound.app.core.designsystem.AppDimens
-import com.workernotfound.app.core.designsystem.component.AppPrimaryButton
+import com.workernotfound.app.core.designsystem.AppRadius
+import com.workernotfound.app.core.designsystem.AppTheme
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.workernotfound.app.feature.owner.domain.model.PostingStatus
 import com.workernotfound.app.feature.owner.ui.component.OwnerJobCard
 import com.workernotfound.app.feature.owner.ui.component.OwnerLoadingBox
@@ -39,15 +49,34 @@ fun OwnerPostingManagementScreen(
         viewModel.refresh()
         onPauseOrDispose { }
     }
+    val currentPostings = state.postings.filter { it.status != PostingStatus.CLOSED && it.status != PostingStatus.DONE }
+    val countLoaded = !state.isLoading && state.errorMessage == null
     Column(modifier.fillMaxSize()) {
-        Column(Modifier.padding(AppDimens.screenPadding), verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
-            Text(stringResource(R.string.owner_postings_title), style = MaterialTheme.typography.titleLarge)
-            AppPrimaryButton(stringResource(R.string.publication_title), onCreatePosting)
+        // 제목 + 작은 등록 버튼, 그 아래 알바생 탐색의 리스트/지도와 같은 알약형 토글.
+        Row(
+            Modifier.fillMaxWidth().padding(start = AppDimens.screenPadding, end = AppDimens.screenPadding, top = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(stringResource(R.string.owner_postings_title), fontSize = 20.sp, fontWeight = FontWeight.Bold,
+                color = AppColors.TextMain, modifier = Modifier.weight(1f))
+            Button(
+                onClick = onCreatePosting,
+                modifier = Modifier.height(36.dp),
+                shape = RoundedCornerShape(AppRadius.pill),
+                colors = ButtonDefaults.buttonColors(containerColor = AppTheme.role.accent, contentColor = Color.White),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+            ) { Text(stringResource(R.string.owner_postings_create_action), fontSize = 13.sp, fontWeight = FontWeight.Bold) }
         }
-        TabRow(selectedTabIndex = selectedTab) {
-            listOf(R.string.owner_postings_current, R.string.owner_postings_past).forEachIndexed { index, label ->
-                Tab(selected = selectedTab == index, unselectedContentColor = AppColors.TextSub, onClick = { selectedTab = index }, text = { Text(stringResource(label)) })
-            }
+        Row(
+            Modifier.padding(start = AppDimens.screenPadding, end = AppDimens.screenPadding, top = 14.dp, bottom = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            PostingTabPill(
+                label = if (countLoaded) stringResource(R.string.owner_postings_current_count, currentPostings.size)
+                else stringResource(R.string.owner_postings_current),
+                selected = selectedTab == 0,
+            ) { selectedTab = 0 }
+            PostingTabPill(stringResource(R.string.owner_postings_past), selected = selectedTab == 1) { selectedTab = 1 }
         }
         if (selectedTab == 1) {
             OwnerPastPostingsScreen(onPostingClick = onPastPostingClick, showHeader = false)
@@ -58,7 +87,7 @@ fun OwnerPostingManagementScreen(
                 onAction = viewModel::loadPostings,
             )
             else -> {
-                val postings = state.postings.filter { it.status != PostingStatus.CLOSED && it.status != PostingStatus.DONE }
+                val postings = currentPostings
                 if (postings.isEmpty()) OwnerMessageBox(message = stringResource(R.string.owner_postings_empty))
                 else LazyColumn(contentPadding = PaddingValues(AppDimens.screenPadding),
                     verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
@@ -71,4 +100,20 @@ fun OwnerPostingManagementScreen(
             }
         }
     }
+}
+
+/** 알바생 탐색의 리스트/지도 토글과 같은 알약 모양 탭. */
+@Composable
+private fun PostingTabPill(label: String, selected: Boolean, onClick: () -> Unit) {
+    Text(
+        text = label,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Bold,
+        color = if (selected) Color.White else AppColors.TextSub,
+        modifier = Modifier
+            .background(if (selected) AppTheme.role.accent else AppColors.CardSurface, RoundedCornerShape(AppRadius.pill))
+            .border(AppDimens.borderWidth, if (selected) AppTheme.role.accent else AppColors.Border, RoundedCornerShape(AppRadius.pill))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    )
 }

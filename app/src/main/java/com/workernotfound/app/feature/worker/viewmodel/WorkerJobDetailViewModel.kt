@@ -3,6 +3,7 @@ package com.workernotfound.app.feature.worker.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.workernotfound.app.core.datastore.SessionStore
 import com.workernotfound.app.core.network.BackendAccess
 import com.workernotfound.app.feature.worker.domain.model.ApplyStatus
 import com.workernotfound.app.feature.worker.domain.repository.WorkerApplicationRepository
@@ -14,6 +15,8 @@ import com.workernotfound.app.feature.worker.domain.model.availability
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +31,7 @@ class WorkerJobDetailViewModel @Inject constructor(
     private val backend: BackendAccess,
     private val repository: WorkerJobRepository,
     private val feed: WorkerJobFeedRepository,
+    private val sessions: SessionStore,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -75,6 +79,9 @@ class WorkerJobDetailViewModel @Inject constructor(
 
     /** Adds the fields the detail API lacks from the search card the worker opened, plus their radius. */
     private suspend fun enrich(detail: WorkerJobDetail): WorkerJobDetail {
+        // The owner also opens this posting from chat; applications/preferences are worker-only APIs (403 for owners).
+        val isWorker = withContext(Dispatchers.IO) { sessions.read()?.role } == "WORKER"
+        if (!isWorker) return detail
         val card = repository.cachedCard(jobId)
         val preference = try { feed.preference() } catch (e: CancellationException) { throw e } catch (_: Exception) { null }
         val application = applications.applyStatusesByJobId()[jobId]

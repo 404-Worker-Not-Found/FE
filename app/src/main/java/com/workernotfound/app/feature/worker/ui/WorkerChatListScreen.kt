@@ -51,7 +51,7 @@ fun WorkerChatListScreen(
             androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_title), onBack = onBack)
         uiState.errorMessage?.let {
             Text(it, color = AppColors.Danger)
-            androidx.compose.material3.TextButton(viewModel::load) { Text(androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_retry)) }
+            com.workernotfound.app.core.designsystem.component.AppSmallButton(androidx.compose.ui.res.stringResource(com.workernotfound.app.R.string.chat_retry), viewModel::load)
         }
         WorkerChatListContent(uiState = uiState, onRoomClick = onRoomClick, showTitle = onBack == null, modifier = Modifier.weight(1f))
     }

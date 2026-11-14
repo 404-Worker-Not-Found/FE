@@ -102,10 +102,9 @@ private fun WorkerAttendanceContent(
                         fontSize = 15.sp,
                         textAlign = TextAlign.Center,
                     )
-                    Spacer(Modifier.height(12.dp))
-                    TextButton(onClick = onRefresh, enabled = canRefresh) {
-                        Text(stringResource(R.string.attendance_refresh))
-                    }
+                    Spacer(Modifier.height(16.dp))
+                    com.workernotfound.app.core.designsystem.component.AppSmallButton(
+                        stringResource(R.string.attendance_refresh), onRefresh, enabled = canRefresh)
                 }
             }
         }
@@ -120,17 +119,17 @@ private fun WorkerAttendanceContent(
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 if (state.isLoading) CircularProgressIndicator(color = AppTheme.role.accent, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 Spacer(Modifier.weight(1f))
-                TextButton(onClick = onRefresh, enabled = canRefresh) {
-                    Text(stringResource(R.string.attendance_refresh))
-                }
+                com.workernotfound.app.core.designsystem.component.AppSmallButton(
+                    stringResource(R.string.attendance_refresh), onRefresh, enabled = canRefresh)
             }
             state.errorMessage?.let { Text(it, color = AppColors.Danger) }
             state.problem?.let { problem ->
                 Text(stringResource(attendanceProblemResource(problem)), color = AppColors.Danger)
                 if (problem == AttendanceProblem.PERMISSION || problem == AttendanceProblem.DISABLED) {
-                    TextButton(onClick = { onSettings(problem == AttendanceProblem.DISABLED) }) {
-                        Text(stringResource(if (problem == AttendanceProblem.DISABLED) R.string.attendance_open_location else R.string.attendance_open_permissions))
-                    }
+                    Spacer(Modifier.height(8.dp))
+                    com.workernotfound.app.core.designsystem.component.AppSmallButton(
+                        stringResource(if (problem == AttendanceProblem.DISABLED) R.string.attendance_open_location else R.string.attendance_open_permissions),
+                        { onSettings(problem == AttendanceProblem.DISABLED) })
                 }
             }
             if (!state.isLoading && state.errorMessage == null && state.works.isEmpty()) Text(stringResource(R.string.attendance_no_works), color = AppColors.TextSub)
@@ -157,9 +156,9 @@ private fun WorkerAttendanceContent(
                             if (state.busyWorkId == work.id) Text(stringResource(R.string.attendance_locating))
                             if (attendance.latitude == null || attendance.longitude == null) Text(stringResource(R.string.attendance_missing_target), color = AppColors.TextSub)
                             if (!inTime) Text(stringResource(R.string.attendance_time), color = AppColors.TextSub)
-                            TextButton(onClick = { onPosition(work.id, false) }, enabled = !state.isLoading && inTime && attendance.latitude != null && attendance.longitude != null && state.busyWorkId == null) {
-                                Text(stringResource(R.string.attendance_prepare))
-                            }
+                            com.workernotfound.app.core.designsystem.component.AppSecondaryButton(
+                                stringResource(R.string.attendance_prepare), { onPosition(work.id, false) },
+                                enabled = !state.isLoading && inTime && attendance.latitude != null && attendance.longitude != null && state.busyWorkId == null)
                             AppPrimaryButton(text = stringResource(R.string.attendance_submit), onClick = { onPosition(work.id, true) },
                                 enabled = !state.isLoading && ready && inTime && state.problem == null && state.busyWorkId == null)
                         }

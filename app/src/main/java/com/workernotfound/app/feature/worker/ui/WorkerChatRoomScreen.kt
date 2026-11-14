@@ -117,16 +117,16 @@ private fun WorkerChatRoomContent(
             actions = {
                 val jobId = room?.jobId
                 if (jobId != null) {
-                    TextButton(onClick = { onJobClick(jobId) }) {
-                        Text(stringResource(R.string.chat_open_posting_action), fontSize = 13.sp)
-                    }
+                    com.workernotfound.app.core.designsystem.component.AppSmallButton(
+                        stringResource(R.string.chat_open_posting_action), { onJobClick(jobId) },
+                        modifier = Modifier.padding(end = 8.dp))
                 }
             },
         )
         if (uiState.reconnecting) Text(stringResource(R.string.chat_reconnecting), color = AppColors.TextSub)
         uiState.errorMessage?.let {
             Text(it, color = AppColors.Danger)
-            TextButton(onRetry) { Text(stringResource(R.string.chat_retry)) }
+            com.workernotfound.app.core.designsystem.component.AppSmallButton(stringResource(R.string.chat_retry), onRetry)
         }
         when {
             uiState.isLoading -> LoadingBox()

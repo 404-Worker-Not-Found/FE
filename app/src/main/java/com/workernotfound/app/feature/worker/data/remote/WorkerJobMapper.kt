@@ -41,19 +41,21 @@ class WorkerJobMapper @Inject constructor(@ApplicationContext private val contex
     )
 }
 
-/** 마감까지 남은 시간: `마감 39시간 34분 전`, 정각이면 `마감 2시간 전`, 1시간 미만이면 `마감 45분 전`. */
+/** 마감까지 남은 시간: `마감 4일 2시간 47분 전`. 0인 단위는 빼고(`마감 2시간 전`, `마감 45분 전`) 보여 준다. */
 private fun deadlineText(context: Context, remainingMinutes: Long): String {
-    val (hours, minutes) = deadlineParts(remainingMinutes) ?: return context.getString(R.string.backend_deadline_closed)
-    return when {
-        hours == 0L -> context.getString(R.string.backend_deadline_minutes, minutes)
-        minutes == 0L -> context.getString(R.string.worker_deadline_hours, hours)
-        else -> context.getString(R.string.worker_deadline_hours_minutes, hours, minutes)
+    val (days, hours, minutes) = deadlineParts(remainingMinutes) ?: return context.getString(R.string.backend_deadline_closed)
+    val parts = buildList {
+        if (days > 0) add(context.getString(R.string.worker_deadline_unit_days, days))
+        if (hours > 0) add(context.getString(R.string.worker_deadline_unit_hours, hours))
+        if (minutes > 0) add(context.getString(R.string.worker_deadline_unit_minutes, minutes))
     }
+    return context.getString(R.string.worker_deadline_before, parts.joinToString(" "))
 }
 
-/** (hours, minutes) left before the application deadline, or null once it has passed. */
-internal fun deadlineParts(remainingMinutes: Long): Pair<Long, Long>? =
-    if (remainingMinutes <= 0) null else remainingMinutes / 60 to remainingMinutes % 60
+/** (days, hours, minutes) left before the application deadline, or null once it has passed. */
+internal fun deadlineParts(remainingMinutes: Long): Triple<Long, Long, Long>? =
+    if (remainingMinutes <= 0) null
+    else Triple(remainingMinutes / (24 * 60), remainingMinutes / 60 % 24, remainingMinutes % 60)
 
 /** Backend uses Korea local date/time, independent of the device's timezone. */
 internal fun startsInSeconds(date: String, time: String, clock: Clock = Clock.systemUTC()): Long {

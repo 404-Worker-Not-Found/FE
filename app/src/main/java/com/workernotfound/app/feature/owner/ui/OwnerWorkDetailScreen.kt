@@ -19,6 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -111,8 +114,30 @@ private fun OwnerWorkDetailContent(
             .background(AppColors.Surface)
             .statusBarsPadding(),
     ) {
-        AppTopBar(title = "근무 현황", onBack = onBack)
         val timing = uiState.timing
+        var menuOpen by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+        AppTopBar(
+            title = "근무 현황",
+            onBack = onBack,
+            actions = {
+                // 근무 취소·합의 lives in the top-bar menu instead of a loose text button.
+                if (timing != null) Box {
+                    androidx.compose.material3.IconButton(onClick = { menuOpen = true }) {
+                        androidx.compose.material3.Icon(
+                            androidx.compose.material.icons.Icons.Filled.MoreVert,
+                            contentDescription = androidx.compose.ui.res.stringResource(R.string.worker_work_menu),
+                            tint = AppColors.TextSub,
+                        )
+                    }
+                    androidx.compose.material3.DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        androidx.compose.material3.DropdownMenuItem(
+                            text = { Text(androidx.compose.ui.res.stringResource(R.string.cancellation_title)) },
+                            onClick = { menuOpen = false; onCancellation(timing.work.id) },
+                        )
+                    }
+                }
+            },
+        )
         when {
             uiState.isLoading -> OwnerLoadingBox()
             timing == null -> OwnerMessageBox(
@@ -131,7 +156,6 @@ private fun OwnerWorkDetailContent(
                     WorkHeader(timing)
                     AttendanceSection(timing)
                     TimerSection(timing)
-                    androidx.compose.material3.TextButton({ onCancellation(timing.work.id) }) { Text(androidx.compose.ui.res.stringResource(R.string.cancellation_title)) }
                 }
                 ActionBar(
                     timing = timing,
@@ -237,7 +261,12 @@ private fun ActionBar(
             .padding(AppDimens.screenPadding),
     ) {
         if (timing.work.backendStatus != null) {
-            Text(text = androidx.compose.ui.res.stringResource(R.string.backend_work_server_policy), color = AppColors.TextSub)
+            Text(
+                text = androidx.compose.ui.res.stringResource(R.string.backend_work_server_policy),
+                color = AppColors.TextPlaceholder,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
             if (timing.work.canStart) {
                 AppPrimaryButton(text = androidx.compose.ui.res.stringResource(R.string.backend_start_work), onClick = onStart,
                     enabled = !isProcessing && System.currentTimeMillis() >= timing.work.scheduledStartMillis)

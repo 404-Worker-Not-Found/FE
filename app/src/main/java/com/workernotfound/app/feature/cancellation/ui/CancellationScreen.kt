@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,12 +23,16 @@ fun CancellationScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewMo
     val s by viewModel.uiState.collectAsStateWithLifecycle()
     val context = s.context
     Column(modifier.fillMaxSize().statusBarsPadding()) {
-        AppTopBar(stringResource(R.string.cancellation_title), onBack = onBack)
+        AppTopBar(stringResource(R.string.cancellation_title), onBack = onBack, actions = {
+            IconButton(onClick = viewModel::load, enabled = !s.busy) {
+                Icon(androidx.compose.material.icons.Icons.Outlined.Refresh,
+                    contentDescription = stringResource(R.string.cancellation_refresh), tint = AppColors.TextSub)
+            }
+        })
         LazyColumn(contentPadding = PaddingValues(AppDimens.screenPadding), verticalArrangement = Arrangement.spacedBy(AppDimens.cardGap)) {
             item {
                 Text(stringResource(R.string.cancellation_notice), color = AppColors.TextSub)
-                TextButton(viewModel::load, enabled = !s.busy) { Text(stringResource(R.string.cancellation_refresh)) }
-                if (s.busy) CircularProgressIndicator()
+                if (s.busy) CircularProgressIndicator(color = AppTheme.role.accent)
                 s.error?.let { Text(it, color = AppColors.Danger) }
                 context?.let { Text(it.store, style = MaterialTheme.typography.titleMedium); Text(it.description) }
             }
@@ -43,10 +49,15 @@ fun CancellationScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewMo
                         Text(request.reason)
                         Text(KoreanDateTime.dateTime(request.createdAt), color = AppColors.TextSub)
                         if (context.withinWindow(s.now)) {
-                            if (request.canWithdraw(context.member)) TextButton({ viewModel.confirm(CancellationIntent(CancellationAction.WITHDRAW, request.id)) }, enabled = !s.busy) { Text(stringResource(R.string.cancellation_withdraw)) }
-                            if (request.canRespond(context.member)) Row {
-                                TextButton({ viewModel.confirm(CancellationIntent(CancellationAction.APPROVE, request.id)) }, enabled = !s.busy) { Text(stringResource(R.string.cancellation_approve)) }
-                                TextButton({ viewModel.confirm(CancellationIntent(CancellationAction.REJECT, request.id)) }, enabled = !s.busy) { Text(stringResource(R.string.cancellation_reject)) }
+                            if (request.canWithdraw(context.member)) AppSmallButton(stringResource(R.string.cancellation_withdraw),
+                                { viewModel.confirm(CancellationIntent(CancellationAction.WITHDRAW, request.id)) }, enabled = !s.busy,
+                                color = AppColors.TextSub, modifier = Modifier.padding(top = 8.dp))
+                            if (request.canRespond(context.member)) Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                AppSmallButton(stringResource(R.string.cancellation_approve),
+                                    { viewModel.confirm(CancellationIntent(CancellationAction.APPROVE, request.id)) }, enabled = !s.busy)
+                                AppSmallButton(stringResource(R.string.cancellation_reject),
+                                    { viewModel.confirm(CancellationIntent(CancellationAction.REJECT, request.id)) }, enabled = !s.busy,
+                                    color = AppColors.Danger)
                             }
                         }
                     }

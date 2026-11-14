@@ -101,6 +101,8 @@
     <string name="trust_no_rating">평점 없음</string>
     <string name="trust_settlement_pending">정산 전</string>
     <string name="trust_load_error">신뢰도 정보를 불러오지 못했어요.</string>
-    <string name="worker_deadline_hours">마감 %1$d시간 전</string>
-    <string name="worker_deadline_hours_minutes">마감 %1$d시간 %2$d분 전</string>
+    <string name="worker_deadline_before">마감 %1$s 전</string>
+    <string name="worker_deadline_unit_days">%1$d일</string>
+    <string name="worker_deadline_unit_hours">%1$d시간</string>
+    <string name="worker_deadline_unit_minutes">%1$d분</string>
 </resources>

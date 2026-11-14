@@ -5,11 +5,12 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class DeadlinePartsTest {
-    @Test fun splitsRemainingMinutesIntoHoursAndMinutes() {
-        assertEquals(39L to 34L, deadlineParts(2374))
-        assertEquals(2L to 0L, deadlineParts(120))
-        assertEquals(0L to 45L, deadlineParts(45))
-        assertEquals(1L to 0L, deadlineParts(60))
+    @Test fun splitsRemainingMinutesIntoDaysHoursAndMinutes() {
+        assertEquals(Triple(4L, 2L, 47L), deadlineParts(98 * 60 + 47L))
+        assertEquals(Triple(1L, 15L, 34L), deadlineParts(2374))
+        assertEquals(Triple(0L, 2L, 0L), deadlineParts(120))
+        assertEquals(Triple(0L, 0L, 45L), deadlineParts(45))
+        assertEquals(Triple(1L, 0L, 0L), deadlineParts(24 * 60))
     }
 
     @Test fun passedDeadlineHasNoParts() {

@@ -58,7 +58,7 @@ fun WorkHistoryScreen(onBack: () -> Unit, onJob: (String) -> Unit, onReviews: ()
         AppTopBar(
             title = stringResource(R.string.history_title),
             onBack = onBack,
-            actions = { TextButton(onReviews) { Text(stringResource(R.string.reviews_title), fontSize = 13.sp) } },
+            actions = { com.workernotfound.app.core.designsystem.component.AppSmallButton(stringResource(R.string.reviews_title), onReviews, modifier = Modifier.padding(end = 8.dp)) },
         )
         when {
             state.loading && state.entries.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -70,7 +70,7 @@ fun WorkHistoryScreen(onBack: () -> Unit, onJob: (String) -> Unit, onReviews: ()
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(requireNotNull(state.error), color = AppColors.Danger)
-                TextButton(viewModel::load) { Text(stringResource(R.string.onboarding_retry)) }
+                com.workernotfound.app.core.designsystem.component.AppSecondaryButton(stringResource(R.string.onboarding_retry), viewModel::load)
             }
             state.entries.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(stringResource(R.string.history_empty), color = AppColors.TextSub)
@@ -124,8 +124,8 @@ private fun HistoryCard(entry: WorkHistoryEntry, onJob: () -> Unit) {
                 "WORK_TERMINATED" -> Text(stringResource(R.string.settlement_work_terminated), fontSize = 12.sp, color = AppColors.Warning)
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            TextButton(onJob) { Text(stringResource(R.string.history_open_job) + " ›", fontSize = 13.sp) }
+        Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.End) {
+            com.workernotfound.app.core.designsystem.component.AppSmallButton(stringResource(R.string.history_open_job), onJob)
         }
     }
 }

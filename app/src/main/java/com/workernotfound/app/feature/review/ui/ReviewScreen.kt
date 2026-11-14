@@ -159,7 +159,7 @@ private fun EmptyCard(text: String) {
 
 @Composable
 private fun MoreButton(text: String, enabled: Boolean, onClick: () -> Unit) {
-    TextButton(onClick, enabled = enabled, modifier = Modifier.fillMaxWidth()) { Text(text) }
+    AppSecondaryButton(text, onClick, enabled = enabled)
 }
 
 private fun stars(rating: Int): String = "★".repeat(rating.coerceIn(0, 5)) + "☆".repeat(5 - rating.coerceIn(0, 5))

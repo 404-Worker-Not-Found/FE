@@ -137,9 +137,7 @@ private fun MatchSuccessView(app: WorkerApplication, onGoChat: () -> Unit, onHom
         Spacer(Modifier.height(20.dp))
         AppPrimaryButton(text = "채팅방으로 이동", onClick = onGoChat, enabled = app.chatRoomId != null)
         Spacer(Modifier.height(8.dp))
-        TextButton(onClick = onHome, modifier = Modifier.fillMaxWidth()) {
-            Text(text = stringResource(R.string.worker_go_home), color = AppColors.TextSub)
-        }
+        com.workernotfound.app.core.designsystem.component.AppSecondaryButton(stringResource(R.string.worker_go_home), onHome)
     }
 }
 
@@ -176,9 +174,7 @@ private fun RematchWaitingView(
         Spacer(Modifier.height(20.dp))
         AppPrimaryButton(text = "수락하기", onClick = onAccept)
         Spacer(Modifier.height(8.dp))
-        TextButton(onClick = onReject, modifier = Modifier.fillMaxWidth()) {
-            Text(text = "거절", color = AppColors.TextSub)
-        }
+        com.workernotfound.app.core.designsystem.component.AppSecondaryButton("거절", onReject, color = AppColors.TextSub)
     }
 }
 
