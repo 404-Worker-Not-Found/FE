@@ -12,6 +12,7 @@
     <string name="notifications_attendance">출근이 확인되었습니다.</string>
     <string name="notifications_started">근무가 시작되었습니다.</string>
     <string name="notifications_completed">근무가 완료되었습니다.</string>
+    <string name="notifications_review_requested">근무 리뷰를 작성해 주세요.</string>
     <string name="notifications_no_show">노쇼 처리 결과가 도착했습니다.</string>
     <string name="notifications_canceled">근무가 취소되었습니다.</string>
     <string name="notifications_funding">결제 확인이 필요합니다.</string>

@@ -10,7 +10,10 @@ interface ReviewApi {
     @GET("api/members/me/reviews/pending") suspend fun pending(@Query("page") page: Int, @Query("size") size: Int = 20): ApiResponse<PendingPageDto>
     @GET("api/members/{id}/reviews") suspend fun received(@Path("id") id: Long, @Query("page") page: Int, @Query("size") size: Int = 20): ApiResponse<ReceivedPageDto>
     @POST("api/members/me/reviews") suspend fun write(@Body body: WriteReviewDto): ApiResponse<WrittenReviewDto>
+    @GET("api/members/{id}/trust-score") suspend fun trustScore(@Path("id") id: Long): ApiResponse<TrustScoreDto>
 }
+data class TrustScoreDto(val memberId: Long, val trustScore: BigDecimal?, val reviewCount: Long,
+    val noShowCount: Long, val updatedAt: String?)
 data class PendingTargetDto(val workId: Long, val jobPostId: Long, val revieweeMemberId: Long,
     val workDate: String, val completedAt: String, val writableUntil: String)
 data class PendingPageDto(val works: List<PendingTargetDto>, val page: Int, val size: Int, val totalCount: Long)

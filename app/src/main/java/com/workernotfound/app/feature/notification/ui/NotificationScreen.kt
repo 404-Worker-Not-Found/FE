@@ -127,6 +127,7 @@ private fun notificationTitle(type: String): Int = when (type) {
     "WorkCheckedIn" -> R.string.notifications_attendance
     "WorkStarted" -> R.string.notifications_started
     "WorkCompleted" -> R.string.notifications_completed
+    "ReviewRequested" -> R.string.notifications_review_requested
     "WorkNoShow" -> R.string.notifications_no_show
     "WorkCanceled" -> R.string.notifications_canceled
     "FUNDING_REVIEW_REQUIRED" -> R.string.notifications_funding

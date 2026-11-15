@@ -9,6 +9,7 @@ import com.workernotfound.app.feature.worker.domain.model.WorkerJobPosting
 import com.workernotfound.app.feature.worker.domain.model.WorkerPreference
 import com.workernotfound.app.feature.worker.domain.repository.WorkerApplicationRepository
 import com.workernotfound.app.feature.worker.domain.repository.WorkerJobFeedRepository
+import com.workernotfound.app.feature.worker.domain.repository.WorkerProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -23,6 +24,7 @@ class WorkerHomeViewModel @Inject constructor(
     private val applications: WorkerApplicationRepository,
     private val backend: BackendAccess,
     private val feed: WorkerJobFeedRepository,
+    private val profiles: WorkerProfileRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WorkerHomeUiState())
@@ -31,6 +33,11 @@ class WorkerHomeViewModel @Inject constructor(
     private var loading: kotlinx.coroutines.Job? = null
 
     init {
+        viewModelScope.launch {
+            profiles.profile.collect { profile ->
+                if (profile != null) _uiState.update { it.copy(workerName = profile.name) }
+            }
+        }
         loadJobs()
     }
 
@@ -52,7 +59,7 @@ class WorkerHomeViewModel @Inject constructor(
                         isLoading = false,
                         isRefreshing = false,
                         errorMessage = null,
-                        workerName = result.preference?.name,
+                        workerName = profiles.profile.value?.name ?: result.preference?.name,
                         activityRadiusKm = result.preference?.activityRadiusKm,
                         origin = result.origin,
                         urgentJobs = result.urgent,

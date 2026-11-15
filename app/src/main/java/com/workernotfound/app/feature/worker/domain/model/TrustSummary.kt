@@ -6,11 +6,10 @@ import java.math.BigDecimal
  * 나의 신뢰도 화면 데이터 (UI spec 4-2).
  *
  * Counts, reviews and history come from the worker's own works, received reviews and settlements.
- * [score], [grade] and [noShowRisk] stay null: matching-service keeps the trust score internally and
- * exposes no public endpoint, so the app never invents them.
+ * [score] comes from member-service. [grade] and [noShowRisk] remain unavailable in its response.
  */
 data class TrustSummary(
-    val score: Int?,
+    val score: BigDecimal?,
     val grade: String?,
     val noShowRisk: NoShowRiskLevel?,
     val totalWorkCount: Int,      // 완료한 근무

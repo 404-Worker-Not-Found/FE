@@ -80,6 +80,7 @@
     <string name="worker_mypage_name">이름</string>
     <string name="worker_mypage_trust">나의 신뢰도</string>
     <string name="worker_mypage_trust_score">%1$d점 · %2$s</string>
+    <string name="worker_mypage_trust_value">%1$s점</string>
     <string name="worker_mypage_trust_unavailable">점수 준비 중</string>
     <string name="worker_mypage_notification_unavailable">서버에 알림 수신 설정 API가 없어 아직 변경할 수 없어요.</string>
 

@@ -4,6 +4,8 @@
 
 확인일: 2026-11-02. 배포된 8개 서비스 OpenAPI와 BE `0c3b320`의 controller/DTO를 대조했다. 이후 BE `e24145f`까지 재확인했고, 변경 범위는 Android 배포 설정·검증·문서이며 앱 API/가입 조건은 동일하다. 민감한 Swagger 인증정보와 앱 로그인 자격증명은 이 문서 및 앱에 포함하지 않는다.
 
+2026-11-14 추가 확인: BE `develop`의 `59f1fc4` controller/DTO 및 알림 설계를 확인했다. 신뢰 점수 조회와 `ReviewRequested` 연결을 반영했다. 에뮬레이터의 실제 계정으로 `GET /api/members/{memberId}/trust-score`가 HTTP 404를 반환하는 것을 확인했다. 현재 배포 서버에 최신 조회 계약이 적용됐는지 BE 배포 확인이 필요하다. 앱은 이 요청의 404만 점수 미제공으로 처리해 나머지 신뢰도 정보를 표시한다. 배포 Swagger 인증 대조는 남아 있다.
+
 ## 주소와 인증
 
 - API base URL: `https://api.15-165-106-227.sslip.io/`. `api.baseUrl` Gradle property 또는 gitignore된 `local.properties`로 변경한다. HTTPS와 마지막 `/`가 필요하다.
@@ -23,7 +25,7 @@ BE `e24145f`는 기존 웹 프론트 전제를 수정해 `FRONTEND_ORIGIN` 의�
 
 ## 실행 모드
 
-아직 계약이 없는 기능(노쇼·재매칭, 정산 지급 승인, 신뢰도 점수, 프로필 사진, 알림 설정)은 화면을 유지하되 준비 중 오류를 반환하며 가짜 성공을 만들지 않는다.
+아직 계약이 없는 기능(노쇼·재매칭, 정산 지급 승인, 신뢰도 등급·노쇼 위험도, 프로필 사진, 알림 설정)은 화면을 유지하되 준비 중 오류를 반환하며 가짜 성공을 만들지 않는다.
 
 ## 현재 구현 화면 우선 연결
 
@@ -44,7 +46,7 @@ BE `e24145f`는 기존 웹 프론트 전제를 수정해 `FRONTEND_ORIGIN` 의�
 | 점주 근무 2-4 | 근무 목록/상세, attendance-policy, start·complete API | 실제 startedAt 타이머와 서버 완료 역할/조기완료 정책 반영. 근무완료와 지급완료 분리 |
 | 점주 정산/지난 공고 | 정산 cursor 조회와 본인 근무·공고 조합 | 서버 BigDecimal 금액·통화·지급 상태 표시. 다중 근무자는 workId별 구분. 지급 승인·수동 노쇼 공개 API는 없음 |
 | 점주·알바생 마이페이지 | `GET/PATCH /api/members/me`, AuthRepository 로그아웃 | 기본 프로필 조회/이름 변경 연결. API 없는 사진·알림 설정은 비노출. 로그인 UI 연결, 기기 E2E 후속 |
-| 알바생 신뢰도/출근 | GPS 정책 조회·실제 위치·check-in POST 연결 | 신뢰점수 통계는 미지원으로 분리. 시간/반경/정확한 권한을 확인하고 서버 수락 후 출근 완료 |
+| 알바생 신뢰도/출근 | `GET /api/members/{memberId}/trust-score`, GPS 정책 조회·실제 위치·check-in POST 연결 | 신뢰 점수·리뷰/노쇼 횟수는 서버 응답. 등급·노쇼 위험도는 미제공. 시간/반경/정확한 권한을 확인하고 서버 수락 후 출근 완료 |
 
 ## 확인된 UI와 백엔드 차이
 
@@ -136,6 +138,7 @@ BE 최신 `e24145f`의 auth/signup/verification/password-reset 및 job/payment c
 - 홈·탐색의 전체 공고는 선호 업종·희망 시급·가능 시간으로 걸러내지 않는다. '즉시 지원 가능'은 `GET /api/members/me`의 활동 반경과 검색 카드(status·remainingMinutes·distanceKm), `GET /api/applications`의 지원 여부로 앱에서 판정한다. 공고별 모집 반경과 추천 API는 서버에 없어 알바생 활동 반경을 사용한다.
 - 거리는 기기의 마지막 위치, 없으면 등록한 기준 위치로 `workerLat/workerLng`를 보내 서버 distanceKm를 받는다. 검색 API에 키워드 파라미터가 없어 가게·업종명은 받은 결과에서 거르고, 동네는 Geocoder로 좌표를 찾아 그 위치로 다시 조회한다.
 - 공고 상세 응답에는 긴급도·거리·마감·좌표가 없어 직전 검색 카드 값을 쓴다. 알림 등 카드 없이 열면 긴급 배지·지원 가능 판정은 표시하지 않는다. 가산 시급은 extraWage 합계만 있어 긴급/시간대로 나누지 않는다.
-- 신뢰도 화면의 근무·노쇼 횟수, 리뷰 평균, 최근 리뷰(workId로 가게명 연결), 최근 근무 이력(평점·실제 정산액)은 실제 데이터다. 신뢰 점수·등급·노쇼 위험도는 matching-service 내부에만 있어 '준비 중'으로 표시한다.
+- 신뢰도 화면의 근무 횟수, 리뷰 평균, 최근 리뷰(workId로 가게명 연결), 최근 근무 이력(평점·실제 정산액)은 실제 데이터다. BE `59f1fc4` 기준 member-service의 `GET /api/members/{memberId}/trust-score`에서 신뢰 점수·리뷰/노쇼 횟수를 조회한다. 등급·노쇼 위험도는 응답에 없어 '준비 중'으로 표시한다.
+- BE `59f1fc4`의 근무 완료 `ReviewRequested` 알림은 양 역할의 리뷰 화면으로 이동한다. 알림 목록과 읽음 API의 경로·응답 형식은 기존과 같다.
 - 알림 수신 설정(Push/이메일/SMS) API와 프로필 사진 저장 API가 없어 토글은 비활성, 아바타는 이니셜만 표시한다. BE에 FCM 기기 토큰 API(`PUT /api/notifications/me/device-tokens`)는 생겼지만 앱에 Firebase 설정(google-services.json)이 없어 미연결이다.
 - 지도(탐색 지도 탭·상세 미니맵)는 코드가 연결돼 있으나 `local.properties`의 `naver.mapClientId`가 없으면 '지도 설정 안 됨'으로 표시된다.

@@ -50,6 +50,7 @@ import com.workernotfound.app.feature.worker.domain.model.Review
 import com.workernotfound.app.feature.worker.domain.model.TrustSummary
 import com.workernotfound.app.feature.worker.domain.model.WorkHistoryItem
 import com.workernotfound.app.feature.worker.viewmodel.WorkerTrustViewModel
+import java.math.BigDecimal
 
 /** 나의 신뢰도 (UI spec 4-2): 게이지 → 지표 → 노쇼 위험도 → 최근 리뷰 → 최근 근무 이력. */
 @Composable
@@ -125,7 +126,7 @@ private fun TrustGaugeCard(summary: TrustSummary) {
 }
 
 @Composable
-private fun SemicircleGauge(score: Int?, grade: String?) {
+private fun SemicircleGauge(score: BigDecimal?, grade: String?) {
     Box(modifier = Modifier.fillMaxWidth().aspectRatio(2f), contentAlignment = Alignment.BottomCenter) {
         val trackColor = AppColors.Border
         val fillColor = AppTheme.role.accent
@@ -137,13 +138,13 @@ private fun SemicircleGauge(score: Int?, grade: String?) {
             drawArc(trackColor, 180f, 180f, false, topLeft, arcSize, style = Stroke(width = strokeW, cap = StrokeCap.Round))
             if (score != null) {
                 drawArc(
-                    fillColor, 180f, 180f * (score / 100f).coerceIn(0f, 1f), false, topLeft, arcSize,
+                    fillColor, 180f, 180f * (score.toFloat() / 100f).coerceIn(0f, 1f), false, topLeft, arcSize,
                     style = Stroke(width = strokeW, cap = StrokeCap.Round),
                 )
             }
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(bottom = 4.dp)) {
-            Text(text = score?.toString() ?: "-", fontSize = 40.sp, fontWeight = FontWeight.Bold, color = AppTheme.role.accentPressed)
+            Text(text = score?.toPlainString() ?: "-", fontSize = 40.sp, fontWeight = FontWeight.Bold, color = AppTheme.role.accentPressed)
             Spacer(Modifier.height(4.dp))
             Text(
                 text = grade ?: stringResource(R.string.worker_mypage_trust_unavailable),

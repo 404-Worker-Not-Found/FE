@@ -7,6 +7,8 @@ import com.workernotfound.app.feature.auth.domain.AuthRepository
 import com.workernotfound.app.feature.mypage.domain.ProfileNamePolicy
 import com.workernotfound.app.feature.worker.domain.model.WorkerProfile
 import com.workernotfound.app.feature.worker.domain.repository.WorkerProfileRepository
+import com.workernotfound.app.feature.worker.domain.repository.WorkerTrustRepository
+import java.math.BigDecimal
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +19,7 @@ import javax.inject.Inject
 
 data class WorkerMyPageUiState(
     val profile: WorkerProfile? = null,
+    val trustScore: BigDecimal? = null,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
     val nameDraft: String? = null,
@@ -31,6 +34,7 @@ enum class WorkerNotificationChannel { PUSH, EMAIL, SMS }
 @HiltViewModel
 class WorkerMyPageViewModel @Inject constructor(
     private val repository: WorkerProfileRepository,
+    private val trust: WorkerTrustRepository,
     private val auth: AuthRepository,
     private val backend: BackendAccess,
 ) : ViewModel() {
@@ -45,12 +49,15 @@ class WorkerMyPageViewModel @Inject constructor(
     }
 
     fun load() {
-        state.update { it.copy(isLoading = true, profile = null, errorMessage = null) }
+        state.update { it.copy(isLoading = true, profile = null, trustScore = null, errorMessage = null) }
         viewModelScope.launch {
             try {
                 repository.load()
                 // The loaded value may equal the existing StateFlow value and not emit again.
                 state.update { it.copy(profile = repository.profile.value) }
+                runCatching { trust.getTrustSummary().score }
+                    .onSuccess { score -> state.update { it.copy(trustScore = score) } }
+                    .onFailure { if (it is CancellationException) throw it }
             }
             catch (error: Exception) { report(error) }
             finally { state.update { it.copy(isLoading = false) } }

@@ -93,7 +93,7 @@ fun WorkerMyPageScreen(
         )
 
         uiState.errorMessage?.let { Text(it, color = AppColors.Danger) }
-        ProfileCard(profile = profile, onTrustClick = onTrustClick)
+        ProfileCard(profile = profile, trustScore = uiState.trustScore, onTrustClick = onTrustClick)
 
         AppCard(modifier = Modifier.fillMaxWidth()) {
             Text(text = "알림 설정", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.TextSub)
@@ -123,7 +123,7 @@ fun WorkerMyPageScreen(
 }
 
 @Composable
-private fun ProfileCard(profile: WorkerProfile, onTrustClick: () -> Unit) {
+private fun ProfileCard(profile: WorkerProfile, trustScore: java.math.BigDecimal?, onTrustClick: () -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             // 프로필 사진 저장 API가 없어 상단에는 이니셜 아바타만 둔다.
@@ -151,9 +151,9 @@ private fun ProfileCard(profile: WorkerProfile, onTrustClick: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "⭐ " + stringResource(R.string.worker_mypage_trust), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColors.WorkerEmphasis)
                 Spacer(Modifier.weight(1f))
-                // 신뢰 점수·등급 공개 API가 생기면 worker_mypage_trust_score("{점수}점 · {등급}")로 표시한다.
                 Text(
-                    text = stringResource(R.string.worker_mypage_trust_unavailable) + "  ›",
+                    text = (trustScore?.let { stringResource(R.string.worker_mypage_trust_value, it.toPlainString()) }
+                        ?: stringResource(R.string.worker_mypage_trust_unavailable)) + "  ›",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.WorkerEmphasis,
