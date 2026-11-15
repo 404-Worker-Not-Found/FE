@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <queries>
         <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="supertoss" /></intent>
@@ -54,6 +55,14 @@
         android:theme="@style/Theme.WorkerNotFound">
 
         <!-- App initializes Naver SDK only when the local BuildConfig client ID is configured. -->
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/push_notification_channel_id" />
+
+        <service android:name=".feature.notification.data.AppMessagingService" android:exported="false">
+            <intent-filter><action android:name="com.google.firebase.MESSAGING_EVENT" /></intent-filter>
+        </service>
 
         <provider
             android:name=".feature.mypage.data.ProfilePhotoFileProvider"

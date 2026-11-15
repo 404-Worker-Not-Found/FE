@@ -140,5 +140,5 @@ BE 최신 `e24145f`의 auth/signup/verification/password-reset 및 job/payment c
 - 공고 상세 응답에는 긴급도·거리·마감·좌표가 없어 직전 검색 카드 값을 쓴다. 알림 등 카드 없이 열면 긴급 배지·지원 가능 판정은 표시하지 않는다. 가산 시급은 extraWage 합계만 있어 긴급/시간대로 나누지 않는다.
 - 신뢰도 화면의 근무 횟수, 리뷰 평균, 최근 리뷰(workId로 가게명 연결), 최근 근무 이력(평점·실제 정산액)은 실제 데이터다. BE `59f1fc4` 기준 member-service의 `GET /api/members/{memberId}/trust-score`에서 신뢰 점수·리뷰/노쇼 횟수를 조회한다. 등급·노쇼 위험도는 응답에 없어 '준비 중'으로 표시한다.
 - BE `59f1fc4`의 근무 완료 `ReviewRequested` 알림은 양 역할의 리뷰 화면으로 이동한다. 알림 목록과 읽음 API의 경로·응답 형식은 기존과 같다.
-- 알림 수신 설정(Push/이메일/SMS) API와 프로필 사진 저장 API가 없어 토글은 비활성, 아바타는 이니셜만 표시한다. BE에 FCM 기기 토큰 API(`PUT /api/notifications/me/device-tokens`)는 생겼지만 앱에 Firebase 설정(google-services.json)이 없어 미연결이다.
+- 알림 수신 설정(Push/이메일/SMS) API와 프로필 사진 저장 API가 없어 토글은 비활성, 아바타는 이니셜만 표시한다. Android Firebase 설정 파일·Google Services 플러그인·Messaging SDK, FCM 토큰 등록(`PUT /api/notifications/me/device-tokens`), 수신 서비스와 알림 권한 요청을 연결했다. 2026-11-15 에뮬레이터에서 서버 토큰 등록과 Firebase Console 테스트 메시지 수신을 확인했다. 이후 새 높은 중요도 채널을 앱 시작 시 생성하고 FCM 기본 채널로 지정해 화면 상단 배너가 실제 표시되는 것도 확인했다. BE 업무 이벤트 발송과 이벤트별 알림 이동은 별도 검증이 필요하다.
 - 지도(탐색 지도 탭·상세 미니맵)는 코드가 연결돼 있으나 `local.properties`의 `naver.mapClientId`가 없으면 '지도 설정 안 됨'으로 표시된다.

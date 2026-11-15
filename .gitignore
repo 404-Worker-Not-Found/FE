@@ -12,6 +12,7 @@ captures/
 
 # Local config / secrets (see AGENTS.md: secrets live here, never committed)
 local.properties
+app/google-services.json
 
 # IntelliJ / Android Studio
 .idea/

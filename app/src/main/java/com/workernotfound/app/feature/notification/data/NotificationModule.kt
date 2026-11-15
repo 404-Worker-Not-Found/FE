@@ -33,5 +33,7 @@ class NotificationRepositoryImpl @Inject constructor(private val api: Notificati
 object NotificationModule {
     @Provides fun api(client: OkHttpClient): NotificationApi = Retrofit.Builder().baseUrl(BuildConfig.API_BASE_URL)
         .client(client).addConverterFactory(GsonConverterFactory.create()).build().create(NotificationApi::class.java)
+    @Provides fun pushApi(client: OkHttpClient): PushTokenApi = Retrofit.Builder().baseUrl(BuildConfig.API_BASE_URL)
+        .client(client).addConverterFactory(GsonConverterFactory.create()).build().create(PushTokenApi::class.java)
     @Provides fun repository(impl: NotificationRepositoryImpl): NotificationRepository = impl
 }
